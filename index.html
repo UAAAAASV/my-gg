@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>我的物品 V7</title>
+    <style>
+        :root {
+            --bg-base: #F7F8FA; --surface: #FFFFFF; --text-main: #222222; --text-muted: #999999;
+            --primary: #FF8DA1; --primary-light: #FFE8EC;
+            --badge-shipping: #FFB347; --badge-balance: #5B9AFF; --badge-unpaid: #9E9E9E;
+            --input-bg: #F2F3F5; --radius-lg: 20px; --radius-md: 12px;
+            --theme-dark: #222222; 
+            --font-family: -apple-system, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-tap-highlight-color: transparent;}
+        body { background-color: var(--bg-base); color: var(--text-main); -webkit-font-smoothing: antialiased; padding-bottom: 100px; overflow-x: hidden;}
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; height: 65px; font-size: 24px; font-weight: 600; position: sticky; top: 0; background: var(--bg-base); z-index: 90;}
+        .app-title { cursor: pointer; user-select: none; }
+        .header .icons { display: flex; gap: 16px; align-items: center;}
+        .header .icons span { font-size: 22px; cursor: pointer; color: var(--text-main); position: relative; display: flex; align-items: center; justify-content: center;}
+        .notice-dot { position: absolute; top: -2px; right: -4px; width: 10px; height: 10px; background: #FF4D4F; border-radius: 50%; border: 2px solid var(--bg-base); display: none; z-index: 5;}
+        
+        .search-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 84; animation: fadeIn 0.2s;}
+        .search-drawer { position: fixed; top: -100%; left: 0; width: 100%; background: var(--surface); padding: 15px 20px 25px; z-index: 85; box-shadow: 0 10px 20px rgba(0,0,0,0.08); transition: top 0.3s ease; border-radius: 0 0 24px 24px; box-sizing: border-box;}
+        .search-drawer.active { top: 65px; }
+        .search-box { display: flex; align-items: center; background: var(--input-bg); padding: 10px 16px; border-radius: 30px; width: 100%; box-sizing: border-box; margin: 0;}
+        .search-box input { border: none; outline: none; flex: 1; font-size: 15px; margin-left: 8px; background: transparent; min-width: 0; width: 100%;}
+        .close-search { margin-left: 12px; color: var(--text-muted); font-size: 18px; cursor: pointer; font-weight: bold; flex-shrink: 0;}
+
+        .dashboard { margin: 10px 20px; background: var(--surface); border-radius: var(--radius-lg); padding: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px;}
+        .dash-top-row { display: flex; align-items: baseline; gap: 15px; }
+        .dash-label { font-size: 14px; color: var(--text-muted); font-weight: 500;}
+        .dash-main-price { font-size: 32px; font-weight: 700; color: var(--text-main); cursor: pointer;}
+        .dash-sub { display: flex; gap: 20px; font-size: 13px; color: var(--text-muted); }
+        .dash-sub span { color: var(--text-main); font-weight: 500; cursor: pointer;}
+        
+        .status-tags { display: flex; gap: 10px; margin: 0 20px 15px; overflow-x: auto; scrollbar-width: none; }
+        .status-tags::-webkit-scrollbar { display: none; }
+        .s-tag { padding: 6px 14px; background: var(--surface); border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; color: var(--text-muted); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;}
+        .s-tag.active { background: var(--theme-dark); color: white; }
+
+        .kaomoji { display: inline-block; font-size: 16px; font-weight: normal; color: var(--primary); letter-spacing: 1px;}
+        .anim-float { animation: floatTxt 2.5s ease-in-out infinite; }
+        .anim-shake { animation: shakeTxt 0.5s ease-in-out infinite; }
+        .anim-flip { animation: flipTxt 2s linear infinite; }
+        .anim-pulse { animation: pulseTxt 1s infinite alternate; }
+        .anim-bounce { animation: bounceTxt 0.6s infinite alternate cubic-bezier(0.5,0.05,1,0.5); }
+        
+        @keyframes spinScale { 0% {transform: rotate(0deg) scale(1);} 50% {transform: rotate(180deg) scale(1.2);} 100% {transform: rotate(360deg) scale(1);} }
+        @keyframes wobble { 0%, 100% {transform: translateX(0) rotate(0deg);} 15% {transform: translateX(-3px) rotate(-5deg);} 30% {transform: translateX(3px) rotate(3deg);} 45% {transform: translateX(-3px) rotate(-3deg);} 60% {transform: translateX(3px) rotate(2deg);} 75% {transform: translateX(-1px) rotate(-1deg);} }
+        @keyframes heartbeat { 0% {transform: scale(1);} 14% {transform: scale(1.3);} 28% {transform: scale(1);} 42% {transform: scale(1.3);} 70% {transform: scale(1);} }
+        @keyframes swing { 20% {transform: rotate3d(0, 0, 1, 15deg);} 40% {transform: rotate3d(0, 0, 1, -10deg);} 60% {transform: rotate3d(0, 0, 1, 5deg);} 80% {transform: rotate3d(0, 0, 1, -5deg);} 100% {transform: rotate3d(0, 0, 1, 0deg);} }
+        .anim-spin-scale { animation: spinScale 2s linear infinite; }
+        .anim-wobble { animation: wobble 2s ease-in-out infinite; }
+        .anim-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
+        .anim-swing { animation: swing 2s ease-in-out infinite; transform-origin: top center; }
+
+        .char-wave { display: inline-block; animation: charWave 1s ease-in-out infinite; }
+        .char-jump { display: inline-block; animation: charJump 0.8s ease-in-out infinite; }
+
+        @keyframes floatTxt { 0%,100%{transform:translate(0,0)} 25%{transform:translate(3px,-2px) rotate(2deg)} 50%{transform:translate(-2px,3px) rotate(-1deg)} 75%{transform:translate(2px,2px) rotate(1deg)} }
+        @keyframes shakeTxt { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-2px) translateY(1px)} 75%{transform:translateX(2px) translateY(-1px)} }
+        @keyframes flipTxt { 0%{transform:rotateY(0deg)} 100%{transform:rotateY(360deg)} }
+        @keyframes pulseTxt { from { transform: scale(1); } to { transform: scale(1.1); } }
+        @keyframes bounceTxt { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+        @keyframes charWave { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @keyframes charJump { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.1)} }
+
+        .main-category-block { margin: 0 20px 20px; background: var(--surface); border-radius: var(--radius-lg); padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
+        .main-title-bar { position: sticky; top: 65px; z-index: 50; background: var(--surface); display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: bold; padding: 10px 0; border-bottom: 2px solid var(--bg-base); margin: -10px 0 15px 0; cursor: pointer; user-select: none;}
+        .main-sum { font-size: 14px; color: var(--primary); background: var(--primary-light); padding: 4px 12px; border-radius: 20px;}
+        
+        .sub-category-block { margin-bottom: 15px; }
+        .sub-title { position: sticky; top: 110px; z-index: 40; background: var(--surface); font-size: 14px; font-weight: 600; color: #555; padding: 8px 0; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;}
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .item-card { background: var(--bg-base); border-radius: var(--radius-md); position: relative; aspect-ratio: 1; overflow: hidden; cursor: pointer; display: flex; justify-content: center; align-items: center; text-align: center;}
+        .item-card img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;}
+        .item-card::after { content: ''; position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); pointer-events: none; z-index: 2;}
+        
+        .no-img-text { z-index: 1; padding: 10px; font-size: 14px; color: #555; font-weight: bold; word-break: break-all;}
+        .item-name-overlay { position: absolute; bottom: 6px; left: 8px; right: 8px; color: white; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; z-index: 6;}
+        .important-overlay { position: absolute; left: 0; right: 0; padding: 4px; text-align: center; z-index: 5; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;}
+        .badge { position: absolute; top: 6px; left: 6px; padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 600; color: #fff; z-index: 3;}
+        .badge-near { position: absolute; top: 6px; right: 6px; padding: 3px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; background: #FF4D4F; color: #fff; z-index: 3;}
+
+        .more-card { display: flex; justify-content: center; align-items: center; background: #000;}
+        .more-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 26px; font-weight: bold; z-index: 5; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+
+        .fab { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; background: var(--theme-dark); border-radius: 30px; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); z-index: 80; cursor: pointer;}
+        .fab::before, .fab::after { content: ''; position: absolute; background: white; border-radius: 2px;}
+        .fab::before { width: 20px; height: 3px; }
+        .fab::after { width: 3px; height: 20px; }
+
+        .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 100; animation: fadeIn 0.2s;}
+        .drawer { position: absolute; bottom: 0; left: 0; width: 100%; max-height: 90vh; background: var(--surface); border-radius: 24px 24px 0 0; padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; animation: slideUp 0.3s ease;}
+        .drawer-handler { width: 40px; height: 5px; background: #E0E0E0; border-radius: 5px; margin: 0 auto 20px; flex-shrink: 0;}
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+        input[type="text"], input[type="password"], input[type="number"], input[type="date"], select, textarea { width: 100%; background: var(--input-bg); border: none; border-radius: var(--radius-md); padding: 14px; font-size: 14px; color: var(--text-main); outline: none; box-sizing: border-box;}
+        textarea { resize: none; height: 80px; }
+        input[type="color"] { border: none; background: transparent; height: 40px; padding: 0; border-radius: 8px; cursor: pointer;}
+        input[type="range"] { padding: 0; background: transparent; height: auto; }
+        .row { display: flex; gap: 12px; }
+        .row > div { flex: 1; }
+
+        .segmented-control { display: flex; background: var(--input-bg); padding: 4px; border-radius: 10px; margin-bottom: 20px;}
+        .segmented-control label { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; font-weight: 600; color: var(--text-muted); border-radius: 8px; cursor: pointer; transition: 0.2s;}
+        .segmented-control input[type="radio"] { display: none; }
+        .segmented-control input[type="radio"]:checked + label { background: var(--surface); color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+        .img-wrap-container { display: flex; flex-wrap: wrap; gap: 12px; padding: 10px 0 20px 0;}
+        .img-uploader { width: 90px; height: 90px; background: var(--input-bg); border-radius: 12px; border: 2px dashed #D0D0D0; display: flex; justify-content: center; align-items: center; flex-direction: column; color: var(--text-muted); position: relative; overflow: visible; flex-shrink: 0;}
+        .img-uploader input { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;}
+        .img-uploader img { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 1; border-radius: 10px; background: #fff;}
+        .img-label { font-size: 12px; margin-top: 6px; font-weight: 500;}
+        .img-del-btn { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; background: #FF4D4F; color: white; border-radius: 50%; font-size: 14px; display: flex; justify-content: center; align-items: center; z-index: 10; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+
+        .btn-group { display: flex; gap: 12px; margin-top: 10px; margin-bottom: 20px;}
+        .btn-group button { flex: 1; padding: 16px; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; cursor: pointer;}
+        .btn-cancel { background: var(--input-bg); color: var(--text-main);}
+        .btn-primary { background: var(--theme-dark); color: white;}
+
+        /* 设置抽屉分区样式 */
+        .settings-layout { display: flex; height: 60vh; margin: 0 -24px -20px; border-top: 1px solid #eee; background: #fff;}
+        .settings-sidebar { width: 95px; background: #F7F8FA; overflow-y: auto; padding-top: 10px; flex-shrink: 0;}
+        .settings-nav-item { padding: 16px 5px; text-align: center; font-size: 13px; color: #666; cursor: pointer; transition: 0.2s; position: relative; white-space: nowrap;}
+        .settings-nav-item.active { background: #fff; color: var(--text-main); font-weight: bold; }
+        .settings-nav-item.active::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; background: var(--primary); border-radius: 0 4px 4px 0;}
+        .settings-content { flex: 1; padding: 15px 20px; overflow-y: auto; scroll-behavior: smooth; }
+
+        .settings-section { margin-bottom: 30px;}
+        .settings-title { font-size: 15px; font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
+        .settings-add-btn { color: var(--primary); font-size: 13px; font-weight: normal; background: var(--primary-light); padding: 4px 10px; border-radius: 10px; cursor: pointer;}
+        .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .edit-tag { background: var(--input-bg); padding: 6px 12px; border-radius: 15px; font-size: 13px; display: flex; align-items: center; gap: 6px;}
+        .edit-tag span.del { color: #FF4D4F; font-weight: bold; cursor: pointer; font-size: 16px;}
+        .icon-edit-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .icon-edit-row input[type="text"] { padding: 8px; font-size: 14px; border-radius: 8px; border: none; box-sizing: border-box; background: var(--input-bg);}
+
+        .id-card-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200; justify-content: center; align-items: center; animation: fadeIn 0.2s; padding: 20px;}
+        .id-card { background: var(--surface); width: 100%; max-width: 400px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); position: relative;}
+        .id-imgs { display: flex; width: 100%; height: 280px; background: #eee; overflow-x: auto; scroll-snap-type: x mandatory;}
+        .id-imgs img { width: 100%; height: 100%; object-fit: contain; flex-shrink: 0; scroll-snap-align: center; background: #fff;}
+        .id-content { padding: 24px; }
+        .id-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;}
+        .id-title { font-size: 20px; font-weight: bold; line-height: 1.3;}
+        .id-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; white-space: nowrap; margin-left: 10px; color:#fff;}
+        .id-meta { font-size: 13px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee;}
+        .id-meta span { color: var(--text-main); font-weight: 500;}
+        .id-remark { font-size: 13px; background: var(--input-bg); padding: 12px; border-radius: 8px; color: #555; margin-bottom: 20px; line-height: 1.5;}
+        .id-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .id-btn { padding: 12px 0; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;}
+        .id-btn.edit { background: var(--input-bg); color: var(--text-main);}
+        .id-btn.action { background: var(--primary-light); color: var(--primary);}
+        .id-btn.delete { background: #FFF0F0; color: #FF4D4F;}
+        .id-close { position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 10; font-size: 16px;}
+
+        /* 二次确认弹窗层级提升，避免被通知弹窗遮挡 */
+        .custom-dialog-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .custom-dialog { background: white; width: 90%; max-width: 320px; border-radius: 16px; padding: 20px; text-align: center; max-height: 80vh; overflow-y: auto;}
+        .custom-dialog h3 { font-size: 16px; margin-bottom: 10px;}
+        .custom-dialog input[type="text"] { width: 100%; background: var(--input-bg); border: none; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-size: 14px; box-sizing: border-box;}
+        .custom-dialog .btn-row { display: flex; gap: 10px;}
+        .custom-dialog button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;}
+        .custom-dialog .btn-cancel { background: var(--input-bg); color: var(--text-muted);}
+        .custom-dialog .btn-confirm { background: var(--theme-dark); color: white;}
+
+        /* 通知弹窗 */
+        #noticeDialog { z-index: 1500; }
+        .notice-card { position:relative; display:flex; align-items:center; padding:15px 12px; border-bottom:1px solid #eee; }
+        .notice-x-btn { position:absolute; top:5px; right:5px; width:24px; height:24px; background:transparent; font-size:16px; color:#999; display:flex; justify-content:center; align-items:center; cursor:pointer; }
+        
+        /* 日历样式 */
+        .cal-header { display:flex; justify-content:space-between; align-items:center; padding: 10px; font-size:18px; font-weight:bold; }
+        .cal-week { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:12px; color:var(--text-muted); margin-bottom:10px; }
+        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+        .cal-day { aspect-ratio: 1; background: var(--input-bg); border-radius: 8px; display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:14px; cursor:pointer; position:relative;}
+        .cal-day.today { border: 2px solid var(--primary); background: var(--primary-light); font-weight: bold; color: var(--primary); }
+        .cal-day.empty { background: transparent; pointer-events: none;}
+        .cal-day.selected { background: var(--theme-dark); color: white;}
+        .cal-dots { display:flex; gap:3px; position:absolute; bottom:4px; }
+        .dot-est { width:4px; height:4px; border-radius:50%; background:#FFB347; }
+        .dot-arr { width:4px; height:4px; border-radius:50%; background:#4CAF50; }
+        .cal-stats { background:var(--primary-light); padding:15px; border-radius:12px; margin-top:15px; font-size:13px; color:var(--primary); line-height:1.6;}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="app-title" id="appTitleText" ondblclick="editAppTitle()">娃柜</div>
+        <div class="icons">
+            <span onclick="toggleSearch()" id="icon_search_render">🔍</span>
+            <span onclick="openNotices()">
+                <div id="icon_notice_render">🔔</div>
+                <div class="notice-dot" id="noticeDot"></div>
+            </span>
+            <span onclick="openCalendar()" id="icon_calendar_render">📅</span>
+            <span onclick="openSettings()" id="icon_settings_render">⚙️</span>
+            <span onclick="toggleGlobalPrice()" id="icon_eye_render">👁️</span>
+        </div>
+    </div>
+    
+    <!-- 搜索遮罩层 -->
+    <div class="search-overlay" id="searchOverlay" onclick="toggleSearch()"></div>
+    <div class="search-drawer" id="searchDrawer">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索名称或备注..." oninput="renderUI()">
+            <span class="close-search" onclick="toggleSearch()">✕</span>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="dash-top-row">
+            <span class="dash-label">总计 (元)</span>
+            <span class="dash-main-price" id="totalPriceDisplay" onclick="toggleGlobalPrice()"></span>
+        </div>
+        <div class="dash-sub">
+            <div>本体：<span id="totalBaseDisplay" onclick="toggleGlobalPrice()"></span></div>
+            <div>附加：<span id="totalShippingDisplay" onclick="toggleGlobalPrice()"></span></div>
+        </div>
+    </div>
+
+    <div class="status-tags">
+        <div class="s-tag active" id="filter_all" onclick="setStatusFilter('all')">全部</div>
+        <div class="s-tag" id="filter_not_arrived" onclick="setStatusFilter('not_arrived')">待发货 <span id="cnt_not_arrived"></span></div>
+        <div class="s-tag" id="filter_need_balance" onclick="setStatusFilter('need_balance')">待补款 <span id="cnt_need_balance"></span></div>
+        <div class="s-tag" id="filter_grouping" onclick="setStatusFilter('grouping')">待成团 <span id="cnt_grouping"></span></div>
+        <div class="s-tag" id="filter_re_shoot" onclick="setStatusFilter('re_shoot')">待补拍 <span id="cnt_re_shoot"></span></div>
+        <div class="s-tag" id="filter_need_post" onclick="setStatusFilter('need_post')">待补邮 <span id="cnt_need_post"></span></div>
+        <div class="s-tag" id="filter_unpaid" onclick="setStatusFilter('unpaid')">未付款 <span id="cnt_unpaid"></span></div>
+        <div class="s-tag" id="filter_crowdfunding" onclick="setStatusFilter('crowdfunding')">众筹 <span id="cnt_crowdfunding"></span></div>
+        <div class="s-tag" id="filter_important" onclick="setStatusFilter('important')">注意 <span id="cnt_important"></span></div>
+        <div class="s-tag" id="filter_near" onclick="setStatusFilter('near')">临近 <span id="cnt_near"></span></div>
+    </div>
+
+    <div id="cabinetsContainer"></div>
+    <div class="fab" onclick="openDrawer()"></div>
+
+    <!-- 录入抽屉 -->
+    <div class="drawer-overlay" id="addDrawer" onclick="handleDrawerClick(event)">
+        <div class="drawer">
+            <div class="drawer-handler"></div>
+            <input type="hidden" id="editingItemId" value=""> 
+            
+            <div class="segmented-control" id="typeControl">
+                <input type="radio" name="entryType" id="type_full" value="full" checked onchange="toggleEntryType()">
+                <label for="type_full">全款</label>
+                <input type="radio" name="entryType" id="type_queue" value="queue" onchange="toggleEntryType()">
+                <label for="type_queue">在排</label>
+                <input type="radio" name="entryType" id="type_deposit" value="deposit" onchange="toggleEntryType()">
+                <label for="type_deposit">定金</label>
+                <input type="radio" name="entryType" id="type_balance" value="pay_balance" onchange="toggleEntryType()">
+                <label for="type_balance">尾款</label>
+            </div>
+
+            <div class="form-group" id="pullQueueGroup" style="display: none;">
+                <select id="pullQueueSelect" onchange="autoFillFromQueue()" style="background: #f5f5f5;"></select>
+            </div>
+            <div class="form-group" id="pullDepositGroup" style="display: none;">
+                <select id="pullDepositSelect" onchange="autoFillFromDeposit()" style="background: #FFF4F4;"></select>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="itemName" placeholder="输入物品名称..." style="font-size: 18px; font-weight: bold; background: transparent; padding: 0 0 10px 0; border-bottom: 2px solid var(--input-bg); border-radius: 0;">
+            </div>
+
+            <div class="form-group img-wrap-container" id="uploadArea"></div>
+
+            <div class="form-group row">
+                <div>
+                    <label class="form-label">本体</label>
+                    <input type="number" id="priceBase" placeholder="0.00" oninput="autoCalc('base')">
+                </div>
+                <div>
+                    <label class="form-label">附加</label>
+                    <input type="number" id="priceShip" placeholder="0.00" oninput="autoCalc('ship')">
+                </div>
+                <div>
+                    <label class="form-label">总计</label>
+                    <input type="number" id="priceTotal" placeholder="0.00" oninput="autoCalc('total')">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div><label class="form-label">主分类</label><select id="mainCat"></select></div>
+                <div><label class="form-label">小分类</label><select id="subCat"><option value="">无</option></select></div>
+            </div>
+
+            <div class="form-group row">
+                <div><label class="form-label">来源</label><select id="itemSource"></select></div>
+                <div><label class="form-label">数量</label><input type="number" id="itemQty" value="1" min="1"></div>
+            </div>
+
+            <div class="form-group row">
+                <div><label class="form-label">购买日期</label><input type="date" id="itemDate"></div>
+                <div><label class="form-label">预计出货</label><input type="date" id="estDate"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">备注</label>
+                <textarea id="itemRemark" placeholder="发货工期、单号等备忘信息..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label style="display:flex; align-items:center; gap:8px; font-size:14px; color: #FF4D4F; font-weight: bold;">
+                    <input type="checkbox" id="isImportant" style="width:18px; height:18px;" onchange="document.getElementById('importantRemark').style.display = this.checked ? 'block' : 'none'">
+                    注意事项醒目提醒
+                </label>
+                <textarea id="importantRemark" placeholder="输入醒目的注意事项..." style="display:none; margin-top: 10px; border: 1px solid #FF4D4F; background: #FFF0F0; color: #FF4D4F;"></textarea>
+            </div>
+
+            <div class="form-group" style="margin-top:-5px; margin-bottom: 16px;">
+                <label class="form-label">物品状态</label>
+                <select id="itemStatus" style="font-weight: bold;">
+                    <option value="none">⚪ 无</option>
+                    <option value="crowdfunding">🚀 众筹未开/待定</option>
+                    <option value="not_arrived">📦 待发货</option>
+                    <option value="need_balance">💰 待补款</option>
+                    <option value="grouping">👥 待成团</option>
+                    <option value="re_shoot">📸 待补拍</option>
+                    <option value="need_post">📮 待补邮</option>
+                    <option value="unpaid">⏳ 未付款 (在排)</option>
+                    <option value="arrived">✅ 已入库 (签收)</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-cancel" onclick="closeDrawer()">取消</button>
+                <button class="btn-primary" onclick="saveItem()" id="btnSave">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置 -->
+    <div class="drawer-overlay" id="settingsDrawer" onclick="if(event.target===this) closeSettings()">
+        <div class="drawer" style="padding:20px 0;">
+            <div class="drawer-handler"></div>
+            <h2 style="margin: 0 20px 15px;">系统设置</h2>
+            
+            <div class="settings-layout">
+                <div class="settings-sidebar">
+                    <div class="settings-nav-item active" id="nav_sec-appearance" onclick="scrollToSec('sec-appearance')">外观</div>
+                    <div class="settings-nav-item" id="nav_sec-icons" onclick="scrollToSec('sec-icons')">图标</div>
+                    <div class="settings-nav-item" id="nav_sec-category" onclick="scrollToSec('sec-category')">分类</div>
+                    <div class="settings-nav-item" id="nav_sec-data" onclick="scrollToSec('sec-data')">本地备份</div>
+                    <div class="settings-nav-item" id="nav_sec-cloud" onclick="scrollToSec('sec-cloud')">云同步</div>
+                </div>
+                <div class="settings-content" id="settingsContent" onscroll="onSettingsScroll()">
+                    
+                    <div class="settings-section" id="sec-appearance">
+                        <div class="settings-title">外观与显示设置</div>
+                        <div class="form-group row">
+                            <div><label class="form-label">提醒字色</label><input type="color" id="set_noticeTextColor" onchange="updateAppearance('noticeTextColor', this.value)"></div>
+                            <div><label class="form-label">提醒底色</label><input type="color" id="set_noticeBgColor" onchange="updateAppearance('noticeBgColor', this.value)"></div>
+                        </div>
+                        <div class="form-group row">
+                            <div><label class="form-label">强调色 (深色按钮/标签)</label><input type="color" id="set_themeDark" onchange="updateAppearance('themeDark', this.value)"></div>
+                            <div></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">提醒上下位置 (0底部 - 100顶部)</label>
+                            <input type="range" id="set_noticePos" min="0" max="100" style="width:100%;" onchange="updateAppearance('noticePos', this.value)">
+                        </div>
+                        <div class="form-group row" style="align-items: center;">
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showName" onchange="updateAppearance('showName', this.checked)">显示名称</label></div>
+                            <div>
+                                <select id="set_nameAlign" onchange="updateAppearance('nameAlign', this.value)">
+                                    <option value="left">靠左对齐</option><option value="center">居中对齐</option><option value="right">靠右对齐</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_enableAnim" onchange="updateAppearance('enableAnim', this.checked)">隐藏金额时使用动态效果</label></div>
+                        </div>
+                        <div class="settings-title" style="margin-top:20px;">分类内排序方式</div>
+                        <select id="set_sortMethod" onchange="updateSortMethod(this.value)">
+                            <option value="manual">手动排序 (默认记录顺序)</option>
+                            <option value="create_asc">按创建时间 (早 -> 晚)</option>
+                            <option value="create_desc">按创建时间 (晚 -> 早)</option>
+                            <option value="est_asc">按出货时间 (近 -> 远)</option>
+                            <option value="est_desc">按出货时间 (远 -> 近)</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-section" id="sec-icons">
+                        <div class="settings-title">顶部图标自定义</div>
+                        <div class="icon-edit-row"><span style="width:35px; font-size:13px;">搜索</span><input type="text" id="cfg_icon_search" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('search', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('search', this)"></label></div>
+                        <div class="icon-edit-row"><span style="width:35px; font-size:13px;">通知</span><input type="text" id="cfg_icon_notice" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('notice', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('notice', this)"></label></div>
+                        <div class="icon-edit-row"><span style="width:35px; font-size:13px;">日历</span><input type="text" id="cfg_icon_calendar" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('calendar', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('calendar', this)"></label></div>
+                        <div class="icon-edit-row"><span style="width:35px; font-size:13px;">设置</span><input type="text" id="cfg_icon_settings" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('settings', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('settings', this)"></label></div>
+                        <div class="icon-edit-row"><span style="width:35px; font-size:13px;">金额</span><input type="text" id="cfg_icon_eye" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('eye', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('eye', this)"></label></div>
+                        <div style="font-size:11px; color:#999; margin-top:5px;">清空文字框内容即可恢复默认图标</div>
+                    </div>
+
+                    <div class="settings-section" id="sec-category">
+                        <div class="settings-title">主分类 <span class="settings-add-btn" onclick="addListObj('categories.main')">+ 新增</span></div><div class="tag-list" id="set_mainCat" style="margin-bottom:15px;"></div>
+                        <div class="settings-title">小分类 <span class="settings-add-btn" onclick="addListObj('categories.sub')">+ 新增</span></div><div class="tag-list" id="set_subCat" style="margin-bottom:15px;"></div>
+                        <div class="settings-title">购买来源 <span class="settings-add-btn" onclick="addListObj('sources')">+ 新增</span></div><div class="tag-list" id="set_sources" style="margin-bottom:15px;"></div>
+                        <div class="settings-title">自定义颜文字 <span class="settings-add-btn" onclick="addListObj('kaomojis')">+ 新增</span></div><div class="tag-list" id="set_kaomojis"></div>
+                    </div>
+
+                    <div class="settings-section" id="sec-data">
+                        <div class="settings-title">本地数据备份</div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-primary" style="flex:1; padding:10px; border-radius:8px; font-size:14px;" onclick="exportData()">导出文件</button>
+                            <label class="btn-cancel" style="flex:1; padding:10px; border-radius:8px; text-align:center; font-size:14px; font-weight:bold; cursor:pointer;">
+                                导入文件<input type="file" style="display:none;" accept=".json" onchange="importData(this)">
+                            </label>
+                        </div>
+                        <div style="font-size:12px; color:#999; margin-top:10px;">如果不使用云端，可以手动导出JSON文件保存到电脑。</div>
+                    </div>
+
+                    <div class="settings-section" id="sec-cloud">
+                        <div class="settings-title">GitHub 云端同步 <span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">极客玩法</span></div>
+                        <div style="font-size:12px; color:#999; margin-bottom:15px;">利用 GitHub Gist 接口作为私有数据库，安全且免费地实现多设备互通。</div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 12px;">GitHub Token (身份令牌)</label>
+                            <input type="password" id="cfg_gh_token" placeholder="输入 ghp_ 开头的秘钥..." onchange="saveCloudConfig()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 12px;">Gist ID (数据包裹 ID)</label>
+                            <input type="text" id="cfg_gh_gist_id" placeholder="首次上传后会自动填入这里..." onchange="saveCloudConfig()">
+                        </div>
+                        
+                        <div style="display:flex; gap:10px; margin-top: 20px;">
+                            <button class="btn-primary" style="flex:1; padding:10px; border-radius:8px; font-size:13px; background:var(--theme-dark);" onclick="uploadToGitHub(event)">⬆️ 上传到云端</button>
+                            <button class="btn-primary" style="flex:1; padding:10px; border-radius:8px; font-size:13px; background:#4CAF50;" onclick="downloadFromGitHub(event)">⬇️ 下载到本机</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 身份卡 -->
+    <div class="id-card-overlay" id="idCardOverlay" onclick="if(event.target===this) closeIdCard()">
+        <div class="id-card" id="idCardContent">
+            <div class="id-close" onclick="closeIdCard()">×</div>
+            <div class="id-imgs" id="idImgContainer"></div>
+            <div class="id-content">
+                <div class="id-title-row">
+                    <div class="id-title" id="idName">物品名称</div>
+                    <div class="id-status" id="idStatusBadge">状态</div>
+                </div>
+                <div class="id-meta">
+                    <div>总价: <span id="idTotal">¥0</span></div>
+                    <div>附加: <span id="idShip">¥0</span></div>
+                    <div>来源: <span id="idSource">淘宝</span></div>
+                    <div>出货: <span id="idEstDate">暂无</span></div>
+                    <div style="grid-column: span 2;">分类: <span id="idCat">BJD</span></div>
+                </div>
+                <div class="id-remark" id="idRemarkBox"></div>
+                <div class="id-actions" id="idActionGroup"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 纯内置弹窗 -->
+    <div class="custom-dialog-mask" id="customDialog">
+        <div class="custom-dialog">
+            <h3 id="dialogTitle">提示</h3>
+            <input type="text" id="dialogInput" style="display:none;">
+            <div class="btn-row">
+                <button class="btn-cancel" onclick="closeDialog()">取消</button>
+                <button class="btn-confirm" id="dialogConfirmBtn">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知弹窗 -->
+    <div class="custom-dialog-mask" id="noticeDialog" onclick="if(event.target===this) closeNoticeDialog()">
+        <div class="custom-dialog" style="width: 95%; max-width: 400px; padding:0; overflow:hidden;">
+            <h3 style="margin: 20px 20px 10px;">🔔 出货通知</h3>
+            <div id="noticeList" style="text-align: left; max-height: 60vh; overflow-y: auto; background:#fff;"></div>
+            <div style="padding:15px;"><button class="btn-confirm" style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600;" onclick="closeNoticeDialog()">关闭</button></div>
+        </div>
+    </div>
+
+    <!-- 日历弹窗 -->
+    <div class="drawer-overlay" id="calendarDrawer" onclick="if(event.target===this) closeCalendar()">
+        <div class="drawer" style="padding:20px 15px;">
+            <div class="drawer-handler"></div>
+            <div class="cal-header">
+                <span onclick="changeMonth(-1)" style="cursor:pointer; padding:5px 15px;">◀</span>
+                <span id="calMonthYear">2023年 10月</span>
+                <span onclick="changeMonth(1)" style="cursor:pointer; padding:5px 15px;">▶</span>
+            </div>
+            <div class="cal-week">
+                <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-stats" id="calStats"></div>
+            
+            <div id="calMonthHeader" style="margin-top:15px; font-weight:bold; font-size:14px; padding:10px 0; color:var(--text-main); cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleMonthList()">
+                本月物品清单 <span id="calMonthIcon" style="color:var(--text-muted); font-size:12px;">▼</span>
+            </div>
+            <div id="calMonthList" style="display:block;"></div>
+
+            <div id="calDetailList" style="margin-top:15px; border-top:1px solid #eee; padding-top:15px; display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 配置初始化
+        let appConfig = JSON.parse(localStorage.getItem('myCabinetConfigV7')) || {};
+        if (!appConfig.title) appConfig.title = "娃柜";
+        if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
+        if (!appConfig.appearance) {
+            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticePos: 15, showName: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true };
+        } else {
+            if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
+            if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
+        }
+        if (!appConfig.cloud) appConfig.cloud = { token: '', gistId: '' };
+        
+        document.documentElement.style.setProperty('--theme-dark', appConfig.appearance.themeDark);
+        
+        const defaultIcons = {
+            search: { type: 'text', val: '🔍' },
+            notice: { type: 'text', val: '🔔' },
+            calendar: { type: 'text', val: '📅' },
+            settings: { type: 'text', val: '⚙️' },
+            eye: { type: 'text', val: '👁️' }
+        };
+        if (!appConfig.topIcons) appConfig.topIcons = JSON.parse(JSON.stringify(defaultIcons));
+        if (!appConfig.topIcons.calendar) appConfig.topIcons.calendar = { type: 'text', val: '📅' };
+
+        const defaultData = { 
+            items: [], 
+            categories: { main: ['人偶', '娃娃', '周边', '手办'], sub: ['特6','8分', '4分', '12分','20cm', '吧唧'] },
+            sources: ['拼团','淘宝', '拼多多','闲鱼', '微店',  '其他'],
+            kaomojis: ['( ´ ▽ ` )', '(o^▽^o)', '(*¯︶¯*)', 'ᕕ( ᐛ )ᕗ', '(´･ᴗ･ ` )', '(≧◡≦)',  '(๑•̀ㅂ•́)و✧', 'ヾ(≧▽≦*)o', 'ε٩(๑> ₃ <)۶з', '(✿◡‿◡)', '╰(*°▽°*)╯']
+        };
+        let appData = JSON.parse(localStorage.getItem('myCabinetDataV7')) || defaultData;
+        const STATUS_MAP = { none: '无', crowdfunding: '众筹待定', unpaid: '未付款', need_balance: '待补款', grouping: '待成团', re_shoot: '待补拍', need_post: '待补邮', not_arrived: '待发货', arrived: '已入库' };
+        
+        let globalHidden = true;
+        let catHiddenState = {}; 
+        let expandState = {}; 
+        let mainCatFold = {}; 
+        let subCatFold = {}; 
+        let currentFilter = 'all';
+        let noticeTimer = null;
+
+        document.getElementById('appTitleText').innerText = appConfig.title;
+
+        // 弹窗
+        let dialogCallback = null;
+        function showDialog(title, showInput, placeholder, confirmText, callback) {
+            document.getElementById('dialogTitle').innerText = title;
+            const input = document.getElementById('dialogInput');
+            if(showInput) { input.style.display = 'block'; input.value = ''; input.placeholder = placeholder || ''; } else input.style.display = 'none';
+            document.getElementById('dialogConfirmBtn').innerText = confirmText || '确认';
+            dialogCallback = callback;
+            document.getElementById('customDialog').style.display = 'flex';
+        }
+        function closeDialog() { document.getElementById('customDialog').style.display = 'none'; }
+        document.getElementById('dialogConfirmBtn').onclick = () => { closeDialog(); if(dialogCallback) dialogCallback(document.getElementById('dialogInput').value); };
+        function editAppTitle() { showDialog("修改名称", true, "输入新名称", "保存", (val) => { if(val) { appConfig.title = val.trim(); localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); document.getElementById('appTitleText').innerText = appConfig.title; }}); }
+
+        function getFace() { 
+            const list = appData.kaomojis;
+            const face = list[Math.floor(Math.random() * list.length)];
+            if(appConfig.appearance.enableAnim === false) {
+                return `<span class="kaomoji">${face}</span>`;
+            }
+            const anims = ['anim-float', 'anim-shake', 'anim-flip', 'anim-pulse', 'anim-bounce', 'anim-spin-scale', 'anim-wobble', 'anim-heartbeat', 'anim-swing', 'wave', 'jump'];
+            const anim = anims[Math.floor(Math.random() * anims.length)];
+            if (anim === 'wave' || anim === 'jump') {
+                let html = '';
+                for(let i=0; i<face.length; i++) html += `<span class="char-${anim}" style="animation-delay: ${i * 0.1}s">${face[i]}</span>`;
+                return `<span class="kaomoji">${html}</span>`;
+            }
+            return `<span class="kaomoji ${anim}">${face}</span>`;
+        }
+
+        // 图标自定义渲染
+        function renderTopIcons() {
+            const getHtml = (obj) => obj.type === 'img' ? `<img src="${obj.val}" style="width:24px;height:24px;object-fit:contain;">` : obj.val;
+            document.getElementById('icon_search_render').innerHTML = getHtml(appConfig.topIcons.search);
+            document.getElementById('icon_notice_render').innerHTML = getHtml(appConfig.topIcons.notice);
+            document.getElementById('icon_calendar_render').innerHTML = getHtml(appConfig.topIcons.calendar);
+            document.getElementById('icon_settings_render').innerHTML = getHtml(appConfig.topIcons.settings);
+            document.getElementById('icon_eye_render').innerHTML = getHtml(appConfig.topIcons.eye);
+        }
+
+        function updateTopIcon(key, type, val) {
+            if(!val.trim()) { appConfig.topIcons[key] = { type: 'text', val: defaultIcons[key].val }; document.getElementById('cfg_icon_' + key).value = ''; } 
+            else { appConfig.topIcons[key] = { type: type, val: val.trim() }; }
+            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); renderTopIcons();
+        }
+
+        function updateTopIconImg(key, input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader(); reader.readAsDataURL(input.files[0]);
+                reader.onload = (e) => {
+                    appConfig.topIcons[key] = { type: 'img', val: e.target.result };
+                    localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); renderTopIcons();
+                    document.getElementById('cfg_icon_' + key).value = '[已选图片]';
+                }
+            }
+        }
+
+        // 设置中心及左侧滚动
+        function openSettings() { renderSettings(); document.getElementById('settingsDrawer').style.display = 'flex'; }
+        function closeSettings() { document.getElementById('settingsDrawer').style.display = 'none'; }
+        function renderSettings() {
+            ['search', 'notice', 'calendar', 'settings', 'eye'].forEach(key => {
+                let obj = appConfig.topIcons[key];
+                document.getElementById('cfg_icon_' + key).value = obj.type === 'img' ? '[已选图片]' : (obj.val === defaultIcons[key].val ? '' : obj.val);
+            });
+            document.getElementById('set_noticeTextColor').value = appConfig.appearance.noticeTextColor; 
+            document.getElementById('set_noticeBgColor').value = appConfig.appearance.noticeBgColor; 
+            document.getElementById('set_themeDark').value = appConfig.appearance.themeDark;
+            document.getElementById('set_noticePos').value = appConfig.appearance.noticePos; 
+            document.getElementById('set_showName').checked = appConfig.appearance.showName; 
+            document.getElementById('set_enableAnim').checked = appConfig.appearance.enableAnim; 
+            document.getElementById('set_nameAlign').value = appConfig.appearance.nameAlign; 
+            document.getElementById('set_sortMethod').value = appConfig.sortMethod;
+
+            // 渲染云同步配置
+            document.getElementById('cfg_gh_token').value = appConfig.cloud.token || '';
+            document.getElementById('cfg_gh_gist_id').value = appConfig.cloud.gistId || '';
+            
+            const renderList = (id, arr, path) => { document.getElementById(id).innerHTML = arr.map((item, idx) => `<div class="edit-tag">${item} <span class="del" onclick="delListObj('${path}', ${idx})">×</span></div>`).join(''); };
+            renderList('set_mainCat', appData.categories.main, 'categories.main'); renderList('set_subCat', appData.categories.sub, 'categories.sub'); renderList('set_sources', appData.sources, 'sources'); renderList('set_kaomojis', appData.kaomojis, 'kaomojis');
+        }
+        
+        function updateAppearance(key, value) { 
+            appConfig.appearance[key] = value; 
+            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); 
+            if(key === 'themeDark') document.documentElement.style.setProperty('--theme-dark', value);
+            renderUI(); 
+        }
+        function updateSortMethod(val) { appConfig.sortMethod = val; localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); renderUI(); }
+
+        function scrollToSec(id) {
+            const el = document.getElementById(id); const content = document.getElementById('settingsContent');
+            if (el && content) content.scrollTo({ top: el.offsetTop - content.offsetTop, behavior: 'smooth' });
+        }
+
+        function onSettingsScroll() {
+            const content = document.getElementById('settingsContent');
+            const sections = content.querySelectorAll('.settings-section');
+            let currentId = '';
+            for(let sec of sections) {
+                if(content.scrollTop >= sec.offsetTop - content.offsetTop - 30) currentId = sec.id;
+            }
+            if(currentId) {
+                document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active'));
+                let nav = document.getElementById('nav_' + currentId);
+                if(nav) nav.classList.add('active');
+            }
+        }
+
+        // 导入导出
+        function exportData() {
+            const dataStr = JSON.stringify({ appData, appConfig });
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `娃柜备份_${new Date().getTime()}.json`; a.click();
+        }
+        function importData(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if(data.appData) appData = data.appData; if(data.appConfig) appConfig = data.appConfig;
+                        saveData(); 
+                        showDialog("恢复成功！", false, "", "刷新页面", () => { location.reload(); });
+                    } catch(err) { showDialog("数据格式错误", false, "", "知道了", null); }
+                }
+                reader.readAsText(input.files[0]);
+            }
+        }
+
+        // 云同步相关逻辑
+        function saveCloudConfig() {
+            appConfig.cloud.token = document.getElementById('cfg_gh_token').value.trim();
+            appConfig.cloud.gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+        }
+
+        function uploadToGitHub(e) {
+            const token = document.getElementById('cfg_gh_token').value.trim();
+            if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null); return; }
+            
+            const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+            const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
+            const url = gistId ? `https://api.github.com/gists/${gistId}` : 'https://api.github.com/gists';
+            
+            fetch(url, {
+                method: gistId ? 'PATCH' : 'POST',
+                headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+                body: JSON.stringify({
+                    description: "娃柜云端备份数据",
+                    public: false,
+                    files: { "wagui_data.json": { content: JSON.stringify({ appData, appConfig }) } }
+                })
+            }).then(res => res.json()).then(data => {
+                if(data.id) {
+                    document.getElementById('cfg_gh_gist_id').value = data.id;
+                    saveCloudConfig();
+                    showDialog("成功上传到云端！", false, "", "太棒了", null);
+                } else {
+                    showDialog("上传失败，请检查 Token", false, "", "关闭", null);
+                }
+            }).catch(err => {
+                showDialog("网络错误，上传失败", false, "", "关闭", null);
+            }).finally(() => { btn.innerText = oldText; });
+        }
+
+        function downloadFromGitHub(e) {
+            const token = document.getElementById('cfg_gh_token').value.trim();
+            const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+            if(!token || !gistId) { showDialog("请先填写 Token 和 Gist ID", false, "", "知道了", null); return; }
+
+            const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
+            
+            fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+            }).then(res => res.json()).then(data => {
+                try {
+                    const content = data.files["wagui_data.json"].content;
+                    const parsed = JSON.parse(content);
+                    if(parsed.appData) appData = parsed.appData;
+                    if(parsed.appConfig) appConfig = parsed.appConfig;
+                    saveData();
+                    showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
+                } catch(err) {
+                    showDialog("数据解析失败，请检查", false, "", "关闭", null);
+                }
+            }).catch(err => {
+                showDialog("网络错误，下载失败", false, "", "关闭", null);
+            }).finally(() => { btn.innerText = oldText; });
+        }
+
+
+        function addListObj(path) { showDialog("添加内容", true, "输入名称", "确认", (val) => { if(val && val.trim()) { if(path === 'categories.main') appData.categories.main.push(val.trim()); if(path === 'categories.sub') appData.categories.sub.push(val.trim()); if(path === 'sources') appData.sources.push(val.trim()); if(path === 'kaomojis') appData.kaomojis.push(val.trim()); saveData(); renderSettings(); renderFormOptions(); } }); }
+        function delListObj(path, idx) { showDialog("警告", false, "", "确定删除", () => { if(path === 'categories.main') appData.categories.main.splice(idx, 1); if(path === 'categories.sub') appData.categories.sub.splice(idx, 1); if(path === 'sources') appData.sources.splice(idx, 1); if(path === 'kaomojis') appData.kaomojis.splice(idx, 1); saveData(); renderSettings(); renderFormOptions(); }); document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F'; }
+
+        function renderFormOptions() {
+            document.getElementById('mainCat').innerHTML = appData.categories.main.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('subCat').innerHTML = '<option value="">无</option>' + appData.categories.sub.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('itemSource').innerHTML = appData.sources.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
+        let imgArray = []; 
+        function renderUploaders() {
+            const container = document.getElementById('uploadArea'); container.innerHTML = '';
+            imgArray.forEach((b64, idx) => { container.innerHTML += `<div class="img-uploader"><div class="img-del-btn" onclick="deleteImg(${idx}, event)">×</div><img src="${b64}"></div>`; });
+            container.innerHTML += `<div class="img-uploader"><input type="file" accept="image/*" onchange="processImg(this)"><span style="font-size:32px;">${imgArray.length === 0 ? '📷' : '➕'}</span><span class="img-label">${imgArray.length === 0 ? '主图' : '副图'}</span></div>`;
+        }
+        function deleteImg(idx, e) { e.stopPropagation(); imgArray.splice(idx, 1); renderUploaders(); }
+        function processImg(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader(); reader.readAsDataURL(input.files[0]);
+                reader.onload = (e) => {
+                    const img = new Image(); img.src = e.target.result;
+                    img.onload = () => {
+                        const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
+                        let w = img.width, h = img.height; if (w > 800) { h *= 800 / w; w = 800; }
+                        cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
+                        imgArray.push(cvs.toDataURL('image/jpeg', 0.8)); renderUploaders();
+                    }
+                }
+            }
+        }
+
+        // 价格计算高级逻辑
+        let activeInput = null;
+        function autoCalc(source) {
+            const eBase = document.getElementById('priceBase'); 
+            const eShip = document.getElementById('priceShip'); 
+            const eTotal = document.getElementById('priceTotal');
+            
+            let b = parseFloat(eBase.value);
+            let s = parseFloat(eShip.value);
+            let t = parseFloat(eTotal.value);
+
+            if (source === 'base') {
+                if (!isNaN(b) && isNaN(s) && isNaN(t)) {
+                    eTotal.value = b.toFixed(2);
+                } else if (!isNaN(b) && !isNaN(s) && activeInput !== 'total') {
+                    eTotal.value = (b + s).toFixed(2);
+                } else if (!isNaN(b) && !isNaN(t) && isNaN(s)) {
+                    eShip.value = (t - b >= 0 ? t - b : 0).toFixed(2);
+                } else if (!isNaN(b) && !isNaN(t) && !isNaN(s) && activeInput === 'total') {
+                    eShip.value = (t - b >= 0 ? t - b : 0).toFixed(2);
+                } else if (!isNaN(b) && !isNaN(s)) {
+                    eTotal.value = (b + s).toFixed(2);
+                }
+                activeInput = 'base';
+            } 
+            else if (source === 'ship') {
+                if (!isNaN(s) && !isNaN(b) && activeInput !== 'total') {
+                    eTotal.value = (b + s).toFixed(2);
+                } else if (!isNaN(s) && !isNaN(t) && (isNaN(b) || activeInput === 'total')) {
+                    eBase.value = (t - s >= 0 ? t - s : 0).toFixed(2);
+                } else if (!isNaN(s) && isNaN(b) && isNaN(t)) {
+                    eTotal.value = s.toFixed(2);
+                } else if (!isNaN(s) && !isNaN(b)) {
+                    eTotal.value = (b + s).toFixed(2);
+                }
+                activeInput = 'ship';
+            } 
+            else if (source === 'total') {
+                if (!isNaN(t)) {
+                    let shipVal = isNaN(s) ? 0 : s;
+                    eBase.value = (t - shipVal >= 0 ? t - shipVal : 0).toFixed(2);
+                }
+                activeInput = 'total';
+            }
+        }
+
+        function handleDrawerClick(e) {
+            if (e.target.id === 'addDrawer') {
+                const name = document.getElementById('itemName').value.trim(); const pt = document.getElementById('priceTotal').value; const ps = document.getElementById('priceShip').value; const pb = document.getElementById('priceBase').value; const rm = document.getElementById('itemRemark').value.trim(); const imR = document.getElementById('importantRemark').value.trim();
+                if (!name && !pt && !ps && !pb && !rm && !imR && imgArray.length === 0) closeDrawer();
+            }
+        }
+
+        function toggleEntryType() {
+            const type = document.querySelector('input[name="entryType"]:checked').value;
+            const isEdit = document.getElementById('editingItemId').value !== '';
+            
+            document.getElementById('pullQueueGroup').style.display = (!isEdit && type === 'deposit') ? 'block' : 'none';
+            document.getElementById('pullDepositGroup').style.display = (!isEdit && type === 'pay_balance') ? 'block' : 'none';
+            document.getElementById('itemName').readOnly = (!isEdit && type === 'pay_balance');
+
+            if(type === 'deposit') { document.getElementById('pullQueueSelect').innerHTML = '<option value="">-- 点击选择在排记录 --</option>' + appData.items.filter(i => i.status === 'unpaid').map(i => `<option value="${i.id}">${i.name}</option>`).join(''); } 
+            else if(type === 'pay_balance') { document.getElementById('pullDepositSelect').innerHTML = '<option value="">-- 点击选择要补款的订单 --</option>' + appData.items.filter(i => i.status === 'need_balance').map(i => `<option value="${i.id}">${i.name}</option>`).join(''); }
+        }
+
+        function autoFillFromQueue() { const id = document.getElementById('pullQueueSelect').value; const item = appData.items.find(i => i.id == id); if(item) { document.getElementById('itemName').value = item.name + " [定金]"; document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat; } }
+        function autoFillFromDeposit() { const id = document.getElementById('pullDepositSelect').value; const item = appData.items.find(i => i.id == id); if(item) { document.getElementById('itemName').value = item.name + " [尾款]"; document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat; } }
+
+        function saveItem() {
+            const editId = document.getElementById('editingItemId').value; const type = document.querySelector('input[name="entryType"]:checked').value; const name = document.getElementById('itemName').value.trim(); const bPrice = parseFloat(document.getElementById('priceBase').value) || 0; const sPrice = parseFloat(document.getElementById('priceShip').value) || 0; const tPrice = parseFloat(document.getElementById('priceTotal').value) || (bPrice + sPrice); const remark = document.getElementById('itemRemark').value.trim(); const isImportant = document.getElementById('isImportant').checked; const importantRemark = document.getElementById('importantRemark').value.trim(); const estDate = document.getElementById('estDate').value;
+            const finalStatus = document.getElementById('itemStatus').value;
+            if (!name) return showDialog("提示", false, "", "知道了", null), document.getElementById('dialogTitle').innerText="名字不能为空";
+
+            if (editId) {
+                const idx = appData.items.findIndex(i => i.id == editId);
+                if (appData.items[idx].estDate !== estDate) { appData.items[idx].noticeDismissed = false; appData.items[idx].noticeRead = false; }
+                if(finalStatus === 'arrived' && appData.items[idx].status !== 'arrived') { appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA'); }
+                appData.items[idx] = { ...appData.items[idx], name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
+                appData.items[idx].images = [...imgArray]; 
+            } else {
+                if (type === 'pay_balance' && document.getElementById('pullDepositSelect').value) {
+                    const id = document.getElementById('pullDepositSelect').value;
+                    const idx = appData.items.findIndex(i => i.id == id);
+                    appData.items[idx].totalPrice += tPrice; appData.items[idx].shipping += sPrice; appData.items[idx].basePrice += bPrice;
+                    if(remark) appData.items[idx].remark = (appData.items[idx].remark ? appData.items[idx].remark + '\n' : '') + '[尾款]: ' + remark;
+                    appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
+                    if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
+                } else if (type === 'deposit' && document.getElementById('pullQueueSelect').value) {
+                    const id = document.getElementById('pullQueueSelect').value; const idx = appData.items.findIndex(i => i.id == id);
+                    appData.items[idx].totalPrice += tPrice; appData.items[idx].basePrice += bPrice;
+                    if(remark) appData.items[idx].remark = (appData.items[idx].remark ? appData.items[idx].remark + '\n' : '') + '[付定]: ' + remark;
+                    appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
+                } else {
+                    let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], noticeRead: false, noticeDismissed: false };
+                    if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
+                    appData.items.push(newItem);
+                }
+            }
+            saveData(); closeDrawer(); renderUI(); checkNotices(); if(editId) { closeIdCard(); openIdCard(editId); } 
+        }
+
+        function toggleGlobalPrice() {
+            if(globalHidden) { showDialog("查看金额", false, "", "确认查看", () => { globalHidden = false; renderUI(); }); } else { globalHidden = true; renderUI(); }
+        }
+        function toggleCatPrice(catName, e) {
+            e.stopPropagation(); if(catHiddenState[catName]) { showDialog("查看金额", false, "", "确认查看", () => { catHiddenState[catName] = false; renderUI(); }); } else { catHiddenState[catName] = true; renderUI(); }
+        }
+        function toggleMainFold(mName) { mainCatFold[mName] = !mainCatFold[mName]; renderUI(); }
+        function toggleSubFold(subKey, e) {
+            e.stopPropagation(); let state = subCatFold[subKey] || 0; state = (state + 1) % 3; subCatFold[subKey] = state; renderUI();
+        }
+        function toggleExpand(key, e) { e.stopPropagation(); expandState[key] = true; renderUI(); }
+        function setStatusFilter(f) { currentFilter = f; document.querySelectorAll('.s-tag').forEach(el => el.classList.remove('active')); document.getElementById('filter_' + f).classList.add('active'); renderUI(); }
+
+        // 通知系统
+        function checkNotices() {
+            let count = 0; let now = new Date().getTime();
+            appData.items.forEach(item => {
+                if (item.status !== 'arrived' && item.estDate && !item.noticeRead && !item.noticeDismissed) {
+                    let eDate = new Date(item.estDate + "T23:59:59").getTime();
+                    if ((eDate - now) / 86400000 <= 15) count++;
+                }
+            });
+            document.getElementById('noticeDot').style.display = count > 0 ? 'block' : 'none';
+        }
+
+        function markRead(id, e) {
+            e.stopPropagation(); 
+            let item = appData.items.find(i => i.id == id);
+            if (!item) return;
+            item.noticeRead = !item.noticeRead; 
+            saveData(); checkNotices(); 
+            let btn = e.target; 
+            if(item.noticeRead) {
+                btn.innerHTML = '🔕'; btn.style.color = '#ccc'; btn.title = '已知晓';
+            } else {
+                btn.innerHTML = '🔔'; btn.style.color = '#4CAF50'; btn.title = '标记已知晓';
+            }
+        }
+
+        function confirmDismissNotice(id, e) {
+            e.stopPropagation();
+            showDialog("确定移除此通知？", false, "", "确认移除", () => {
+                let item = appData.items.find(i => i.id == id);
+                if (item) item.noticeDismissed = true;
+                saveData(); checkNotices(); openNotices();
+            });
+            document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
+        }
+
+        function openNotices() {
+            let html = ''; let now = new Date().getTime();
+            appData.items.forEach(item => {
+                if (item.status !== 'arrived' && item.estDate && !item.noticeDismissed) {
+                    let eDate = new Date(item.estDate + "T23:59:59").getTime();
+                    let diffDay = (eDate - now) / 86400000;
+                    
+                    if (diffDay <= 15) {
+                        let needBalanceText = ''; let dateLabel = '出货';
+                        if(item.status === 'unpaid') {
+                            needBalanceText = `<span style="color:var(--badge-unpaid); font-size:11px; margin-left:6px; border:1px solid var(--badge-unpaid); padding:1px 4px; border-radius:4px;">需补款</span>`;
+                            dateLabel = '预计成团补款';
+                        } else if(item.status === 'need_balance') {
+                            needBalanceText = `<span style="color:var(--badge-balance); font-size:11px; margin-left:6px; border:1px solid var(--badge-balance); padding:1px 4px; border-radius:4px;">需补尾款</span>`;
+                            dateLabel = '预计补尾款';
+                        } else {
+                            dateLabel = '预计出货';
+                        }
+                        
+                        let imgContent = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}" style="width:55px; height:55px; border-radius:8px; object-fit:cover; flex-shrink:0;">` : `<div style="width:55px; height:55px; border-radius:8px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; color:#999; font-weight:bold; overflow:hidden; padding:2px; text-align:center;">无图</div>`;
+                        
+                        let readStyle = item.noticeRead ? `color:#ccc;` : `color:#4CAF50;`;
+                        let readIcon = item.noticeRead ? `🔕` : `🔔`;
+                        let readTitle = item.noticeRead ? `已知晓` : `标记已知晓`;
+
+                        html += `<div class="notice-card" onclick="closeNoticeDialog(); openIdCard(${item.id})">
+                            <div class="notice-x-btn" onclick="confirmDismissNotice(${item.id}, event)">✕</div>
+                            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center;">
+                                ${imgContent}
+                                <div onclick="markRead(${item.id}, event)" style="margin-top:5px; font-size:18px; cursor:pointer; font-weight:bold; ${readStyle}" title="${readTitle}">${readIcon}</div>
+                            </div>
+                            <div style="flex:1; min-width:0; margin-left:15px; padding-right:15px;">
+                                <div style="font-weight:bold; font-size:15px; margin-bottom:6px; color:var(--text-main); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; white-space:normal; overflow:hidden; line-height:1.4;">${item.name}</div>
+                                <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">${dateLabel}：${item.estDate} ${needBalanceText}</div>
+                                <div style="font-size:13px; font-weight:bold; color:#FF4D4F;" id="timer_${item.id}" data-target="${item.estDate}">计算中...</div>
+                            </div>
+                        </div>`;
+                    }
+                }
+            });
+            document.getElementById('noticeList').innerHTML = html || '<div style="color:#999; text-align:center; padding: 20px;">暂无临近出货的物品</div>';
+            document.getElementById('noticeDialog').style.display = 'flex';
+            
+            updateTimers(); clearInterval(noticeTimer); noticeTimer = setInterval(updateTimers, 1000);
+        }
+
+        function closeNoticeDialog() { document.getElementById('noticeDialog').style.display = 'none'; clearInterval(noticeTimer); }
+
+        function updateTimers() {
+            let now = new Date().getTime();
+            document.querySelectorAll('[id^="timer_"]').forEach(el => {
+                let targetStr = el.getAttribute('data-target'); if(!targetStr) return;
+                let targetDate = new Date(targetStr + "T23:59:59").getTime();
+                let diff = targetDate - now; let isOver = diff < 0; let absDiff = Math.abs(diff);
+                let d = Math.floor(absDiff / (1000 * 60 * 60 * 24)); let h = Math.floor((absDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); let m = Math.floor((absDiff % (1000 * 60 * 60)) / (1000 * 60));
+                el.innerHTML = isOver ? `已超时：${d}天 ${h}时 ${m}分` : `倒计时：${d}天 ${h}时 ${m}分`;
+            });
+        }
+
+        // 日历系统
+        let currentCalDate = new Date();
+        function openCalendar() { renderCalendar(); document.getElementById('calendarDrawer').style.display = 'flex'; }
+        function closeCalendar() { document.getElementById('calendarDrawer').style.display = 'none'; }
+        function changeMonth(offset) { currentCalDate.setMonth(currentCalDate.getMonth() + offset); renderCalendar(); }
+        
+        function toggleMonthList() {
+            let el = document.getElementById('calMonthList');
+            let icon = document.getElementById('calMonthIcon');
+            if(el.style.display === 'none') { el.style.display = 'block'; icon.innerText = '▼'; }
+            else { el.style.display = 'none'; icon.innerText = '▶'; }
+        }
+
+        function renderCalendar() {
+            let year = currentCalDate.getFullYear(); let month = currentCalDate.getMonth();
+            document.getElementById('calMonthYear').innerText = `${year}年 ${month + 1}月`;
+            
+            let firstDay = new Date(year, month, 1).getDay();
+            let daysInMonth = new Date(year, month + 1, 0).getDate();
+            let html = '';
+            for(let i=0; i<firstDay; i++) html += `<div class="cal-day empty"></div>`;
+            
+            let monthEstSum = 0; let monthArrSum = 0;
+            let dayData = {}; // key: day (1-31), value: { est:[], arr:[] }
+            let monthItems = [];
+
+            appData.items.forEach(item => {
+                let tPrice = item.totalPrice * item.qty;
+                let inThisMonth = false;
+
+                if(item.status !== 'arrived' && item.estDate) {
+                    let d = new Date(item.estDate);
+                    if(d.getFullYear() === year && d.getMonth() === month) {
+                        let dy = d.getDate();
+                        if(!dayData[dy]) dayData[dy] = {est:[], arr:[]};
+                        dayData[dy].est.push(item);
+                        monthEstSum += tPrice;
+                        inThisMonth = true;
+                    }
+                }
+                if(item.status === 'arrived') {
+                    let aDateStr = item.arrivedDate || item.estDate || item.buyDate;
+                    if(aDateStr) {
+                        let d = new Date(aDateStr);
+                        if(d.getFullYear() === year && d.getMonth() === month) {
+                            let dy = d.getDate();
+                            if(!dayData[dy]) dayData[dy] = {est:[], arr:[]};
+                            dayData[dy].arr.push(item);
+                            monthArrSum += tPrice;
+                            inThisMonth = true;
+                        }
+                    }
+                }
+                if (inThisMonth) monthItems.push(item);
+            });
+
+            let today = new Date();
+            for(let i=1; i<=daysInMonth; i++) {
+                let isToday = (year===today.getFullYear() && month===today.getMonth() && i===today.getDate()) ? 'today' : '';
+                let dData = dayData[i];
+                let dots = '';
+                if(dData) {
+                    if(dData.est.length > 0) dots += `<div class="dot-est"></div>`;
+                    if(dData.arr.length > 0) dots += `<div class="dot-arr"></div>`;
+                }
+                html += `<div class="cal-day ${isToday}" onclick="showCalDetail(${year}, ${month}, ${i})" id="cal_day_${i}">
+                    ${i}
+                    <div class="cal-dots">${dots}</div>
+                </div>`;
+            }
+            document.getElementById('calGrid').innerHTML = html;
+            
+            let statsHtml = `本月概览：<br>📦 预计出货/补款：<span style="color:#FFB347;">¥${monthEstSum.toFixed(2)}</span><br>✅ 已收货：<span style="color:#4CAF50;">¥${monthArrSum.toFixed(2)}</span>`;
+            
+            let monthListHtml = '';
+            monthItems.forEach(i => {
+                let img = (i.images && i.images.length>0) ? `<img src="${i.images[0]}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;background:#fff;margin-right:10px;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#999;border:1px solid #eee;">无图</div>`;
+                let tag = i.status==='arrived'?'<span style="color:#4CAF50;font-size:12px;">✅已收</span>':'<span style="color:#FFB347;font-size:12px;">⏳待收</span>';
+                monthListHtml += `<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;" onclick="closeCalendar(); openIdCard(${i.id})">
+                    ${img}
+                    <div style="flex:1;overflow:hidden;color:var(--text-main);">
+                        <div style="font-size:14px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${i.name}</div>
+                        <div style="font-size:12px;color:#999;margin-top:4px;">${tag} ¥${i.totalPrice * i.qty}</div>
+                    </div>
+                </div>`;
+            });
+            if (monthItems.length === 0) monthListHtml += '<div style="color:#999;font-size:12px;margin-top:5px;">本月暂无数据</div>';
+
+            document.getElementById('calStats').innerHTML = statsHtml;
+            document.getElementById('calMonthList').innerHTML = monthListHtml;
+            document.getElementById('calMonthList').style.display = 'block';
+            document.getElementById('calMonthIcon').innerText = '▼';
+            document.getElementById('calDetailList').style.display = 'none';
+        }
+
+        function showCalDetail(y, m, d) {
+            document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
+            let selEl = document.getElementById(`cal_day_${d}`);
+            if(selEl) selEl.classList.add('selected');
+
+            // 自动折叠本月清单
+            document.getElementById('calMonthList').style.display = 'none';
+            document.getElementById('calMonthIcon').innerText = '▶';
+
+            let estList = []; let arrList = []; let estSum = 0; let arrSum = 0;
+            appData.items.forEach(item => {
+                let tPrice = item.totalPrice * item.qty;
+                if(item.status !== 'arrived' && item.estDate) {
+                    let dt = new Date(item.estDate); if(dt.getFullYear()===y && dt.getMonth()===m && dt.getDate()===d) { estList.push(item); estSum += tPrice; }
+                }
+                if(item.status === 'arrived') {
+                    let aDateStr = item.arrivedDate || item.estDate || item.buyDate;
+                    if(aDateStr) { let dt = new Date(aDateStr); if(dt.getFullYear()===y && dt.getMonth()===m && dt.getDate()===d) { arrList.push(item); arrSum += tPrice; } }
+                }
+            });
+
+            let html = `<div style="font-size:15px; font-weight:bold; margin-bottom:10px;">${y}年${m+1}月${d}日 明细</div>`;
+            if(estList.length===0 && arrList.length===0) { html += `<div style="color:#999; font-size:13px;">这一天没有任何记录哦。</div>`; }
+            else {
+                if(estList.length > 0) {
+                    html += `<div style="font-size:13px; color:#FFB347; font-weight:bold; margin-bottom:5px;">⏳ 预计出货 (¥${estSum.toFixed(2)})</div>`;
+                    estList.forEach(item => { html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">${item.name} - ¥${item.totalPrice * item.qty}</div>`; });
+                }
+                if(arrList.length > 0) {
+                    html += `<div style="font-size:13px; color:#4CAF50; font-weight:bold; margin:15px 0 5px 0;">✅ 已收货 (¥${arrSum.toFixed(2)})</div>`;
+                    arrList.forEach(item => { html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">${item.name} - ¥${item.totalPrice * item.qty}</div>`; });
+                }
+            }
+
+            let today = new Date();
+            if (`${y}-${m}-${d}` === `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`) {
+                let nowTime = today.getTime();
+                let futureItems = appData.items.filter(i => i.status !== 'arrived' && i.estDate && new Date(i.estDate + "T23:59:59").getTime() > nowTime);
+                futureItems.sort((a,b) => new Date(a.estDate) - new Date(b.estDate));
+                if(futureItems.length > 0) {
+                    html += `<div style="font-size:13px; color:var(--primary); font-weight:bold; margin:15px 0 5px 0;">🌟 接下来</div>`;
+                    futureItems.slice(0, 5).forEach(item => {
+                        let diffDays = Math.ceil((new Date(item.estDate + "T23:59:59").getTime() - nowTime) / 86400000);
+                        html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; display:flex; justify-content:space-between; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">
+                            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;">${item.name}</span> <span style="color:#FFB347; flex-shrink:0;">还有 ${diffDays} 天</span>
+                        </div>`;
+                    });
+                }
+            }
+
+            let listEl = document.getElementById('calDetailList');
+            listEl.innerHTML = html; listEl.style.display = 'block';
+            listEl.scrollIntoView({behavior: "smooth", block: "nearest"});
+        }
+
+        // 搜索开关及遮罩
+        function toggleSearch() { 
+            const sd = document.getElementById('searchDrawer'); 
+            const overlay = document.getElementById('searchOverlay');
+            sd.classList.toggle('active'); 
+            if(sd.classList.contains('active')) {
+                overlay.style.display = 'block';
+                document.getElementById('searchInput').focus(); 
+            } else { 
+                overlay.style.display = 'none';
+                document.getElementById('searchInput').value = ''; 
+                renderUI(); 
+            }
+        }
+
+        // 渲染主列表
+        function renderUI() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            let sumT = 0, sumB = 0, sumS = 0; 
+            let cntNotArrived = 0, cntNeedBalance = 0, cntUnpaid = 0, cntImportant = 0, cntNear = 0;
+            let cntGrouping = 0, cntReShoot = 0, cntNeedPost = 0, cntCrowdfunding = 0;
+            let today = new Date().getTime();
+
+            let cols = Math.floor((window.innerWidth - 70) / 110) || 3;
+            if(cols < 3) cols = 3;
+
+            const mainGroups = {}; 
+
+            let sortedItems = [...appData.items];
+            sortedItems.sort((a, b) => {
+                if (appConfig.sortMethod === 'create_asc') return a.id - b.id;
+                if (appConfig.sortMethod === 'create_desc') return b.id - a.id;
+                if (appConfig.sortMethod === 'est_asc' || appConfig.sortMethod === 'est_desc') {
+                    let da = a.estDate ? new Date(a.estDate).getTime() : 9999999999999;
+                    let db = b.estDate ? new Date(b.estDate).getTime() : 9999999999999;
+                    return appConfig.sortMethod === 'est_asc' ? da - db : db - da;
+                }
+                return 0; // manual
+            });
+
+            sortedItems.forEach(item => {
+                let isNear = false;
+                if (item.status !== 'arrived' && item.estDate) {
+                    if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true;
+                }
+                let isImp = !!(item.isImportant && item.importantRemark);
+
+                if (item.status === 'not_arrived') cntNotArrived++;
+                if (item.status === 'need_balance') cntNeedBalance++;
+                if (item.status === 'unpaid') cntUnpaid++;
+                if (item.status === 'grouping') cntGrouping++;
+                if (item.status === 're_shoot') cntReShoot++;
+                if (item.status === 'need_post') cntNeedPost++;
+                if (item.status === 'crowdfunding') cntCrowdfunding++;
+                
+                if (isImp) cntImportant++;
+                if (isNear) cntNear++;
+
+                if (currentFilter === 'not_arrived' && item.status !== 'not_arrived') return;
+                if (currentFilter === 'need_balance' && item.status !== 'need_balance') return;
+                if (currentFilter === 'unpaid' && item.status !== 'unpaid') return;
+                if (currentFilter === 'grouping' && item.status !== 'grouping') return;
+                if (currentFilter === 're_shoot' && item.status !== 're_shoot') return;
+                if (currentFilter === 'need_post' && item.status !== 'need_post') return;
+                if (currentFilter === 'crowdfunding' && item.status !== 'crowdfunding') return;
+                if (currentFilter === 'important' && !isImp) return;
+                if (currentFilter === 'near' && !isNear) return;
+
+                if (search && !item.name.toLowerCase().includes(search) && !(item.remark||'').toLowerCase().includes(search) && !(item.importantRemark||'').toLowerCase().includes(search)) return;
+                
+                sumT += item.totalPrice * item.qty; sumB += item.basePrice * item.qty; sumS += item.shipping;
+
+                let mCat = item.mainCat || '未分类'; let sCat = item.subCat || '无分类';
+                if(!mainGroups[mCat]) { mainGroups[mCat] = { sum: 0, subs: {} }; if(catHiddenState[mCat] === undefined) catHiddenState[mCat] = true; }
+                if(!mainGroups[mCat].subs[sCat]) mainGroups[mCat].subs[sCat] = [];
+                
+                mainGroups[mCat].subs[sCat].push(item);
+                mainGroups[mCat].sum += item.totalPrice * item.qty;
+            });
+
+            document.getElementById('cnt_not_arrived').innerText = cntNotArrived > 0 ? cntNotArrived : '';
+            document.getElementById('cnt_need_balance').innerText = cntNeedBalance > 0 ? cntNeedBalance : '';
+            document.getElementById('cnt_unpaid').innerText = cntUnpaid > 0 ? cntUnpaid : '';
+            document.getElementById('cnt_grouping').innerText = cntGrouping > 0 ? cntGrouping : '';
+            document.getElementById('cnt_re_shoot').innerText = cntReShoot > 0 ? cntReShoot : '';
+            document.getElementById('cnt_need_post').innerText = cntNeedPost > 0 ? cntNeedPost : '';
+            document.getElementById('cnt_crowdfunding').innerText = cntCrowdfunding > 0 ? cntCrowdfunding : '';
+            document.getElementById('cnt_important').innerText = cntImportant > 0 ? cntImportant : '';
+            document.getElementById('cnt_near').innerText = cntNear > 0 ? cntNear : '';
+
+            document.getElementById('totalPriceDisplay').innerHTML = globalHidden ? getFace() : sumT.toFixed(2);
+            document.getElementById('totalBaseDisplay').innerHTML = globalHidden ? getFace() : sumB.toFixed(2);
+            document.getElementById('totalShippingDisplay').innerHTML = globalHidden ? getFace() : sumS.toFixed(2);
+            
+            const container = document.getElementById('cabinetsContainer'); container.innerHTML = '';
+            
+            for (const [mName, mData] of Object.entries(mainGroups)) {
+                let catPriceDisplay = catHiddenState[mName] ? getFace() : `¥${mData.sum.toFixed(2)}`;
+                let isMainFold = mainCatFold[mName];
+                
+                let html = `
+                <div class="main-category-block">
+                    <div class="main-title-bar" onclick="toggleMainFold('${mName}')">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:14px; color:var(--text-muted);">${isMainFold ? '▶' : '▼'}</span>
+                            ${mName}
+                        </div>
+                        <div class="main-sum" onclick="toggleCatPrice('${mName}', event)">${catPriceDisplay}</div>
+                    </div>`;
+                
+                if (!isMainFold) {
+                    for (const [sName, sList] of Object.entries(mData.subs)) {
+                        if(sList.length === 0) continue;
+                        let subKey = mName + '_' + sName;
+                        let state = subCatFold[subKey] || 0; // 0:2行 1:1行 2:全折
+                        
+                        let icon = '▼'; if(state === 1) icon = '▽'; else if(state === 2) icon = '▶';
+
+                        html += `<div class="sub-category-block">`;
+                        if(sName !== '无分类' && sName !== '无') {
+                            html += `<div class="sub-title" onclick="toggleSubFold('${subKey}', event)"><span style="font-size:12px; color:var(--primary);">${icon}</span> ${sName} (${sList.length})</div>`;
+                        } else { html += `<div class="sub-title" onclick="toggleSubFold('${subKey}', event)" style="margin-bottom:0; height:10px; opacity:0; padding:0;"></div>`; }
+                        
+                        if (state !== 2) {
+                            html += `<div class="grid">`;
+                            let isExpanded = expandState[subKey];
+                            let limit = sList.length;
+                            if (state === 0) limit = cols * 2; else if (state === 1) limit = cols;
+                            let displayList = sList; let hasMore = sList.length > limit;
+                            if (hasMore && !isExpanded) displayList = sList.slice(0, limit);
+
+                            displayList.forEach((item, index) => {
+                                let badge = '', bg = '#000';
+                                if (item.status === 'not_arrived') { badge = STATUS_MAP.not_arrived; bg = 'var(--badge-shipping)'; }
+                                if (item.status === 'need_balance') { badge = STATUS_MAP.need_balance; bg = 'var(--badge-balance)'; }
+                                if (item.status === 'unpaid') { badge = STATUS_MAP.unpaid; bg = 'var(--badge-unpaid)'; }
+                                if (item.status === 'grouping') { badge = STATUS_MAP.grouping; bg = '#9C27B0'; }
+                                if (item.status === 're_shoot') { badge = STATUS_MAP.re_shoot; bg = '#E91E63'; }
+                                if (item.status === 'need_post') { badge = STATUS_MAP.need_post; bg = '#00BCD4'; }
+                                if (item.status === 'crowdfunding') { badge = STATUS_MAP.crowdfunding; bg = '#607D8B'; }
+
+                                let badgeHtml = badge ? `<div class="badge" style="background:${bg}">${badge}</div>` : '';
+
+                                let isNear = false; if (item.status !== 'arrived' && item.estDate) { if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true; }
+                                let badgeNearHtml = isNear ? `<div class="badge-near">⏰临近</div>` : '';
+                                
+                                let importantHtml = (item.isImportant && item.importantRemark) ? `<div class="important-overlay" style="bottom:${appConfig.appearance.noticePos}%; background:${appConfig.appearance.noticeBgColor}; color:${appConfig.appearance.noticeTextColor};">${item.importantRemark}</div>` : '';
+                                let nameHtml = appConfig.appearance.showName ? `<div class="item-name-overlay" style="text-align:${appConfig.appearance.nameAlign};">${item.name}</div>` : '';
+                                let imgHtml = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}">` : `<div class="no-img-text">${item.name}</div>`;
+                                let isLastAndMore = hasMore && !isExpanded && (index === limit - 1);
+
+                                if (isLastAndMore) {
+                                    let extraCount = sList.length - limit + 1;
+                                    let blurImg = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}" style="filter: blur(4px) brightness(0.6);">` : `<div style="width:100%;height:100%;background:#333;"></div>`;
+                                    html += `<div class="item-card more-card" onclick="toggleExpand('${subKey}', event)">${badgeHtml}${blurImg}<div class="more-text">+${extraCount}</div></div>`;
+                                } else {
+                                    html += `<div class="item-card" onclick="openIdCard(${item.id})">${badgeHtml}${badgeNearHtml}${imgHtml}${importantHtml}${nameHtml}</div>`;
+                                }
+                            });
+                            html += `</div>`;
+                        }
+                        html += `</div>`;
+                    }
+                }
+                html += `</div>`;
+                container.innerHTML += html;
+            }
+        }
+
+        let currentViewId = null;
+        function openIdCard(id) {
+            currentViewId = id; const item = appData.items.find(i => i.id == id);
+            
+            if(item.images && item.images.length > 0) { document.getElementById('idImgContainer').innerHTML = item.images.map(src => `<img src="${src}">`).join(''); document.getElementById('idImgContainer').style.display = 'flex'; } 
+            else { document.getElementById('idImgContainer').style.display = 'none'; }
+            
+            document.getElementById('idName').innerText = item.name; document.getElementById('idTotal').innerText = `¥${item.totalPrice}`; document.getElementById('idShip').innerText = `¥${item.shipping}`; document.getElementById('idSource').innerText = item.source; document.getElementById('idEstDate').innerText = item.estDate || '暂无'; document.getElementById('idCat').innerText = item.subCat ? `${item.mainCat} / ${item.subCat}` : item.mainCat;
+            
+            const rb = document.getElementById('idRemarkBox'); let remarkContent = '';
+            if (item.isImportant && item.importantRemark) remarkContent += `<div style="color:${appConfig.appearance.noticeBgColor}; font-weight:bold; margin-bottom:8px;">⚠️ 注意：${item.importantRemark}</div>`;
+            if (item.remark) remarkContent += `<div>${item.remark.replace(/\n/g, '<br>')}</div>`;
+            rb.innerHTML = remarkContent || '没有留下备注。'; rb.style.display = remarkContent ? 'block' : 'none';
+
+            const badge = document.getElementById('idStatusBadge'); badge.className = 'id-status';
+            if(item.status === 'arrived') { badge.innerText = STATUS_MAP.arrived; badge.style.background = '#4CAF50'; badge.style.color = '#fff'; }
+            else if(item.status === 'need_balance') { badge.innerText = STATUS_MAP.need_balance; badge.style.background = 'var(--badge-balance)'; badge.style.color = '#fff'; }
+            else if(item.status === 'unpaid') { badge.innerText = STATUS_MAP.unpaid; badge.style.background = 'var(--badge-unpaid)'; badge.style.color = '#fff'; }
+            else if(item.status === 'grouping') { badge.innerText = STATUS_MAP.grouping; badge.style.background = '#9C27B0'; badge.style.color = '#fff'; }
+            else if(item.status === 're_shoot') { badge.innerText = STATUS_MAP.re_shoot; badge.style.background = '#E91E63'; badge.style.color = '#fff'; }
+            else if(item.status === 'need_post') { badge.innerText = STATUS_MAP.need_post; badge.style.background = '#00BCD4'; badge.style.color = '#fff'; }
+            else if(item.status === 'crowdfunding') { badge.innerText = STATUS_MAP.crowdfunding; badge.style.background = '#607D8B'; badge.style.color = '#fff'; }
+            else if(item.status === 'not_arrived') { badge.innerText = STATUS_MAP.not_arrived; badge.style.background = 'var(--badge-shipping)'; badge.style.color = '#fff'; }
+            else { badge.innerText = '无'; badge.style.background = '#E0E0E0'; badge.style.color = '#666'; }
+
+            let btnHtml = '';
+            if(item.status !== 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('arrived')">📦 签收</button>`;
+            else btnHtml = `<button class="id-btn action" onclick="changeStatus('not_arrived')" style="background:#f0f0f0;color:#666;">回退</button>`;
+            document.getElementById('idActionGroup').innerHTML = `<button class="id-btn edit" onclick="startEdit()">✎ 编辑</button>${btnHtml}<button class="id-btn delete" onclick="confirmDelete()">🗑 删除</button>`;
+            document.getElementById('idCardOverlay').style.display = 'flex';
+        }
+        function closeIdCard() { document.getElementById('idCardOverlay').style.display = 'none'; }
+        function changeStatus(newStatus) { 
+            let item = appData.items.find(i => i.id == currentViewId);
+            item.status = newStatus; 
+            if(newStatus === 'arrived') item.arrivedDate = new Date().toLocaleDateString('en-CA');
+            saveData(); renderUI(); checkNotices(); openIdCard(currentViewId); 
+        }
+        function confirmDelete() { showDialog("警告", false, "", "确认删除", () => { appData.items = appData.items.filter(i => i.id != currentViewId); saveData(); renderUI(); checkNotices(); closeIdCard(); }); document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F'; }
+
+        function startEdit() {
+            closeIdCard(); const item = appData.items.find(i => i.id == currentViewId);
+            document.getElementById('editingItemId').value = item.id; document.getElementById('itemName').value = item.name; document.getElementById('priceBase').value = item.basePrice||''; document.getElementById('priceShip').value = item.shipping||''; document.getElementById('priceTotal').value = item.totalPrice||''; document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat||''; document.getElementById('itemSource').value = item.source; document.getElementById('itemDate').value = item.buyDate; document.getElementById('estDate').value = item.estDate||''; document.getElementById('itemQty').value = item.qty; document.getElementById('itemRemark').value = item.remark||'';
+            document.getElementById('isImportant').checked = !!item.isImportant; document.getElementById('importantRemark').value = item.importantRemark || ''; document.getElementById('importantRemark').style.display = item.isImportant ? 'block' : 'none';
+            activeInput = 'base';
+            
+            document.getElementById('typeControl').style.display = 'flex';
+            let eType = item.entryType || (item.status === 'unpaid' ? 'queue' : (item.status === 'need_balance' ? 'deposit' : 'full'));
+            let rBtn = document.querySelector(`input[name="entryType"][value="${eType}"]`);
+            if(rBtn) rBtn.checked = true;
+            
+            toggleEntryType(); 
+            document.getElementById('itemStatus').value = item.status; 
+
+            imgArray = item.images ? [...item.images] : []; renderUploaders(); document.getElementById('btnSave').innerText = '保存修改'; document.getElementById('addDrawer').style.display = 'flex';
+        }
+
+        function openDrawer() { 
+            document.getElementById('editingItemId').value = ''; 
+            document.getElementById('typeControl').style.display = 'flex'; 
+            document.getElementById('btnSave').innerText = '确认保存'; 
+            document.getElementById('type_full').checked = true; 
+            toggleEntryType(); 
+            document.getElementById('itemStatus').value = 'none';
+            
+            document.getElementById('itemName').value = ''; document.getElementById('priceBase').value = ''; document.getElementById('priceShip').value = ''; document.getElementById('priceTotal').value = ''; document.getElementById('itemRemark').value = ''; document.getElementById('itemDate').valueAsDate = new Date(); document.getElementById('estDate').value = ''; 
+            document.getElementById('isImportant').checked = false; document.getElementById('importantRemark').value = ''; document.getElementById('importantRemark').style.display = 'none';
+            activeInput = 'base'; imgArray = []; renderUploaders(); document.getElementById('addDrawer').style.display = 'flex'; 
+        }
+        function closeDrawer() { document.getElementById('addDrawer').style.display = 'none'; }
+        function saveData() { localStorage.setItem('myCabinetDataV7', JSON.stringify(appData)); }
+
+        window.addEventListener('resize', () => { renderUI(); });
+        renderTopIcons(); renderFormOptions(); renderUI(); checkNotices();
+    </script>
+</body>
+</html>
