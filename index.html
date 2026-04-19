@@ -1467,7 +1467,7 @@
                                 let importantHtml = (item.isImportant && item.importantRemark) ? `<div class="important-overlay" style="bottom:${appConfig.appearance.noticePos}%; background:${appConfig.appearance.noticeBgColor}; color:${appConfig.appearance.noticeTextColor};">${item.importantRemark}</div>` : '';
                                 
                                 let textIn = item.name;
-                                let textOut = item.estDate ? `预计出货: ${item.estDate}` : '暂定';
+                                let textOut = item.estDate ? `预计: ${item.estDate}` : '暂定';
 
                                 if (appConfig.appearance.swapNameDate) {
                                     let temp = textIn;
