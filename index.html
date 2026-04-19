@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>我的物品 V7</title>
+    <title>我的物品</title>
     <style>
         :root {
             --bg-base: #F7F8FA; --surface: #FFFFFF; --text-main: #222222; --text-muted: #999999;
@@ -133,10 +133,15 @@
         .settings-nav-item { padding: 16px 5px; text-align: center; font-size: 13px; color: #666; cursor: pointer; transition: 0.2s; position: relative; white-space: nowrap;}
         .settings-nav-item.active { background: #fff; color: var(--text-main); font-weight: bold; }
         .settings-nav-item.active::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; background: var(--primary); border-radius: 0 4px 4px 0;}
-        .settings-content { flex: 1; padding: 15px 20px; overflow-y: auto; scroll-behavior: smooth; }
+        
+        /* 核心修复：添加 min-width: 0 防止 flex 子元素撑破屏幕，并增加 box-sizing */
+        .settings-content { flex: 1; min-width: 0; padding: 15px 20px; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; box-sizing: border-box; }
 
         .settings-section { margin-bottom: 30px;}
-        .settings-title { font-size: 15px; font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
+        
+        /* 核心修复：添加 flex-wrap: wrap 允许标题内部元素自动换行，防止撑破 */
+        .settings-title { font-size: 15px; font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}
+        
         .settings-add-btn { color: var(--primary); font-size: 13px; font-weight: normal; background: var(--primary-light); padding: 4px 10px; border-radius: 10px; cursor: pointer;}
         .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
         .edit-tag { background: var(--input-bg); padding: 6px 12px; border-radius: 15px; font-size: 13px; display: flex; align-items: center; gap: 6px;}
@@ -430,9 +435,9 @@
                             <input type="text" id="cfg_gh_gist_id" placeholder="首次上传后会自动填入这里..." onchange="saveCloudConfig()">
                         </div>
                         
-                        <div style="display:flex; gap:10px; margin-top: 20px;">
-                            <button class="btn-primary" style="flex:1; padding:10px; border-radius:8px; font-size:13px; background:var(--theme-dark);" onclick="uploadToGitHub(event)">⬆️ 上传到云端</button>
-                            <button class="btn-primary" style="flex:1; padding:10px; border-radius:8px; font-size:13px; background:#4CAF50;" onclick="downloadFromGitHub(event)">⬇️ 下载到本机</button>
+                        <div style="display:flex; gap:10px; margin-top: 20px; flex-wrap: wrap;">
+                            <button class="btn-primary" style="flex:1; min-width: 120px; padding:10px; border-radius:8px; font-size:13px; background:var(--theme-dark);" onclick="uploadToGitHub(event)">⬆️ 上传到云端</button>
+                            <button class="btn-primary" style="flex:1; min-width: 120px; padding:10px; border-radius:8px; font-size:13px; background:#4CAF50;" onclick="downloadFromGitHub(event)">⬇️ 下载到本机</button>
                         </div>
                     </div>
 
