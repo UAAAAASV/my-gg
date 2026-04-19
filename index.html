@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>我的物品 V7</title>
+    <title>我的物品</title>
     <style>
         :root {
             --bg-base: #F7F8FA; --surface: #FFFFFF; --text-main: #222222; --text-muted: #999999;
             --primary: #FF8DA1; --primary-light: #FFE8EC;
-            --badge-shipping: #FFB347; --badge-balance: #5B9AFF; --badge-unpaid: #9E9E9E;
             --input-bg: #F2F3F5; --radius-lg: 20px; --radius-md: 12px;
             --theme-dark: #222222; 
             --font-family: -apple-system, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            
+            /* 角标颜色变量 */
+            --badge-not_arrived: #FFB347; 
+            --badge-balance: #5B9AFF; 
+            --badge-unpaid: #9E9E9E;
+            --badge-grouping: #9C27B0;
+            --badge-reshoot: #E91E63;
+            --badge-needpost: #00BCD4;
+            --badge-crowd: #607D8B;
+            --badge-near: #FF4D4F;
+            --badge-arrived: #4CAF50;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-tap-highlight-color: transparent;}
@@ -34,7 +44,7 @@
         .dash-top-row { display: flex; align-items: baseline; gap: 15px; }
         .dash-label { font-size: 14px; color: var(--text-muted); font-weight: 500;}
         .dash-main-price { font-size: 32px; font-weight: 700; color: var(--text-main); cursor: pointer;}
-        .dash-sub { display: flex; gap: 20px; font-size: 13px; color: var(--text-muted); }
+        .dash-sub { display: flex; gap: 15px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; align-items: center;}
         .dash-sub span { color: var(--text-main); font-weight: 500; cursor: pointer;}
         
         .status-tags { display: flex; gap: 10px; margin: 0 20px 15px; overflow-x: auto; scrollbar-width: none; }
@@ -77,7 +87,7 @@
         .sub-title { position: sticky; top: 110px; z-index: 40; background: var(--surface); font-size: 14px; font-weight: 600; color: #555; padding: 8px 0; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;}
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-        .item-card { background: var(--bg-base); border-radius: var(--radius-md); position: relative; aspect-ratio: 1; overflow: hidden; cursor: pointer; display: flex; justify-content: center; align-items: center; text-align: center;}
+        .item-card { background: var(--bg-base); border-radius: var(--radius-md); position: relative; aspect-ratio: 1; overflow: hidden; display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;}
         .item-card img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;}
         .item-card::after { content: ''; position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); pointer-events: none; z-index: 2;}
         
@@ -85,7 +95,7 @@
         .item-name-overlay { position: absolute; bottom: 6px; left: 8px; right: 8px; color: white; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; z-index: 6;}
         .important-overlay { position: absolute; left: 0; right: 0; padding: 4px; text-align: center; z-index: 5; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;}
         .badge { position: absolute; top: 6px; left: 6px; padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 600; color: #fff; z-index: 3;}
-        .badge-near { position: absolute; top: 6px; right: 6px; padding: 3px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; background: #FF4D4F; color: #fff; z-index: 3;}
+        .badge-near { position: absolute; top: 6px; right: 6px; padding: 3px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; background: var(--badge-near); color: #fff; z-index: 3;}
 
         .more-card { display: flex; justify-content: center; align-items: center; background: #000;}
         .more-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 26px; font-weight: bold; z-index: 5; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
@@ -189,9 +199,9 @@
         .cal-day.empty { background: transparent; pointer-events: none;}
         .cal-day.selected { background: var(--theme-dark); color: white;}
         .cal-dots { display:flex; gap:3px; position:absolute; bottom:4px; }
-        .dot-est { width:4px; height:4px; border-radius:50%; background:#FFB347; }
-        .dot-arr { width:4px; height:4px; border-radius:50%; background:#4CAF50; }
-        .cal-stats { background:var(--primary-light); padding:15px; border-radius:12px; margin-top:15px; font-size:13px; color:var(--primary); line-height:1.6;}
+        .dot-est { width:4px; height:4px; border-radius:50%; background:var(--badge-not_arrived); }
+        .dot-arr { width:4px; height:4px; border-radius:50%; background:var(--badge-arrived); }
+        .cal-stats { background:var(--input-bg); padding:15px; border-radius:12px; margin-top:15px; font-size:13px; color:var(--text-main); line-height:1.6; display:flex; flex-direction:column; gap:8px;}
     </style>
 </head>
 <body>
@@ -227,6 +237,7 @@
         <div class="dash-sub">
             <div>本体：<span id="totalBaseDisplay" onclick="toggleGlobalPrice()"></span></div>
             <div>附加：<span id="totalShippingDisplay" onclick="toggleGlobalPrice()"></span></div>
+            <div>数量：<span id="totalQtyDisplay" onclick="toggleGlobalPrice()"></span></div>
         </div>
     </div>
 
@@ -294,7 +305,7 @@
             <!-- 新增：预计待补金额 -->
             <div class="form-group row" id="estBalanceGroup" style="display: none;">
                 <div>
-                    <label class="form-label" style="color: var(--badge-balance);">预计待补 (不计入总花费)</label>
+                    <label class="form-label" style="color: var(--badge-balance);">预计补款 (仅提示不计入总计)</label>
                     <input type="number" id="priceEstBalance" placeholder="0.00">
                 </div>
             </div>
@@ -332,12 +343,12 @@
                 <select id="itemStatus" style="font-weight: bold;">
                     <option value="none">⚪ 无</option>
                     <option value="crowdfunding">🚀 众筹未开/待定</option>
-                    <option value="not_arrived">📦 待发货</option>
-                    <option value="need_balance">💰 待补款</option>
-                    <option value="grouping">👥 待成团</option>
+					<option value="grouping">👥 待成团</option>
+					<option value="unpaid">⏳ 未付款 (在排)</option>
+					<option value="need_balance">💰 待补款</option>
                     <option value="re_shoot">📸 待补拍</option>
                     <option value="need_post">📮 待补邮</option>
-                    <option value="unpaid">⏳ 未付款 (在排)</option>
+                    <option value="not_arrived">📦 待发货</option>
                     <option value="arrived">✅ 已入库 (签收)</option>
                 </select>
             </div>
@@ -380,16 +391,39 @@
                             <input type="range" id="set_noticePos" min="0" max="100" style="width:100%;" onchange="updateAppearance('noticePos', this.value)">
                         </div>
                         <div class="form-group row" style="align-items: center;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showName" onchange="updateAppearance('showName', this.checked)">显示名称</label></div>
                             <div>
                                 <select id="set_nameAlign" onchange="updateAppearance('nameAlign', this.value)">
-                                    <option value="left">靠左对齐</option><option value="center">居中对齐</option><option value="right">靠右对齐</option>
+                                    <option value="left">文本靠左对齐</option><option value="center">文本居中对齐</option><option value="right">文本靠右对齐</option>
                                 </select>
                             </div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showName" onchange="updateAppearance('showName', this.checked)">显示名称</label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showDate" onchange="updateAppearance('showDate', this.checked)">显示预计出货日期</label></div>
+                        </div>
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_swapNameDate" onchange="updateAppearance('swapNameDate', this.checked)">日期与名称位置互换</label></div>
+                        </div>
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_enableAnim" onchange="updateAppearance('enableAnim', this.checked)">隐藏金额时使用动态效果</label></div>
                         </div>
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_calHiddenDefault" onchange="updateAppearance('calHiddenDefault', this.checked)">日历概览数据默认遮挡</label></div>
+                        </div>
+
+                        <div class="settings-title" style="margin-top:20px;">角标颜色自定义</div>
+                        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待发货</label><input type="color" style="width:40px;" id="set_badge_not_arrived" onchange="updateBadgeColor('not_arrived', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待补款</label><input type="color" style="width:40px;" id="set_badge_balance" onchange="updateBadgeColor('balance', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">未付款</label><input type="color" style="width:40px;" id="set_badge_unpaid" onchange="updateBadgeColor('unpaid', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待成团</label><input type="color" style="width:40px;" id="set_badge_grouping" onchange="updateBadgeColor('grouping', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待补拍</label><input type="color" style="width:40px;" id="set_badge_reshoot" onchange="updateBadgeColor('reshoot', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待补邮</label><input type="color" style="width:40px;" id="set_badge_needpost" onchange="updateBadgeColor('needpost', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">众筹</label><input type="color" style="width:40px;" id="set_badge_crowd" onchange="updateBadgeColor('crowd', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">临近</label><input type="color" style="width:40px;" id="set_badge_near" onchange="updateBadgeColor('near', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">已入库</label><input type="color" style="width:40px;" id="set_badge_arrived" onchange="updateBadgeColor('arrived', this.value)"></div>
+                        </div>
+
                         <div class="settings-title" style="margin-top:20px;">分类内排序方式</div>
                         <select id="set_sortMethod" onchange="updateSortMethod(this.value)">
                             <option value="manual">手动排序 (默认记录顺序)</option>
@@ -527,14 +561,34 @@
         if (!appConfig.title) appConfig.title = "娃柜";
         if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
         if (!appConfig.appearance) {
-            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticePos: 15, showName: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true };
+            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticePos: 15, showName: true, showDate: false, swapNameDate: false, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, badgeColors: {} };
         } else {
             if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
             if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
+            if (appConfig.appearance.showDate === undefined) appConfig.appearance.showDate = false;
+            if (appConfig.appearance.swapNameDate === undefined) appConfig.appearance.swapNameDate = false;
+            if (appConfig.appearance.calHiddenDefault === undefined) appConfig.appearance.calHiddenDefault = true;
         }
-        if (!appConfig.cloud) appConfig.cloud = { token: '', gistId: '' };
+
+        const defBadgeColors = {
+            not_arrived: '#FFB347', balance: '#5B9AFF', unpaid: '#9E9E9E',
+            grouping: '#9C27B0', reshoot: '#E91E63', needpost: '#00BCD4',
+            crowd: '#607D8B', near: '#FF4D4F', arrived: '#4CAF50'
+        };
+        if (!appConfig.appearance.badgeColors) {
+            appConfig.appearance.badgeColors = JSON.parse(JSON.stringify(defBadgeColors));
+        } else {
+            for (let k in defBadgeColors) {
+                if (!appConfig.appearance.badgeColors[k]) appConfig.appearance.badgeColors[k] = defBadgeColors[k];
+            }
+        }
         
         document.documentElement.style.setProperty('--theme-dark', appConfig.appearance.themeDark);
+        Object.keys(appConfig.appearance.badgeColors).forEach(k => {
+            document.documentElement.style.setProperty(`--badge-${k}`, appConfig.appearance.badgeColors[k]);
+        });
+        
+        if (!appConfig.cloud) appConfig.cloud = { token: '', gistId: '' };
         
         const defaultIcons = {
             search: { type: 'text', val: '🔍' },
@@ -556,6 +610,10 @@
         const STATUS_MAP = { none: '无', crowdfunding: '众筹待定', unpaid: '未付款', need_balance: '待补款', grouping: '待成团', re_shoot: '待补拍', need_post: '待补邮', not_arrived: '待发货', arrived: '已入库' };
         
         let globalHidden = true;
+        let calPriceHiddenEst = true;
+        let calPriceHiddenBal = true;
+        let calQtyHidden = true;
+        
         let catHiddenState = {}; 
         let expandState = {}; 
         let mainCatFold = {}; 
@@ -594,6 +652,11 @@
             }
             return `<span class="kaomoji ${anim}">${face}</span>`;
         }
+
+        let getStatusColor = (s) => {
+            const m = { not_arrived:'not_arrived', need_balance:'balance', unpaid:'unpaid', grouping:'grouping', re_shoot:'reshoot', need_post:'needpost', crowdfunding:'crowd', arrived:'arrived' };
+            return `var(--badge-${m[s]||'unpaid'})`;
+        };
 
         // 图标自定义渲染
         function renderTopIcons() {
@@ -635,9 +698,23 @@
             document.getElementById('set_themeDark').value = appConfig.appearance.themeDark;
             document.getElementById('set_noticePos').value = appConfig.appearance.noticePos; 
             document.getElementById('set_showName').checked = appConfig.appearance.showName; 
+            document.getElementById('set_showDate').checked = appConfig.appearance.showDate; 
+            document.getElementById('set_swapNameDate').checked = appConfig.appearance.swapNameDate; 
             document.getElementById('set_enableAnim').checked = appConfig.appearance.enableAnim; 
+            document.getElementById('set_calHiddenDefault').checked = appConfig.appearance.calHiddenDefault;
             document.getElementById('set_nameAlign').value = appConfig.appearance.nameAlign; 
             document.getElementById('set_sortMethod').value = appConfig.sortMethod;
+
+            // 角标颜色
+            document.getElementById('set_badge_not_arrived').value = appConfig.appearance.badgeColors.not_arrived;
+            document.getElementById('set_badge_balance').value = appConfig.appearance.badgeColors.balance;
+            document.getElementById('set_badge_unpaid').value = appConfig.appearance.badgeColors.unpaid;
+            document.getElementById('set_badge_grouping').value = appConfig.appearance.badgeColors.grouping;
+            document.getElementById('set_badge_reshoot').value = appConfig.appearance.badgeColors.reshoot;
+            document.getElementById('set_badge_needpost').value = appConfig.appearance.badgeColors.needpost;
+            document.getElementById('set_badge_crowd').value = appConfig.appearance.badgeColors.crowd;
+            document.getElementById('set_badge_near').value = appConfig.appearance.badgeColors.near;
+            document.getElementById('set_badge_arrived').value = appConfig.appearance.badgeColors.arrived;
 
             // 渲染云同步配置
             document.getElementById('cfg_gh_token').value = appConfig.cloud.token || '';
@@ -653,6 +730,14 @@
             if(key === 'themeDark') document.documentElement.style.setProperty('--theme-dark', value);
             renderUI(); 
         }
+
+        function updateBadgeColor(key, val) {
+            appConfig.appearance.badgeColors[key] = val;
+            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            document.documentElement.style.setProperty(`--badge-${key}`, val);
+            renderUI();
+        }
+
         function updateSortMethod(val) { appConfig.sortMethod = val; localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); renderUI(); }
 
         function scrollToSec(id) {
@@ -926,7 +1011,7 @@
         }
 
         function toggleGlobalPrice() {
-            if(globalHidden) { showDialog("查看金额", false, "", "确认查看", () => { globalHidden = false; renderUI(); }); } else { globalHidden = true; renderUI(); }
+            if(globalHidden) { showDialog("查看金额和数量", false, "", "确认查看", () => { globalHidden = false; renderUI(); }); } else { globalHidden = true; renderUI(); }
         }
         function toggleCatPrice(catName, e) {
             e.stopPropagation(); if(catHiddenState[catName]) { showDialog("查看金额", false, "", "确认查看", () => { catHiddenState[catName] = false; renderUI(); }); } else { catHiddenState[catName] = true; renderUI(); }
@@ -1035,7 +1120,13 @@
 
         // 日历系统
         let currentCalDate = new Date();
-        function openCalendar() { renderCalendar(); document.getElementById('calendarDrawer').style.display = 'flex'; }
+        function openCalendar() { 
+            calPriceHiddenEst = appConfig.appearance.calHiddenDefault;
+            calPriceHiddenBal = appConfig.appearance.calHiddenDefault;
+            calQtyHidden = appConfig.appearance.calHiddenDefault;
+            renderCalendar(); 
+            document.getElementById('calendarDrawer').style.display = 'flex'; 
+        }
         function closeCalendar() { document.getElementById('calendarDrawer').style.display = 'none'; }
         function changeMonth(offset) { currentCalDate.setMonth(currentCalDate.getMonth() + offset); renderCalendar(); }
         
@@ -1044,6 +1135,19 @@
             let icon = document.getElementById('calMonthIcon');
             if(el.style.display === 'none') { el.style.display = 'block'; icon.innerText = '▼'; }
             else { el.style.display = 'none'; icon.innerText = '▶'; }
+        }
+
+        function toggleCalPrice(type) {
+            if(type === 'est') {
+                if(calPriceHiddenEst) showDialog("查看本月花费", false, "", "确认查看", () => { calPriceHiddenEst = false; renderCalendar(); });
+                else { calPriceHiddenEst = true; renderCalendar(); }
+            } else if(type === 'bal') {
+                if(calPriceHiddenBal) showDialog("查看预计待补", false, "", "确认查看", () => { calPriceHiddenBal = false; renderCalendar(); });
+                else { calPriceHiddenBal = true; renderCalendar(); }
+            } else if(type === 'qty') {
+                if(calQtyHidden) showDialog("查看本月数量", false, "", "确认查看", () => { calQtyHidden = false; renderCalendar(); });
+                else { calQtyHidden = true; renderCalendar(); }
+            }
         }
 
         function renderCalendar() {
@@ -1055,8 +1159,8 @@
             let html = '';
             for(let i=0; i<firstDay; i++) html += `<div class="cal-day empty"></div>`;
             
-            let monthEstSum = 0; let monthArrSum = 0; let monthEstBalanceSum = 0;
-            let dayData = {}; // key: day (1-31), value: { est:[], arr:[] }
+            let monthEstSum = 0; let monthEstBalanceSum = 0; let monthQtySum = 0;
+            let dayData = {}; 
             let monthItems = [];
 
             appData.items.forEach(item => {
@@ -1071,6 +1175,7 @@
                         dayData[dy].est.push(item);
                         monthEstSum += tPrice;
                         if(item.estBalance) monthEstBalanceSum += parseFloat(item.estBalance) * item.qty;
+                        monthQtySum += item.qty;
                         inThisMonth = true;
                     }
                 }
@@ -1082,7 +1187,6 @@
                             let dy = d.getDate();
                             if(!dayData[dy]) dayData[dy] = {est:[], arr:[]};
                             dayData[dy].arr.push(item);
-                            monthArrSum += tPrice;
                             inThisMonth = true;
                         }
                     }
@@ -1106,13 +1210,38 @@
             }
             document.getElementById('calGrid').innerHTML = html;
             
-            let statsHtml = `本月概览：<br>📦 预计出货：<span style="color:#FFB347;">¥${monthEstSum.toFixed(2)}</span><br>💰 预计待补：<span style="color:#FF4D4F;">¥${monthEstBalanceSum.toFixed(2)}</span><br>✅ 已收货：<span style="color:#4CAF50;">¥${monthArrSum.toFixed(2)}</span>`;
+            let estPriceDisplay = calPriceHiddenEst ? getFace() : `¥${monthEstSum.toFixed(2)}`;
+            let balPriceDisplay = calPriceHiddenBal ? getFace() : `¥${monthEstBalanceSum.toFixed(2)}`;
+            let qtyDisplay = calQtyHidden ? getFace() : `${monthQtySum}件`;
+
+            let statsHtml = `
+                <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:6px;">
+                    <div style="flex:1; height:1px; background:#DCDCDC;"></div>
+                    <span style="font-size:12px; font-weight:bold; color:var(--text-muted); letter-spacing:1px;">本月概览</span>
+                    <div style="flex:1; height:1px; background:#DCDCDC;"></div>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0;">
+                    <span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">🛒 本月数量</span>
+                    <span style="font-weight:bold; cursor:pointer;" onclick="toggleCalPrice('qty')">${qtyDisplay}</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0;">
+                    <span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">💸 花费</span>
+                    <span style="font-weight:bold; color:var(--badge-not_arrived); cursor:pointer;" onclick="toggleCalPrice('est')">${estPriceDisplay}</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0;">
+                    <span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">💰 预计待补</span>
+                    <span style="font-weight:bold; color:var(--badge-near); cursor:pointer;" onclick="toggleCalPrice('bal')">${balPriceDisplay}</span>
+                </div>
+            `;
             
             let monthListHtml = '';
             monthItems.forEach(i => {
                 let img = (i.images && i.images.length>0) ? `<img src="${i.images[0]}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;background:#fff;margin-right:10px;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#999;border:1px solid #eee;">无图</div>`;
-                let tag = i.status==='arrived'?'<span style="color:#4CAF50;font-size:12px;">✅已收</span>':'<span style="color:#FFB347;font-size:12px;">⏳待收</span>';
-                let estBalTxt = (i.status!=='arrived' && i.estBalance) ? `<span style="color:#FF4D4F; margin-left:5px;">(待补:¥${i.estBalance*i.qty})</span>` : '';
+                
+                let tagColor = getStatusColor(i.status);
+                let tag = `<span style="color:${tagColor}; font-size:11px; font-weight:bold; background:${tagColor}20; padding:2px 6px; border-radius:4px;">${STATUS_MAP[i.status]||'未知'}</span>`;
+                
+                let estBalTxt = (i.status!=='arrived' && i.estBalance) ? `<span style="color:var(--badge-near); margin-left:5px;">(预计待补:¥${i.estBalance*i.qty})</span>` : '';
                 monthListHtml += `<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;" onclick="closeCalendar(); openIdCard(${i.id})">
                     ${img}
                     <div style="flex:1;overflow:hidden;color:var(--text-main);">
@@ -1155,14 +1284,14 @@
             if(estList.length===0 && arrList.length===0) { html += `<div style="color:#999; font-size:13px;">这一天没有任何记录哦。</div>`; }
             else {
                 if(estList.length > 0) {
-                    html += `<div style="font-size:13px; color:#FFB347; font-weight:bold; margin-bottom:5px;">⏳ 预计出货 (已付 ¥${estSum.toFixed(2)})</div>`;
+                    html += `<div style="font-size:13px; color:var(--badge-not_arrived); font-weight:bold; margin-bottom:5px;">⏳ 预计出货 (已付 ¥${estSum.toFixed(2)})</div>`;
                     estList.forEach(item => { 
-                        let estBalTxt = item.estBalance ? `<span style="color:#FF4D4F; margin-left:8px;">(待补: ¥${item.estBalance * item.qty})</span>` : '';
+                        let estBalTxt = item.estBalance ? `<span style="color:var(--badge-near); margin-left:8px;">(预计待补: ¥${item.estBalance * item.qty})</span>` : '';
                         html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">${item.name} - ¥${item.totalPrice * item.qty} ${estBalTxt}</div>`; 
                     });
                 }
                 if(arrList.length > 0) {
-                    html += `<div style="font-size:13px; color:#4CAF50; font-weight:bold; margin:15px 0 5px 0;">✅ 已收货 (¥${arrSum.toFixed(2)})</div>`;
+                    html += `<div style="font-size:13px; color:var(--badge-arrived); font-weight:bold; margin:15px 0 5px 0;">✅ 已收货 (¥${arrSum.toFixed(2)})</div>`;
                     arrList.forEach(item => { html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">${item.name} - ¥${item.totalPrice * item.qty}</div>`; });
                 }
             }
@@ -1177,7 +1306,7 @@
                     futureItems.slice(0, 5).forEach(item => {
                         let diffDays = Math.ceil((new Date(item.estDate + "T23:59:59").getTime() - nowTime) / 86400000);
                         html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; display:flex; justify-content:space-between; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">
-                            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;">${item.name}</span> <span style="color:#FFB347; flex-shrink:0;">还有 ${diffDays} 天</span>
+                            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;">${item.name}</span> <span style="color:var(--badge-not_arrived); flex-shrink:0;">还有 ${diffDays} 天</span>
                         </div>`;
                     });
                 }
@@ -1206,7 +1335,7 @@
         // 渲染主列表
         function renderUI() {
             const search = document.getElementById('searchInput').value.toLowerCase();
-            let sumT = 0, sumB = 0, sumS = 0; 
+            let sumT = 0, sumB = 0, sumS = 0, sumQty = 0; 
             let cntNotArrived = 0, cntNeedBalance = 0, cntUnpaid = 0, cntImportant = 0, cntNear = 0;
             let cntGrouping = 0, cntReShoot = 0, cntNeedPost = 0, cntCrowdfunding = 0;
             let today = new Date().getTime();
@@ -1258,7 +1387,7 @@
 
                 if (search && !item.name.toLowerCase().includes(search) && !(item.remark||'').toLowerCase().includes(search) && !(item.importantRemark||'').toLowerCase().includes(search)) return;
                 
-                sumT += item.totalPrice * item.qty; sumB += item.basePrice * item.qty; sumS += item.shipping;
+                sumT += item.totalPrice * item.qty; sumB += item.basePrice * item.qty; sumS += item.shipping; sumQty += item.qty;
 
                 let mCat = item.mainCat || '未分类'; let sCat = item.subCat || '无分类';
                 if(!mainGroups[mCat]) { mainGroups[mCat] = { sum: 0, subs: {} }; if(catHiddenState[mCat] === undefined) catHiddenState[mCat] = true; }
@@ -1281,6 +1410,7 @@
             document.getElementById('totalPriceDisplay').innerHTML = globalHidden ? getFace() : sumT.toFixed(2);
             document.getElementById('totalBaseDisplay').innerHTML = globalHidden ? getFace() : sumB.toFixed(2);
             document.getElementById('totalShippingDisplay').innerHTML = globalHidden ? getFace() : sumS.toFixed(2);
+            document.getElementById('totalQtyDisplay').innerHTML = globalHidden ? getFace() : `${sumQty}件`;
             
             const container = document.getElementById('cabinetsContainer'); container.innerHTML = '';
             
@@ -1321,13 +1451,13 @@
 
                             displayList.forEach((item, index) => {
                                 let badge = '', bg = '#000';
-                                if (item.status === 'not_arrived') { badge = STATUS_MAP.not_arrived; bg = 'var(--badge-shipping)'; }
+                                if (item.status === 'not_arrived') { badge = STATUS_MAP.not_arrived; bg = 'var(--badge-not_arrived)'; }
                                 if (item.status === 'need_balance') { badge = STATUS_MAP.need_balance; bg = 'var(--badge-balance)'; }
                                 if (item.status === 'unpaid') { badge = STATUS_MAP.unpaid; bg = 'var(--badge-unpaid)'; }
-                                if (item.status === 'grouping') { badge = STATUS_MAP.grouping; bg = '#9C27B0'; }
-                                if (item.status === 're_shoot') { badge = STATUS_MAP.re_shoot; bg = '#E91E63'; }
-                                if (item.status === 'need_post') { badge = STATUS_MAP.need_post; bg = '#00BCD4'; }
-                                if (item.status === 'crowdfunding') { badge = STATUS_MAP.crowdfunding; bg = '#607D8B'; }
+                                if (item.status === 'grouping') { badge = STATUS_MAP.grouping; bg = 'var(--badge-grouping)'; }
+                                if (item.status === 're_shoot') { badge = STATUS_MAP.re_shoot; bg = 'var(--badge-reshoot)'; }
+                                if (item.status === 'need_post') { badge = STATUS_MAP.need_post; bg = 'var(--badge-needpost)'; }
+                                if (item.status === 'crowdfunding') { badge = STATUS_MAP.crowdfunding; bg = 'var(--badge-crowd)'; }
 
                                 let badgeHtml = badge ? `<div class="badge" style="background:${bg}">${badge}</div>` : '';
 
@@ -1335,16 +1465,33 @@
                                 let badgeNearHtml = isNear ? `<div class="badge-near">⏰临近</div>` : '';
                                 
                                 let importantHtml = (item.isImportant && item.importantRemark) ? `<div class="important-overlay" style="bottom:${appConfig.appearance.noticePos}%; background:${appConfig.appearance.noticeBgColor}; color:${appConfig.appearance.noticeTextColor};">${item.importantRemark}</div>` : '';
-                                let nameHtml = appConfig.appearance.showName ? `<div class="item-name-overlay" style="text-align:${appConfig.appearance.nameAlign};">${item.name}</div>` : '';
+                                
+                                let textIn = item.name;
+                                let textOut = item.estDate ? `预计出货: ${item.estDate}` : '暂定';
+
+                                if (appConfig.appearance.swapNameDate) {
+                                    let temp = textIn;
+                                    textIn = textOut;
+                                    textOut = temp;
+                                }
+
+                                let inHtml = appConfig.appearance.showName ? `<div class="item-name-overlay" style="text-align:${appConfig.appearance.nameAlign};">${textIn}</div>` : '';
+                                let outHtml = appConfig.appearance.showDate ? `<div style="font-size:11px; font-weight:600; text-align:${appConfig.appearance.nameAlign}; margin-top:6px; color:var(--text-main); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${textOut}</div>` : '';
+
                                 let imgHtml = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}">` : `<div class="no-img-text">${item.name}</div>`;
                                 let isLastAndMore = hasMore && !isExpanded && (index === limit - 1);
 
                                 if (isLastAndMore) {
                                     let extraCount = sList.length - limit + 1;
                                     let blurImg = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}" style="filter: blur(4px) brightness(0.6);">` : `<div style="width:100%;height:100%;background:#333;"></div>`;
-                                    html += `<div class="item-card more-card" onclick="toggleExpand('${subKey}', event)">${badgeHtml}${blurImg}<div class="more-text">+${extraCount}</div></div>`;
+                                    html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0;" onclick="toggleExpand('${subKey}', event)">
+                                        <div class="item-card more-card">${badgeHtml}${blurImg}<div class="more-text">+${extraCount}</div></div>
+                                    </div>`;
                                 } else {
-                                    html += `<div class="item-card" onclick="openIdCard(${item.id})">${badgeHtml}${badgeNearHtml}${imgHtml}${importantHtml}${nameHtml}</div>`;
+                                    html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0;" onclick="openIdCard(${item.id})">
+                                        <div class="item-card">${badgeHtml}${badgeNearHtml}${imgHtml}${importantHtml}${inHtml}</div>
+                                        ${outHtml}
+                                    </div>`;
                                 }
                             });
                             html += `</div>`;
@@ -1373,15 +1520,15 @@
             rb.innerHTML = remarkContent || '没有留下备注。'; rb.style.display = remarkContent ? 'block' : 'none';
 
             const badge = document.getElementById('idStatusBadge'); badge.className = 'id-status';
-            if(item.status === 'arrived') { badge.innerText = STATUS_MAP.arrived; badge.style.background = '#4CAF50'; badge.style.color = '#fff'; }
-            else if(item.status === 'need_balance') { badge.innerText = STATUS_MAP.need_balance; badge.style.background = 'var(--badge-balance)'; badge.style.color = '#fff'; }
-            else if(item.status === 'unpaid') { badge.innerText = STATUS_MAP.unpaid; badge.style.background = 'var(--badge-unpaid)'; badge.style.color = '#fff'; }
-            else if(item.status === 'grouping') { badge.innerText = STATUS_MAP.grouping; badge.style.background = '#9C27B0'; badge.style.color = '#fff'; }
-            else if(item.status === 're_shoot') { badge.innerText = STATUS_MAP.re_shoot; badge.style.background = '#E91E63'; badge.style.color = '#fff'; }
-            else if(item.status === 'need_post') { badge.innerText = STATUS_MAP.need_post; badge.style.background = '#00BCD4'; badge.style.color = '#fff'; }
-            else if(item.status === 'crowdfunding') { badge.innerText = STATUS_MAP.crowdfunding; badge.style.background = '#607D8B'; badge.style.color = '#fff'; }
-            else if(item.status === 'not_arrived') { badge.innerText = STATUS_MAP.not_arrived; badge.style.background = 'var(--badge-shipping)'; badge.style.color = '#fff'; }
-            else { badge.innerText = '无'; badge.style.background = '#E0E0E0'; badge.style.color = '#666'; }
+            const badgeMap = { arrived: 'arrived', not_arrived: 'not_arrived', need_balance: 'balance', unpaid: 'unpaid', grouping: 'grouping', re_shoot: 'reshoot', need_post: 'needpost', crowdfunding: 'crowd' };
+            let cKey = badgeMap[item.status];
+            if(cKey) {
+                badge.innerText = STATUS_MAP[item.status]; 
+                badge.style.background = `var(--badge-${cKey})`; 
+                badge.style.color = '#fff';
+            } else {
+                badge.innerText = '无'; badge.style.background = '#E0E0E0'; badge.style.color = '#666';
+            }
 
             let btnHtml = '';
             if(item.status !== 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('arrived')">📦 签收</button>`;
