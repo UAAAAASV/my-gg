@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>我的物品</title>
+    <title>我的物品 V7</title>
     <style>
         :root {
             --bg-base: #F7F8FA; --surface: #FFFFFF; --text-main: #222222; --text-muted: #999999;
@@ -127,10 +127,9 @@
         .btn-cancel { background: var(--input-bg); color: var(--text-main);}
         .btn-primary { background: var(--theme-dark); color: white;}
 
-        /* 设置抽屉分区样式 - 修复了左右溢出屏幕问题 */
+        /* 设置抽屉分区样式 */
         .settings-layout { display: flex; height: 60vh; margin: 0; border-top: 1px solid #eee; background: #fff;}
         .settings-sidebar { width: 95px; background: #F7F8FA; overflow-y: auto; padding-top: 10px; flex-shrink: 0;}
-        /* 侧边栏居左对齐 */
         .settings-nav-item { padding: 16px 10px 16px 20px; text-align: left; font-size: 13px; color: #666; cursor: pointer; transition: 0.2s; position: relative; white-space: nowrap; box-sizing: border-box;}
         .settings-nav-item.active { background: #fff; color: var(--text-main); font-weight: bold; }
         .settings-nav-item.active::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; background: var(--primary); border-radius: 0 4px 4px 0;}
@@ -292,6 +291,14 @@
                 </div>
             </div>
 
+            <!-- 新增：预计待补金额 -->
+            <div class="form-group row" id="estBalanceGroup" style="display: none;">
+                <div>
+                    <label class="form-label" style="color: var(--badge-balance);">预计待补 (不计入总花费)</label>
+                    <input type="number" id="priceEstBalance" placeholder="0.00">
+                </div>
+            </div>
+
             <div class="form-group row">
                 <div><label class="form-label">主分类</label><select id="mainCat"></select></div>
                 <div><label class="form-label">小分类</label><select id="subCat"><option value="">无</option></select></div>
@@ -422,7 +429,7 @@
                     </div>
 
                     <div class="settings-section" id="sec-cloud">
-                        <div class="settings-title">GitHub 云端同步 <span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">极客玩法</span></div>
+                        <div class="settings-title">GitHub 云端同步 <span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">云同步</span></div>
                         <div style="font-size:12px; color:#999; margin-bottom:15px;">利用 GitHub Gist 接口作为私有数据库，安全且免费地实现多设备互通。</div>
                         
                         <div class="form-group">
@@ -460,7 +467,8 @@
                     <div>附加: <span id="idShip">¥0</span></div>
                     <div>来源: <span id="idSource">淘宝</span></div>
                     <div>出货: <span id="idEstDate">暂无</span></div>
-                    <div style="grid-column: span 2;">分类: <span id="idCat">BJD</span></div>
+                    <div>待补: <span id="idEstBalance" style="color:#FF4D4F; font-weight:bold;">¥0</span></div>
+                    <div>分类: <span id="idCat">BJD</span></div>
                 </div>
                 <div class="id-remark" id="idRemarkBox"></div>
                 <div class="id-actions" id="idActionGroup"></div>
@@ -717,7 +725,7 @@
                     saveCloudConfig();
                     showDialog("成功上传到云端！", false, "", "太棒了", null);
                 } else {
-                    showDialog("上传失败，请检查 Token", false, "", "关闭", null);
+                    showDialog("上传失败，请检查 Token 权限", false, "", "关闭", null);
                 }
             }).catch(err => {
                 showDialog("网络错误，上传失败", false, "", "关闭", null);
@@ -842,16 +850,47 @@
             document.getElementById('pullDepositGroup').style.display = (!isEdit && type === 'pay_balance') ? 'block' : 'none';
             document.getElementById('itemName').readOnly = (!isEdit && type === 'pay_balance');
 
+            // 只有“在排”和“定金”显示预计待补金额
+            const estGrp = document.getElementById('estBalanceGroup');
+            if (type === 'queue' || type === 'deposit') {
+                estGrp.style.display = 'flex';
+            } else {
+                estGrp.style.display = 'none';
+            }
+
             if(type === 'deposit') { document.getElementById('pullQueueSelect').innerHTML = '<option value="">-- 点击选择在排记录 --</option>' + appData.items.filter(i => i.status === 'unpaid').map(i => `<option value="${i.id}">${i.name}</option>`).join(''); } 
             else if(type === 'pay_balance') { document.getElementById('pullDepositSelect').innerHTML = '<option value="">-- 点击选择要补款的订单 --</option>' + appData.items.filter(i => i.status === 'need_balance').map(i => `<option value="${i.id}">${i.name}</option>`).join(''); }
         }
 
-        function autoFillFromQueue() { const id = document.getElementById('pullQueueSelect').value; const item = appData.items.find(i => i.id == id); if(item) { document.getElementById('itemName').value = item.name + " [定金]"; document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat; } }
-        function autoFillFromDeposit() { const id = document.getElementById('pullDepositSelect').value; const item = appData.items.find(i => i.id == id); if(item) { document.getElementById('itemName').value = item.name + " [尾款]"; document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat; } }
+        function autoFillFromQueue() { 
+            const id = document.getElementById('pullQueueSelect').value; 
+            const item = appData.items.find(i => i.id == id); 
+            if(item) { 
+                document.getElementById('itemName').value = item.name + " [定金]"; 
+                document.getElementById('mainCat').value = item.mainCat; 
+                document.getElementById('subCat').value = item.subCat; 
+                if(item.estBalance) document.getElementById('priceEstBalance').value = item.estBalance;
+            } 
+        }
+        function autoFillFromDeposit() { 
+            const id = document.getElementById('pullDepositSelect').value; 
+            const item = appData.items.find(i => i.id == id); 
+            if(item) { 
+                document.getElementById('itemName').value = item.name + " [尾款]"; 
+                document.getElementById('mainCat').value = item.mainCat; 
+                document.getElementById('subCat').value = item.subCat; 
+                if (item.estBalance) {
+                    document.getElementById('priceTotal').value = item.estBalance;
+                    autoCalc('total');
+                }
+            } 
+        }
 
         function saveItem() {
             const editId = document.getElementById('editingItemId').value; const type = document.querySelector('input[name="entryType"]:checked').value; const name = document.getElementById('itemName').value.trim(); const bPrice = parseFloat(document.getElementById('priceBase').value) || 0; const sPrice = parseFloat(document.getElementById('priceShip').value) || 0; const tPrice = parseFloat(document.getElementById('priceTotal').value) || (bPrice + sPrice); const remark = document.getElementById('itemRemark').value.trim(); const isImportant = document.getElementById('isImportant').checked; const importantRemark = document.getElementById('importantRemark').value.trim(); const estDate = document.getElementById('estDate').value;
             const finalStatus = document.getElementById('itemStatus').value;
+            const estBalance = parseFloat(document.getElementById('priceEstBalance').value) || 0;
+
             if (!name) return showDialog("提示", false, "", "知道了", null), document.getElementById('dialogTitle').innerText="名字不能为空";
 
             if (editId) {
@@ -860,6 +899,7 @@
                 if(finalStatus === 'arrived' && appData.items[idx].status !== 'arrived') { appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA'); }
                 appData.items[idx] = { ...appData.items[idx], name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
                 appData.items[idx].images = [...imgArray]; 
+                appData.items[idx].estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
             } else {
                 if (type === 'pay_balance' && document.getElementById('pullDepositSelect').value) {
                     const id = document.getElementById('pullDepositSelect').value;
@@ -868,14 +908,17 @@
                     if(remark) appData.items[idx].remark = (appData.items[idx].remark ? appData.items[idx].remark + '\n' : '') + '[尾款]: ' + remark;
                     appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
                     if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
+                    appData.items[idx].estBalance = 0; // 尾款结清，待补归零
                 } else if (type === 'deposit' && document.getElementById('pullQueueSelect').value) {
                     const id = document.getElementById('pullQueueSelect').value; const idx = appData.items.findIndex(i => i.id == id);
                     appData.items[idx].totalPrice += tPrice; appData.items[idx].basePrice += bPrice;
                     if(remark) appData.items[idx].remark = (appData.items[idx].remark ? appData.items[idx].remark + '\n' : '') + '[付定]: ' + remark;
                     appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
+                    appData.items[idx].estBalance = estBalance; // 更新为新的待补
                 } else {
                     let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], noticeRead: false, noticeDismissed: false };
                     if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
+                    newItem.estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
                     appData.items.push(newItem);
                 }
             }
@@ -1012,7 +1055,7 @@
             let html = '';
             for(let i=0; i<firstDay; i++) html += `<div class="cal-day empty"></div>`;
             
-            let monthEstSum = 0; let monthArrSum = 0;
+            let monthEstSum = 0; let monthArrSum = 0; let monthEstBalanceSum = 0;
             let dayData = {}; // key: day (1-31), value: { est:[], arr:[] }
             let monthItems = [];
 
@@ -1027,6 +1070,7 @@
                         if(!dayData[dy]) dayData[dy] = {est:[], arr:[]};
                         dayData[dy].est.push(item);
                         monthEstSum += tPrice;
+                        if(item.estBalance) monthEstBalanceSum += parseFloat(item.estBalance) * item.qty;
                         inThisMonth = true;
                     }
                 }
@@ -1062,17 +1106,18 @@
             }
             document.getElementById('calGrid').innerHTML = html;
             
-            let statsHtml = `本月概览：<br>📦 预计出货/补款：<span style="color:#FFB347;">¥${monthEstSum.toFixed(2)}</span><br>✅ 已收货：<span style="color:#4CAF50;">¥${monthArrSum.toFixed(2)}</span>`;
+            let statsHtml = `本月概览：<br>📦 预计出货：<span style="color:#FFB347;">¥${monthEstSum.toFixed(2)}</span><br>💰 预计待补：<span style="color:#FF4D4F;">¥${monthEstBalanceSum.toFixed(2)}</span><br>✅ 已收货：<span style="color:#4CAF50;">¥${monthArrSum.toFixed(2)}</span>`;
             
             let monthListHtml = '';
             monthItems.forEach(i => {
                 let img = (i.images && i.images.length>0) ? `<img src="${i.images[0]}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;background:#fff;margin-right:10px;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#999;border:1px solid #eee;">无图</div>`;
                 let tag = i.status==='arrived'?'<span style="color:#4CAF50;font-size:12px;">✅已收</span>':'<span style="color:#FFB347;font-size:12px;">⏳待收</span>';
+                let estBalTxt = (i.status!=='arrived' && i.estBalance) ? `<span style="color:#FF4D4F; margin-left:5px;">(待补:¥${i.estBalance*i.qty})</span>` : '';
                 monthListHtml += `<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;" onclick="closeCalendar(); openIdCard(${i.id})">
                     ${img}
                     <div style="flex:1;overflow:hidden;color:var(--text-main);">
                         <div style="font-size:14px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${i.name}</div>
-                        <div style="font-size:12px;color:#999;margin-top:4px;">${tag} ¥${i.totalPrice * i.qty}</div>
+                        <div style="font-size:12px;color:#999;margin-top:4px;">${tag} 已付:¥${i.totalPrice * i.qty} ${estBalTxt}</div>
                     </div>
                 </div>`;
             });
@@ -1110,8 +1155,11 @@
             if(estList.length===0 && arrList.length===0) { html += `<div style="color:#999; font-size:13px;">这一天没有任何记录哦。</div>`; }
             else {
                 if(estList.length > 0) {
-                    html += `<div style="font-size:13px; color:#FFB347; font-weight:bold; margin-bottom:5px;">⏳ 预计出货 (¥${estSum.toFixed(2)})</div>`;
-                    estList.forEach(item => { html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">${item.name} - ¥${item.totalPrice * item.qty}</div>`; });
+                    html += `<div style="font-size:13px; color:#FFB347; font-weight:bold; margin-bottom:5px;">⏳ 预计出货 (已付 ¥${estSum.toFixed(2)})</div>`;
+                    estList.forEach(item => { 
+                        let estBalTxt = item.estBalance ? `<span style="color:#FF4D4F; margin-left:8px;">(待补: ¥${item.estBalance * item.qty})</span>` : '';
+                        html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">${item.name} - ¥${item.totalPrice * item.qty} ${estBalTxt}</div>`; 
+                    });
                 }
                 if(arrList.length > 0) {
                     html += `<div style="font-size:13px; color:#4CAF50; font-weight:bold; margin:15px 0 5px 0;">✅ 已收货 (¥${arrSum.toFixed(2)})</div>`;
@@ -1317,7 +1365,8 @@
             else { document.getElementById('idImgContainer').style.display = 'none'; }
             
             document.getElementById('idName').innerText = item.name; document.getElementById('idTotal').innerText = `¥${item.totalPrice}`; document.getElementById('idShip').innerText = `¥${item.shipping}`; document.getElementById('idSource').innerText = item.source; document.getElementById('idEstDate').innerText = item.estDate || '暂无'; document.getElementById('idCat').innerText = item.subCat ? `${item.mainCat} / ${item.subCat}` : item.mainCat;
-            
+            document.getElementById('idEstBalance').innerText = item.estBalance ? `¥${item.estBalance}` : '无';
+
             const rb = document.getElementById('idRemarkBox'); let remarkContent = '';
             if (item.isImportant && item.importantRemark) remarkContent += `<div style="color:${appConfig.appearance.noticeBgColor}; font-weight:bold; margin-bottom:8px;">⚠️ 注意：${item.importantRemark}</div>`;
             if (item.remark) remarkContent += `<div>${item.remark.replace(/\n/g, '<br>')}</div>`;
@@ -1353,6 +1402,7 @@
             closeIdCard(); const item = appData.items.find(i => i.id == currentViewId);
             document.getElementById('editingItemId').value = item.id; document.getElementById('itemName').value = item.name; document.getElementById('priceBase').value = item.basePrice||''; document.getElementById('priceShip').value = item.shipping||''; document.getElementById('priceTotal').value = item.totalPrice||''; document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat||''; document.getElementById('itemSource').value = item.source; document.getElementById('itemDate').value = item.buyDate; document.getElementById('estDate').value = item.estDate||''; document.getElementById('itemQty').value = item.qty; document.getElementById('itemRemark').value = item.remark||'';
             document.getElementById('isImportant').checked = !!item.isImportant; document.getElementById('importantRemark').value = item.importantRemark || ''; document.getElementById('importantRemark').style.display = item.isImportant ? 'block' : 'none';
+            document.getElementById('priceEstBalance').value = item.estBalance || '';
             activeInput = 'base';
             
             document.getElementById('typeControl').style.display = 'flex';
@@ -1376,6 +1426,7 @@
             
             document.getElementById('itemName').value = ''; document.getElementById('priceBase').value = ''; document.getElementById('priceShip').value = ''; document.getElementById('priceTotal').value = ''; document.getElementById('itemRemark').value = ''; document.getElementById('itemDate').valueAsDate = new Date(); document.getElementById('estDate').value = ''; 
             document.getElementById('isImportant').checked = false; document.getElementById('importantRemark').value = ''; document.getElementById('importantRemark').style.display = 'none';
+            document.getElementById('priceEstBalance').value = '';
             activeInput = 'base'; imgArray = []; renderUploaders(); document.getElementById('addDrawer').style.display = 'flex'; 
         }
         function closeDrawer() { document.getElementById('addDrawer').style.display = 'none'; }
