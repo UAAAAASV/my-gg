@@ -127,19 +127,18 @@
         .btn-cancel { background: var(--input-bg); color: var(--text-main);}
         .btn-primary { background: var(--theme-dark); color: white;}
 
-        /* 设置抽屉分区样式 */
-        .settings-layout { display: flex; height: 60vh; margin: 0 -24px -20px; border-top: 1px solid #eee; background: #fff;}
+        /* 设置抽屉分区样式 - 修复了左右溢出屏幕问题 */
+        .settings-layout { display: flex; height: 60vh; margin: 0; border-top: 1px solid #eee; background: #fff;}
         .settings-sidebar { width: 95px; background: #F7F8FA; overflow-y: auto; padding-top: 10px; flex-shrink: 0;}
-        .settings-nav-item { padding: 16px 5px; text-align: center; font-size: 13px; color: #666; cursor: pointer; transition: 0.2s; position: relative; white-space: nowrap;}
+        /* 侧边栏居左对齐 */
+        .settings-nav-item { padding: 16px 10px 16px 20px; text-align: left; font-size: 13px; color: #666; cursor: pointer; transition: 0.2s; position: relative; white-space: nowrap; box-sizing: border-box;}
         .settings-nav-item.active { background: #fff; color: var(--text-main); font-weight: bold; }
         .settings-nav-item.active::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; background: var(--primary); border-radius: 0 4px 4px 0;}
         
-        /* 核心修复：添加 min-width: 0 防止 flex 子元素撑破屏幕，并增加 box-sizing */
         .settings-content { flex: 1; min-width: 0; padding: 15px 20px; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; box-sizing: border-box; }
 
         .settings-section { margin-bottom: 30px;}
         
-        /* 核心修复：添加 flex-wrap: wrap 允许标题内部元素自动换行，防止撑破 */
         .settings-title { font-size: 15px; font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}
         
         .settings-add-btn { color: var(--primary); font-size: 13px; font-weight: normal; background: var(--primary-light); padding: 4px 10px; border-radius: 10px; cursor: pointer;}
