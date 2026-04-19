@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -15,10 +16,7 @@
             /* 角标颜色变量 */
             --badge-not_arrived: #FFB347; 
             --badge-balance: #5B9AFF; 
-            --badge-unpaid: #9E9E9E;
-            --badge-grouping: #9C27B0;
-            --badge-reshoot: #E91E63;
-            --badge-needpost: #00BCD4;
+            --badge-unpaid_grouping: #9C27B0;
             --badge-crowd: #607D8B;
             --badge-near: #FF4D4F;
             --badge-arrived: #4CAF50;
@@ -84,7 +82,7 @@
         .main-sum { font-size: 14px; color: var(--primary); background: var(--primary-light); padding: 4px 12px; border-radius: 20px;}
         
         .sub-category-block { margin-bottom: 15px; }
-        .sub-title { position: sticky; top: 110px; z-index: 40; background: var(--surface); font-size: 14px; font-weight: 600; color: #555; padding: 8px 0; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;}
+        .sub-title { position: sticky; top: 110px; z-index: 40; background: var(--surface); font-size: 14px; font-weight: 600; color: #555; padding: 8px 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; cursor: pointer; user-select: none;}
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
         .item-card { background: var(--bg-base); border-radius: var(--radius-md); position: relative; aspect-ratio: 1; overflow: hidden; display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;}
@@ -245,11 +243,9 @@
         <div class="s-tag active" id="filter_all" onclick="setStatusFilter('all')">全部</div>
         <div class="s-tag" id="filter_not_arrived" onclick="setStatusFilter('not_arrived')">待发货 <span id="cnt_not_arrived"></span></div>
         <div class="s-tag" id="filter_need_balance" onclick="setStatusFilter('need_balance')">待补款 <span id="cnt_need_balance"></span></div>
-        <div class="s-tag" id="filter_grouping" onclick="setStatusFilter('grouping')">待成团 <span id="cnt_grouping"></span></div>
-        <div class="s-tag" id="filter_re_shoot" onclick="setStatusFilter('re_shoot')">待补拍 <span id="cnt_re_shoot"></span></div>
-        <div class="s-tag" id="filter_need_post" onclick="setStatusFilter('need_post')">待补邮 <span id="cnt_need_post"></span></div>
-        <div class="s-tag" id="filter_unpaid" onclick="setStatusFilter('unpaid')">未付款 <span id="cnt_unpaid"></span></div>
+        <div class="s-tag" id="filter_unpaid_grouping" onclick="setStatusFilter('unpaid_grouping')">待成团 <span id="cnt_unpaid_grouping"></span></div>
         <div class="s-tag" id="filter_crowdfunding" onclick="setStatusFilter('crowdfunding')">众筹 <span id="cnt_crowdfunding"></span></div>
+        <div class="s-tag" id="filter_arrived" onclick="setStatusFilter('arrived')">已收货 <span id="cnt_arrived"></span></div>
         <div class="s-tag" id="filter_important" onclick="setStatusFilter('important')">注意 <span id="cnt_important"></span></div>
         <div class="s-tag" id="filter_near" onclick="setStatusFilter('near')">临近 <span id="cnt_near"></span></div>
     </div>
@@ -302,7 +298,7 @@
                 </div>
             </div>
 
-            <!-- 新增：预计待补金额 -->
+            <!-- 预计待补金额 -->
             <div class="form-group row" id="estBalanceGroup" style="display: none;">
                 <div>
                     <label class="form-label" style="color: var(--badge-balance);">预计补款 (仅提示不计入总计)</label>
@@ -342,14 +338,11 @@
                 <label class="form-label">物品状态</label>
                 <select id="itemStatus" style="font-weight: bold;">
                     <option value="none">⚪ 无</option>
-                    <option value="crowdfunding">🚀 众筹未开/待定</option>
-					<option value="grouping">👥 待成团</option>
-					<option value="unpaid">⏳ 未付款 (在排)</option>
+                    <option value="crowdfunding">🚀 待众筹</option>
+					<option value="unpaid_grouping">👥 待成团/待付款</option>
 					<option value="need_balance">💰 待补款</option>
-                    <option value="re_shoot">📸 待补拍</option>
-                    <option value="need_post">📮 待补邮</option>
                     <option value="not_arrived">📦 待发货</option>
-                    <option value="arrived">✅ 已入库 (签收)</option>
+                    <option value="arrived">✅ 已收货</option>
                 </select>
             </div>
 
@@ -381,6 +374,10 @@
                         <div class="form-group row">
                             <div><label class="form-label">提醒字色</label><input type="color" id="set_noticeTextColor" onchange="updateAppearance('noticeTextColor', this.value)"></div>
                             <div><label class="form-label">提醒底色</label><input type="color" id="set_noticeBgColor" onchange="updateAppearance('noticeBgColor', this.value)"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">提醒背景透明度 (0全透 - 100不透)</label>
+                            <input type="range" id="set_noticeOpacity" min="0" max="100" style="width:100%;" onchange="updateAppearance('noticeOpacity', this.value)">
                         </div>
                         <div class="form-group row">
                             <div><label class="form-label">强调色 (深色按钮/标签)</label><input type="color" id="set_themeDark" onchange="updateAppearance('themeDark', this.value)"></div>
@@ -415,13 +412,10 @@
                         <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待发货</label><input type="color" style="width:40px;" id="set_badge_not_arrived" onchange="updateBadgeColor('not_arrived', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待补款</label><input type="color" style="width:40px;" id="set_badge_balance" onchange="updateBadgeColor('balance', this.value)"></div>
-                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">未付款</label><input type="color" style="width:40px;" id="set_badge_unpaid" onchange="updateBadgeColor('unpaid', this.value)"></div>
-                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待成团</label><input type="color" style="width:40px;" id="set_badge_grouping" onchange="updateBadgeColor('grouping', this.value)"></div>
-                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待补拍</label><input type="color" style="width:40px;" id="set_badge_reshoot" onchange="updateBadgeColor('reshoot', this.value)"></div>
-                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待补邮</label><input type="color" style="width:40px;" id="set_badge_needpost" onchange="updateBadgeColor('needpost', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待成团</label><input type="color" style="width:40px;" id="set_badge_unpaid_grouping" onchange="updateBadgeColor('unpaid_grouping', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">众筹</label><input type="color" style="width:40px;" id="set_badge_crowd" onchange="updateBadgeColor('crowd', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">临近</label><input type="color" style="width:40px;" id="set_badge_near" onchange="updateBadgeColor('near', this.value)"></div>
-                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">已入库</label><input type="color" style="width:40px;" id="set_badge_arrived" onchange="updateBadgeColor('arrived', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">已收货</label><input type="color" style="width:40px;" id="set_badge_arrived" onchange="updateBadgeColor('arrived', this.value)"></div>
                         </div>
 
                         <div class="settings-title" style="margin-top:20px;">分类内排序方式</div>
@@ -561,19 +555,18 @@
         if (!appConfig.title) appConfig.title = "娃柜";
         if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
         if (!appConfig.appearance) {
-            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticePos: 15, showName: true, showDate: false, swapNameDate: false, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, badgeColors: {} };
+            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, showName: true, showDate: false, swapNameDate: false, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, badgeColors: {} };
         } else {
             if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
             if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
             if (appConfig.appearance.showDate === undefined) appConfig.appearance.showDate = false;
             if (appConfig.appearance.swapNameDate === undefined) appConfig.appearance.swapNameDate = false;
             if (appConfig.appearance.calHiddenDefault === undefined) appConfig.appearance.calHiddenDefault = true;
+            if (appConfig.appearance.noticeOpacity === undefined) appConfig.appearance.noticeOpacity = 100;
         }
 
         const defBadgeColors = {
-            not_arrived: '#FFB347', balance: '#5B9AFF', unpaid: '#9E9E9E',
-            grouping: '#9C27B0', reshoot: '#E91E63', needpost: '#00BCD4',
-            crowd: '#607D8B', near: '#FF4D4F', arrived: '#4CAF50'
+            not_arrived: '#FFB347', balance: '#5B9AFF', unpaid_grouping: '#9C27B0', crowd: '#607D8B', near: '#FF4D4F', arrived: '#4CAF50'
         };
         if (!appConfig.appearance.badgeColors) {
             appConfig.appearance.badgeColors = JSON.parse(JSON.stringify(defBadgeColors));
@@ -607,7 +600,16 @@
             kaomojis: ['( ´ ▽ ` )', '(o^▽^o)', '(*¯︶¯*)', 'ᕕ( ᐛ )ᕗ', '(´･ᴗ･ ` )', '(≧◡≦)',  '(๑•̀ㅂ•́)و✧', 'ヾ(≧▽≦*)o', 'ε٩(๑> ₃ <)۶з', '(✿◡‿◡)', '╰(*°▽°*)╯']
         };
         let appData = JSON.parse(localStorage.getItem('myCabinetDataV7')) || defaultData;
-        const STATUS_MAP = { none: '无', crowdfunding: '众筹待定', unpaid: '未付款', need_balance: '待补款', grouping: '待成团', re_shoot: '待补拍', need_post: '待补邮', not_arrived: '待发货', arrived: '已入库' };
+
+        // 数据迁移（兼容老版本状态）
+        let migrated = false;
+        appData.items.forEach(item => {
+            if (item.status === 'unpaid' || item.status === 'grouping') { item.status = 'unpaid_grouping'; migrated = true; }
+            if (item.status === 'need_post' || item.status === 're_shoot') { item.status = 'need_balance'; migrated = true; }
+        });
+        if (migrated) localStorage.setItem('myCabinetDataV7', JSON.stringify(appData));
+
+        const STATUS_MAP = { none: '无', crowdfunding: '待众筹', unpaid_grouping: '待成团', need_balance: '待补款', not_arrived: '待发货', arrived: '已收货' };
         
         let globalHidden = true;
         let calPriceHiddenEst = true;
@@ -623,6 +625,16 @@
 
         document.getElementById('appTitleText').innerText = appConfig.title;
 
+        // 辅助函数
+        function hexToRgba(hex, opacity) {
+            hex = hex.replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+            let r = parseInt(hex.substring(0,2), 16);
+            let g = parseInt(hex.substring(2,4), 16);
+            let b = parseInt(hex.substring(4,6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${opacity/100})`;
+        }
+
         // 弹窗
         let dialogCallback = null;
         function showDialog(title, showInput, placeholder, confirmText, callback) {
@@ -630,6 +642,7 @@
             const input = document.getElementById('dialogInput');
             if(showInput) { input.style.display = 'block'; input.value = ''; input.placeholder = placeholder || ''; } else input.style.display = 'none';
             document.getElementById('dialogConfirmBtn').innerText = confirmText || '确认';
+            document.getElementById('dialogConfirmBtn').style.background = 'var(--theme-dark)';
             dialogCallback = callback;
             document.getElementById('customDialog').style.display = 'flex';
         }
@@ -654,8 +667,8 @@
         }
 
         let getStatusColor = (s) => {
-            const m = { not_arrived:'not_arrived', need_balance:'balance', unpaid:'unpaid', grouping:'grouping', re_shoot:'reshoot', need_post:'needpost', crowdfunding:'crowd', arrived:'arrived' };
-            return `var(--badge-${m[s]||'unpaid'})`;
+            const m = { not_arrived:'not_arrived', need_balance:'balance', unpaid_grouping:'unpaid_grouping', crowdfunding:'crowd', arrived:'arrived' };
+            return `var(--badge-${m[s]||'unpaid_grouping'})`;
         };
 
         // 图标自定义渲染
@@ -695,6 +708,7 @@
             });
             document.getElementById('set_noticeTextColor').value = appConfig.appearance.noticeTextColor; 
             document.getElementById('set_noticeBgColor').value = appConfig.appearance.noticeBgColor; 
+            document.getElementById('set_noticeOpacity').value = appConfig.appearance.noticeOpacity !== undefined ? appConfig.appearance.noticeOpacity : 100; 
             document.getElementById('set_themeDark').value = appConfig.appearance.themeDark;
             document.getElementById('set_noticePos').value = appConfig.appearance.noticePos; 
             document.getElementById('set_showName').checked = appConfig.appearance.showName; 
@@ -708,10 +722,7 @@
             // 角标颜色
             document.getElementById('set_badge_not_arrived').value = appConfig.appearance.badgeColors.not_arrived;
             document.getElementById('set_badge_balance').value = appConfig.appearance.badgeColors.balance;
-            document.getElementById('set_badge_unpaid').value = appConfig.appearance.badgeColors.unpaid;
-            document.getElementById('set_badge_grouping').value = appConfig.appearance.badgeColors.grouping;
-            document.getElementById('set_badge_reshoot').value = appConfig.appearance.badgeColors.reshoot;
-            document.getElementById('set_badge_needpost').value = appConfig.appearance.badgeColors.needpost;
+            document.getElementById('set_badge_unpaid_grouping').value = appConfig.appearance.badgeColors.unpaid_grouping;
             document.getElementById('set_badge_crowd').value = appConfig.appearance.badgeColors.crowd;
             document.getElementById('set_badge_near').value = appConfig.appearance.badgeColors.near;
             document.getElementById('set_badge_arrived').value = appConfig.appearance.badgeColors.arrived;
@@ -773,6 +784,14 @@
                     try {
                         const data = JSON.parse(e.target.result);
                         if(data.appData) appData = data.appData; if(data.appConfig) appConfig = data.appConfig;
+                        
+                        // 兼容更新
+                        let migrated = false;
+                        appData.items.forEach(item => {
+                            if (item.status === 'unpaid' || item.status === 'grouping') { item.status = 'unpaid_grouping'; migrated = true; }
+                            if (item.status === 'need_post' || item.status === 're_shoot') { item.status = 'need_balance'; migrated = true; }
+                        });
+
                         saveData(); 
                         showDialog("恢复成功！", false, "", "刷新页面", () => { location.reload(); });
                     } catch(err) { showDialog("数据格式错误", false, "", "知道了", null); }
@@ -832,6 +851,13 @@
                     const parsed = JSON.parse(content);
                     if(parsed.appData) appData = parsed.appData;
                     if(parsed.appConfig) appConfig = parsed.appConfig;
+                    
+                    // 兼容更新
+                    appData.items.forEach(item => {
+                        if (item.status === 'unpaid' || item.status === 'grouping') item.status = 'unpaid_grouping';
+                        if (item.status === 'need_post' || item.status === 're_shoot') item.status = 'need_balance';
+                    });
+
                     saveData();
                     showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
                 } catch(err) {
@@ -871,6 +897,26 @@
                         imgArray.push(cvs.toDataURL('image/jpeg', 0.8)); renderUploaders();
                     }
                 }
+            }
+        }
+
+        function checkAutoStatus() {
+            let type = document.querySelector('input[name="entryType"]:checked').value;
+            let b = parseFloat(document.getElementById('priceBase').value) || 0;
+            let s = parseFloat(document.getElementById('priceShip').value) || 0;
+            let t = parseFloat(document.getElementById('priceTotal').value) || (b + s);
+            let statusSelect = document.getElementById('itemStatus');
+
+            if (type === 'queue') {
+                if (t === 0 && b === 0 && s === 0) {
+                    statusSelect.value = 'crowdfunding'; 
+                } else {
+                    statusSelect.value = 'unpaid_grouping'; 
+                }
+            } else if (type === 'deposit') {
+                statusSelect.value = 'need_balance';
+            } else if (type === 'pay_balance') {
+                statusSelect.value = 'not_arrived';
             }
         }
 
@@ -918,6 +964,8 @@
                 }
                 activeInput = 'total';
             }
+            
+            checkAutoStatus();
         }
 
         function handleDrawerClick(e) {
@@ -943,8 +991,10 @@
                 estGrp.style.display = 'none';
             }
 
-            if(type === 'deposit') { document.getElementById('pullQueueSelect').innerHTML = '<option value="">-- 点击选择在排记录 --</option>' + appData.items.filter(i => i.status === 'unpaid').map(i => `<option value="${i.id}">${i.name}</option>`).join(''); } 
+            if(type === 'deposit') { document.getElementById('pullQueueSelect').innerHTML = '<option value="">-- 点击选择在排记录 --</option>' + appData.items.filter(i => i.status === 'unpaid_grouping' || i.status === 'crowdfunding').map(i => `<option value="${i.id}">${i.name}</option>`).join(''); } 
             else if(type === 'pay_balance') { document.getElementById('pullDepositSelect').innerHTML = '<option value="">-- 点击选择要补款的订单 --</option>' + appData.items.filter(i => i.status === 'need_balance').map(i => `<option value="${i.id}">${i.name}</option>`).join(''); }
+            
+            if(!isEdit) checkAutoStatus();
         }
 
         function autoFillFromQueue() { 
@@ -972,11 +1022,47 @@
         }
 
         function saveItem() {
-            const editId = document.getElementById('editingItemId').value; const type = document.querySelector('input[name="entryType"]:checked').value; const name = document.getElementById('itemName').value.trim(); const bPrice = parseFloat(document.getElementById('priceBase').value) || 0; const sPrice = parseFloat(document.getElementById('priceShip').value) || 0; const tPrice = parseFloat(document.getElementById('priceTotal').value) || (bPrice + sPrice); const remark = document.getElementById('itemRemark').value.trim(); const isImportant = document.getElementById('isImportant').checked; const importantRemark = document.getElementById('importantRemark').value.trim(); const estDate = document.getElementById('estDate').value;
+            const editId = document.getElementById('editingItemId').value; 
+            const name = document.getElementById('itemName').value.trim(); 
+            
+            if (!name) return showDialog("提示", false, "", "知道了", null), document.getElementById('dialogTitle').innerText="名字不能为空";
+
+            if (!editId) {
+                const type = document.querySelector('input[name="entryType"]:checked').value;
+                const pullDeposit = document.getElementById('pullDepositSelect').value;
+                const pullQueue = document.getElementById('pullQueueSelect').value;
+                
+                let isRealNew = true;
+                if (type === 'pay_balance' && pullDeposit) isRealNew = false;
+                if (type === 'deposit' && pullQueue) isRealNew = false;
+                
+                if (isRealNew) {
+                    const exist = appData.items.some(i => i.name === name);
+                    if (exist) {
+                        showDialog("物品可能已存在，是否继续？", false, "", "仍然添加", () => {
+                            doSaveItem();
+                        });
+                        document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
+                        return;
+                    }
+                }
+            }
+            doSaveItem();
+        }
+
+        function doSaveItem() {
+            const editId = document.getElementById('editingItemId').value; 
+            const type = document.querySelector('input[name="entryType"]:checked').value; 
+            const name = document.getElementById('itemName').value.trim(); 
+            const bPrice = parseFloat(document.getElementById('priceBase').value) || 0; 
+            const sPrice = parseFloat(document.getElementById('priceShip').value) || 0; 
+            const tPrice = parseFloat(document.getElementById('priceTotal').value) || (bPrice + sPrice); 
+            const remark = document.getElementById('itemRemark').value.trim(); 
+            const isImportant = document.getElementById('isImportant').checked; 
+            const importantRemark = document.getElementById('importantRemark').value.trim(); 
+            const estDate = document.getElementById('estDate').value;
             const finalStatus = document.getElementById('itemStatus').value;
             const estBalance = parseFloat(document.getElementById('priceEstBalance').value) || 0;
-
-            if (!name) return showDialog("提示", false, "", "知道了", null), document.getElementById('dialogTitle').innerText="名字不能为空";
 
             if (editId) {
                 const idx = appData.items.findIndex(i => i.id == editId);
@@ -1068,8 +1154,8 @@
                     
                     if (diffDay <= 15) {
                         let needBalanceText = ''; let dateLabel = '出货';
-                        if(item.status === 'unpaid') {
-                            needBalanceText = `<span style="color:var(--badge-unpaid); font-size:11px; margin-left:6px; border:1px solid var(--badge-unpaid); padding:1px 4px; border-radius:4px;">需补款</span>`;
+                        if(item.status === 'unpaid_grouping') {
+                            needBalanceText = `<span style="color:var(--badge-unpaid_grouping); font-size:11px; margin-left:6px; border:1px solid var(--badge-unpaid_grouping); padding:1px 4px; border-radius:4px;">需补款</span>`;
                             dateLabel = '预计成团补款';
                         } else if(item.status === 'need_balance') {
                             needBalanceText = `<span style="color:var(--badge-balance); font-size:11px; margin-left:6px; border:1px solid var(--badge-balance); padding:1px 4px; border-radius:4px;">需补尾款</span>`;
@@ -1336,8 +1422,7 @@
         function renderUI() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             let sumT = 0, sumB = 0, sumS = 0, sumQty = 0; 
-            let cntNotArrived = 0, cntNeedBalance = 0, cntUnpaid = 0, cntImportant = 0, cntNear = 0;
-            let cntGrouping = 0, cntReShoot = 0, cntNeedPost = 0, cntCrowdfunding = 0;
+            let cntNotArrived = 0, cntNeedBalance = 0, cntUnpaidGrouping = 0, cntImportant = 0, cntNear = 0, cntCrowdfunding = 0, cntArrived = 0;
             let today = new Date().getTime();
 
             let cols = Math.floor((window.innerWidth - 70) / 110) || 3;
@@ -1366,22 +1451,18 @@
 
                 if (item.status === 'not_arrived') cntNotArrived++;
                 if (item.status === 'need_balance') cntNeedBalance++;
-                if (item.status === 'unpaid') cntUnpaid++;
-                if (item.status === 'grouping') cntGrouping++;
-                if (item.status === 're_shoot') cntReShoot++;
-                if (item.status === 'need_post') cntNeedPost++;
+                if (item.status === 'unpaid_grouping') cntUnpaidGrouping++;
                 if (item.status === 'crowdfunding') cntCrowdfunding++;
+                if (item.status === 'arrived') cntArrived++;
                 
                 if (isImp) cntImportant++;
                 if (isNear) cntNear++;
 
                 if (currentFilter === 'not_arrived' && item.status !== 'not_arrived') return;
                 if (currentFilter === 'need_balance' && item.status !== 'need_balance') return;
-                if (currentFilter === 'unpaid' && item.status !== 'unpaid') return;
-                if (currentFilter === 'grouping' && item.status !== 'grouping') return;
-                if (currentFilter === 're_shoot' && item.status !== 're_shoot') return;
-                if (currentFilter === 'need_post' && item.status !== 'need_post') return;
+                if (currentFilter === 'unpaid_grouping' && item.status !== 'unpaid_grouping') return;
                 if (currentFilter === 'crowdfunding' && item.status !== 'crowdfunding') return;
+                if (currentFilter === 'arrived' && item.status !== 'arrived') return;
                 if (currentFilter === 'important' && !isImp) return;
                 if (currentFilter === 'near' && !isNear) return;
 
@@ -1399,11 +1480,9 @@
 
             document.getElementById('cnt_not_arrived').innerText = cntNotArrived > 0 ? cntNotArrived : '';
             document.getElementById('cnt_need_balance').innerText = cntNeedBalance > 0 ? cntNeedBalance : '';
-            document.getElementById('cnt_unpaid').innerText = cntUnpaid > 0 ? cntUnpaid : '';
-            document.getElementById('cnt_grouping').innerText = cntGrouping > 0 ? cntGrouping : '';
-            document.getElementById('cnt_re_shoot').innerText = cntReShoot > 0 ? cntReShoot : '';
-            document.getElementById('cnt_need_post').innerText = cntNeedPost > 0 ? cntNeedPost : '';
+            document.getElementById('cnt_unpaid_grouping').innerText = cntUnpaidGrouping > 0 ? cntUnpaidGrouping : '';
             document.getElementById('cnt_crowdfunding').innerText = cntCrowdfunding > 0 ? cntCrowdfunding : '';
+            document.getElementById('cnt_arrived').innerText = cntArrived > 0 ? cntArrived : '';
             document.getElementById('cnt_important').innerText = cntImportant > 0 ? cntImportant : '';
             document.getElementById('cnt_near').innerText = cntNear > 0 ? cntNear : '';
 
@@ -1413,7 +1492,8 @@
             document.getElementById('totalQtyDisplay').innerHTML = globalHidden ? getFace() : `${sumQty}件`;
             
             const container = document.getElementById('cabinetsContainer'); container.innerHTML = '';
-            
+            let bgWithOp = hexToRgba(appConfig.appearance.noticeBgColor, appConfig.appearance.noticeOpacity !== undefined ? appConfig.appearance.noticeOpacity : 100);
+
             for (const [mName, mData] of Object.entries(mainGroups)) {
                 let catPriceDisplay = catHiddenState[mName] ? getFace() : `¥${mData.sum.toFixed(2)}`;
                 let isMainFold = mainCatFold[mName];
@@ -1432,13 +1512,26 @@
                     for (const [sName, sList] of Object.entries(mData.subs)) {
                         if(sList.length === 0) continue;
                         let subKey = mName + '_' + sName;
+                        if(catHiddenState[subKey] === undefined) catHiddenState[subKey] = true;
+                        
+                        let subSum = 0; sList.forEach(i => subSum += i.totalPrice * i.qty);
+                        let subCatPriceDisplay = catHiddenState[subKey] ? getFace() : `¥${subSum.toFixed(2)}`;
+
                         let state = subCatFold[subKey] || 0; // 0:2行 1:1行 2:全折
                         
                         let icon = '▼'; if(state === 1) icon = '▽'; else if(state === 2) icon = '▶';
 
                         html += `<div class="sub-category-block">`;
                         if(sName !== '无分类' && sName !== '无') {
-                            html += `<div class="sub-title" onclick="toggleSubFold('${subKey}', event)"><span style="font-size:12px; color:var(--primary);">${icon}</span> ${sName} (${sList.length})</div>`;
+                            html += `
+                            <div class="sub-title" onclick="toggleSubFold('${subKey}', event)">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span style="font-size:12px; color:var(--primary);">${icon}</span> ${sName} (${sList.length})
+                                </div>
+                                <div style="font-size:12px; color:var(--primary); background:var(--primary-light); padding:2px 8px; border-radius:12px; font-weight:normal;" onclick="toggleCatPrice('${subKey}', event)">
+                                    ${subCatPriceDisplay}
+                                </div>
+                            </div>`;
                         } else { html += `<div class="sub-title" onclick="toggleSubFold('${subKey}', event)" style="margin-bottom:0; height:10px; opacity:0; padding:0;"></div>`; }
                         
                         if (state !== 2) {
@@ -1453,10 +1546,7 @@
                                 let badge = '', bg = '#000';
                                 if (item.status === 'not_arrived') { badge = STATUS_MAP.not_arrived; bg = 'var(--badge-not_arrived)'; }
                                 if (item.status === 'need_balance') { badge = STATUS_MAP.need_balance; bg = 'var(--badge-balance)'; }
-                                if (item.status === 'unpaid') { badge = STATUS_MAP.unpaid; bg = 'var(--badge-unpaid)'; }
-                                if (item.status === 'grouping') { badge = STATUS_MAP.grouping; bg = 'var(--badge-grouping)'; }
-                                if (item.status === 're_shoot') { badge = STATUS_MAP.re_shoot; bg = 'var(--badge-reshoot)'; }
-                                if (item.status === 'need_post') { badge = STATUS_MAP.need_post; bg = 'var(--badge-needpost)'; }
+                                if (item.status === 'unpaid_grouping') { badge = STATUS_MAP.unpaid_grouping; bg = 'var(--badge-unpaid_grouping)'; }
                                 if (item.status === 'crowdfunding') { badge = STATUS_MAP.crowdfunding; bg = 'var(--badge-crowd)'; }
 
                                 let badgeHtml = badge ? `<div class="badge" style="background:${bg}">${badge}</div>` : '';
@@ -1464,7 +1554,7 @@
                                 let isNear = false; if (item.status !== 'arrived' && item.estDate) { if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true; }
                                 let badgeNearHtml = isNear ? `<div class="badge-near">⏰临近</div>` : '';
                                 
-                                let importantHtml = (item.isImportant && item.importantRemark) ? `<div class="important-overlay" style="bottom:${appConfig.appearance.noticePos}%; background:${appConfig.appearance.noticeBgColor}; color:${appConfig.appearance.noticeTextColor};">${item.importantRemark}</div>` : '';
+                                let importantHtml = (item.isImportant && item.importantRemark) ? `<div class="important-overlay" style="bottom:${appConfig.appearance.noticePos}%; background:${bgWithOp}; color:${appConfig.appearance.noticeTextColor};">${item.importantRemark}</div>` : '';
                                 
                                 let textIn = item.name;
                                 let textOut = item.estDate ? `预计: ${item.estDate}` : '暂定';
@@ -1520,7 +1610,7 @@
             rb.innerHTML = remarkContent || '没有留下备注。'; rb.style.display = remarkContent ? 'block' : 'none';
 
             const badge = document.getElementById('idStatusBadge'); badge.className = 'id-status';
-            const badgeMap = { arrived: 'arrived', not_arrived: 'not_arrived', need_balance: 'balance', unpaid: 'unpaid', grouping: 'grouping', re_shoot: 'reshoot', need_post: 'needpost', crowdfunding: 'crowd' };
+            const badgeMap = { arrived: 'arrived', not_arrived: 'not_arrived', need_balance: 'balance', unpaid_grouping: 'unpaid_grouping', crowdfunding: 'crowd' };
             let cKey = badgeMap[item.status];
             if(cKey) {
                 badge.innerText = STATUS_MAP[item.status]; 
@@ -1553,7 +1643,7 @@
             activeInput = 'base';
             
             document.getElementById('typeControl').style.display = 'flex';
-            let eType = item.entryType || (item.status === 'unpaid' ? 'queue' : (item.status === 'need_balance' ? 'deposit' : 'full'));
+            let eType = item.entryType || (item.status === 'unpaid_grouping' ? 'queue' : (item.status === 'need_balance' ? 'deposit' : 'full'));
             let rBtn = document.querySelector(`input[name="entryType"][value="${eType}"]`);
             if(rBtn) rBtn.checked = true;
             
