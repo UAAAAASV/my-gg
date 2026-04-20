@@ -287,6 +287,7 @@
                     <label class="form-label" style="color: var(--badge-balance);">预计补款 (仅提示不计入总计)</label>
                     <input type="number" id="priceEstBalance" placeholder="0.00">
                 </div>
+                <div></div>
             </div>
             
             <!-- 拉取预计补款提示 -->
@@ -316,6 +317,7 @@
                     <label class="form-label" style="color:#FF4D4F;">最后补款日期 (优先显示)</label>
                     <input type="date" id="finalBalanceDate">
                 </div>
+                <div></div>
             </div>
 
             <div class="form-group">
@@ -638,6 +640,7 @@
         appData.items.forEach(item => {
             if (item.status === 'unpaid' || item.status === 'grouping') { item.status = 'unpaid_grouping'; migrated = true; }
             if (item.status === 'need_post' || item.status === 're_shoot') { item.status = 'need_balance'; migrated = true; }
+            if (item.status === 'crowdfunding' && item.status !== 'crowdfunding') migrated = true; 
         });
         if (migrated) localStorage.setItem('myCabinetDataV7', JSON.stringify(appData));
 
@@ -913,25 +916,27 @@
             fetch(`https://api.github.com/gists/${gistId}`, {
                 headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
             }).then(res => res.json()).then(data => {
-                try {
-                    const content = data.files["wagui_data.json"].content;
-                    const parsed = JSON.parse(content);
-                    if(parsed.appData) appData = parsed.appData;
-                    if(parsed.appConfig) appConfig = parsed.appConfig;
-                    
-                    // 兼容更新
-                    appData.items.forEach(item => {
-                        if (item.status === 'unpaid' || item.status === 'grouping') item.status = 'unpaid_grouping';
-                        if (item.status === 'need_post' || item.status === 're_shoot') item.status = 'need_balance';
-                    });
+                const fileObj = data.files["wagui_data.json"];
+                if (!fileObj) throw new Error("未找到备份文件");
+                
+                // 为了防止由于图片体积过大被 GitHub Gist 接口截断（Truncated）导致 JSON 解析失败，
+                // 必须去直接请求 raw_url 获取未被阉割的完整原始数据流。
+                return fetch(fileObj.raw_url);
+            }).then(res => res.json()).then(parsed => {
+                if(parsed.appData) appData = parsed.appData;
+                if(parsed.appConfig) appConfig = parsed.appConfig;
+                
+                // 兼容更新
+                appData.items.forEach(item => {
+                    if (item.status === 'unpaid' || item.status === 'grouping') item.status = 'unpaid_grouping';
+                    if (item.status === 'need_post' || item.status === 're_shoot') item.status = 'need_balance';
+                });
 
-                    saveData();
-                    showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
-                } catch(err) {
-                    showDialog("数据解析失败，请检查", false, "", "关闭", null);
-                }
+                saveData();
+                showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
             }).catch(err => {
-                showDialog("网络错误，下载失败", false, "", "关闭", null);
+                showDialog("数据解析失败，请检查", false, "", "关闭", null);
+                console.error(err);
             }).finally(() => { btn.innerText = oldText; });
         }
 
