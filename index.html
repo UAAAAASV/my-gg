@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -119,7 +118,7 @@
         input[type="color"] { border: none; background: transparent; height: 40px; padding: 0; border-radius: 8px; cursor: pointer;}
         input[type="range"] { padding: 0; background: transparent; height: auto; }
         .row { display: flex; gap: 12px; }
-        .row > div { flex: 1; }
+        .row > div { flex: 1; min-width: 0; }
 
         .segmented-control { display: flex; background: var(--input-bg); padding: 4px; border-radius: 10px; margin-bottom: 20px;}
         .segmented-control label { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; font-weight: 600; color: var(--text-muted); border-radius: 8px; cursor: pointer; transition: 0.2s;}
@@ -170,8 +169,8 @@
         .id-meta { font-size: 13px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee;}
         .id-meta span { color: var(--text-main); font-weight: 500;}
         .id-remark { font-size: 13px; background: var(--input-bg); padding: 12px; border-radius: 8px; color: #555; margin-bottom: 20px; line-height: 1.5;}
-        .id-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .id-btn { padding: 12px 0; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;}
+        .id-actions { display: flex; gap: 10px; }
+        .id-btn { flex: 1; padding: 12px 0; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;}
         .id-btn.edit { background: var(--input-bg); color: var(--text-main);}
         .id-btn.action { background: var(--primary-light); color: var(--primary);}
         .id-btn.delete { background: #FFF0F0; color: #FF4D4F;}
@@ -271,7 +270,7 @@
 
             <div class="form-group row">
                 <div>
-                    <label class="form-label">本体</label>
+                    <label class="form-label" id="labelPriceBase">本体</label>
                     <input type="number" id="priceBase" placeholder="0.00" oninput="autoCalc('base')">
                 </div>
                 <div>
@@ -284,19 +283,22 @@
                 </div>
             </div>
 
+            <!-- 拉取尾款已付提示文本 -->
+            <div class="form-group row" id="paidDepositHintGroup" style="display: none; margin-top: -10px; margin-bottom: 16px;">
+                <div>
+                    <span id="paidDepositHintText" style="color: #4CAF50; font-size: 13px; font-weight: 600;"></span>
+                </div>
+            </div>
+
             <!-- 预计待补金额 -->
             <div class="form-group row" id="estBalanceGroup" style="display: none;">
                 <div>
-                    <label class="form-label" style="color: var(--badge-balance);">预计补款 (仅提示不计入总计)</label>
-                    <input type="number" id="priceEstBalance" placeholder="0.00">
+                    <label class="form-label" style="color: var(--badge-balance);">预计尾款补款 <span style="font-size:10px;font-weight:normal;color:#aaa;">(仅提示不计入总计)</span></label>
+                    <input type="number" id="priceEstBaseBalance" placeholder="0.00">
                 </div>
-                <div></div>
-            </div>
-            
-            <!-- 拉取预计补款提示 -->
-            <div class="form-group row" id="pullEstHintGroup" style="display: none; margin-top: -10px; margin-bottom: 16px;">
                 <div>
-                    <span id="pullEstHintText" style="color: #1E50A0; font-size: 13px; font-weight: 600;"></span>
+                    <label class="form-label" style="color: var(--badge-balance);">预计附加补款 <span style="font-size:10px;font-weight:normal;color:#aaa;">(仅提示不计入总计)</span></label>
+                    <input type="number" id="priceEstBalance" placeholder="0.00">
                 </div>
             </div>
 
@@ -310,16 +312,16 @@
                 <div><label class="form-label">数量</label><input type="number" id="itemQty" value="1" min="1"></div>
             </div>
 
-            <!-- 购买日期 与 预计出货 -->
+            <!-- 购买日期 与 预计出货：严格锁定左右两列各占50% -->
             <div class="form-group row" style="align-items: flex-end;">
-                <div>
+                <div style="flex: 1; min-width: 0; max-width: 50%;">
                     <label class="form-label">购买日期</label>
                     <input type="text" id="itemDate" placeholder="选择日期" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" required>
                 </div>
-                <div>
-                    <label class="form-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                        <span id="labelEstDate">预计出货</span>
-                        <select id="estDateSuffix" style="width: auto; height: 22px; padding: 0 4px; font-size: 11px; background: transparent; border: 1px solid var(--text-muted); border-radius: 4px; color: var(--text-main);">
+                <div style="flex: 1; min-width: 0; max-width: 50%;">
+                    <label class="form-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; width: 100%;">
+                        <span id="labelEstDate" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">预计出货</span>
+                        <select id="estDateSuffix" style="width: 65px; flex-shrink: 0; height: 22px; padding: 0 4px; font-size: 11px; background: transparent; border: 1px solid var(--text-muted); border-radius: 4px; color: var(--text-main); margin-left: 5px;">
                             <option value="">具体日期</option>
                             <option value="月初">月初</option>
                             <option value="月中">月中</option>
@@ -331,11 +333,11 @@
             </div>
             
             <div class="form-group row" id="finalBalanceDateGroup" style="display:none; align-items: flex-end;">
-                <div>
+                <div style="flex: 1; min-width: 0; max-width: 50%;">
                     <label class="form-label" style="color:#FF4D4F;">最后补款日期 (优先显示)</label>
                     <input type="text" id="finalBalanceDate" placeholder="选择日期" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" required>
                 </div>
-                <div></div>
+                <div style="flex: 1; min-width: 0; max-width: 50%;"></div>
             </div>
 
             <div class="form-group">
@@ -359,7 +361,7 @@
                 <select id="itemStatus" style="font-weight: bold;">
                     <option value="none">⚪ 无</option>
                     <option value="crowdfunding">🚀 待开售</option>
-					<option value="unpaid_grouping">👥 待成团</option>
+					<option value="unpaid_grouping">👥 待成团-未付款</option>
 					<option value="need_balance">💰 待补款</option>
                     <option value="not_arrived">📦 待发货</option>
                     <option value="arrived">✅ 已收货</option>
@@ -420,6 +422,15 @@
                                 </select>
                             </div>
                         </div>
+                        
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showItemPrice" onchange="updateAppearance('showItemPrice', this.checked)">显示独立总价</label></div>
+							<div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideItemPriceValue" onchange="updateAppearance('hideItemPriceValue', this.checked)">遮挡独立总价</label></div>
+                        </div>
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div style="display:flex; align-items:center; gap:8px;"><label style="font-size:13px; font-weight:600;">独立总价颜色</label><input type="color" id="set_itemPriceColor" onchange="updateAppearance('itemPriceColor', this.value)" style="height:30px;"></div>
+                        </div>
+
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showName" onchange="updateAppearance('showName', this.checked)">显示名称</label></div>
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showDate" onchange="updateAppearance('showDate', this.checked)">显示预计出货日期</label></div>
@@ -428,7 +439,7 @@
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_swapNameDate" onchange="updateAppearance('swapNameDate', this.checked)">日期与名称位置互换</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_enableAnim" onchange="updateAppearance('enableAnim', this.checked)">隐藏金额时使用动态效果</label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_enableAnim" onchange="updateAppearance('enableAnim', this.checked)">遮挡金额时使用动态效果</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_calHiddenDefault" onchange="updateAppearance('calHiddenDefault', this.checked)">日历概览数据默认遮挡</label></div>
@@ -490,18 +501,17 @@
                     </div>
 
                     <div class="settings-section" id="sec-cloud">
-                        <div class="settings-title">Gitee (码云) 云端同步 <span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">全面升级</span></div>
+                        <div class="settings-title">JSONBin 云端同步<span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">云同步</span></div>
                         <div style="font-size:12px; color:#999; margin-bottom:15px; line-height:1.5;">
-                            注意：已更换支持中文的 <b>Gitee（码云）</b> 接口。<br>
-                            👉 <a href="https://gitee.com/profile/personal_access_tokens" target="_blank" style="color:var(--primary);">点击去 Gitee 生成新令牌</a> (勾选 gists 权限即可)
+                             👉 <a href="https://jsonbin.io/" target="_blank" style="color:var(--primary);">点击前往 JSONBin.io 免费注册并获取您的 API Key</a>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label" style="font-size: 12px;">Gitee 私人令牌 (Token)</label>
-                            <input type="password" id="cfg_gh_token" placeholder="输入生成的 Gitee 令牌..." onchange="saveCloudConfig()">
+                            <label class="form-label" style="font-size: 12px;">API Key (X-Access-Key)</label>
+                            <input type="password" id="cfg_gh_token" placeholder="输入生成的 API Key..." onchange="saveCloudConfig()">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" style="font-size: 12px;">代码片段 ID (Gist ID)</label>
+                            <label class="form-label" style="font-size: 12px;">数据桶 ID (Bin ID)</label>
                             <input type="text" id="cfg_gh_gist_id" placeholder="首次上传后系统会自动填入..." onchange="saveCloudConfig()">
                         </div>
                         
@@ -550,12 +560,14 @@
                     <div class="id-status" id="idStatusBadge">状态</div>
                 </div>
                 <div class="id-meta">
-                    <div>总价: <span id="idTotal">¥0</span></div>
+                    <div>本体: <span id="idBasePrice">¥0</span></div>
                     <div>附加: <span id="idShip">¥0</span></div>
                     <div>来源: <span id="idSource">淘宝</span></div>
-                    <div>出货: <span id="idEstDate">暂无</span></div>
-                    <div>待补: <span id="idEstBalance" style="color:#FF4D4F; font-weight:bold;">¥0</span></div>
                     <div>分类: <span id="idCat">BJD</span></div>
+                    <div>购买: <span id="idBuyDate">暂无</span></div>
+                    <div>预计出货: <span id="idEstDate">暂无</span></div>
+                    <div>数量: <span id="idQty">1件</span></div>
+                    <div>待补: <span id="idEstBalance" style="color:#FF4D4F; font-weight:bold;">¥0</span></div>
                 </div>
                 <div class="id-remark" id="idRemarkBox"></div>
                 <div class="id-actions" id="idActionGroup"></div>
@@ -614,7 +626,7 @@
         if (!appConfig.title) appConfig.title = "娃柜";
         if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
         if (!appConfig.appearance) {
-            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, showName: true, showDate: false, swapNameDate: false, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {} };
+            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, showName: true, showDate: false, swapNameDate: false, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, showItemPrice: false, itemPriceColor: '#FF8DA1' };
         } else {
             if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
             if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
@@ -623,6 +635,9 @@
             if (appConfig.appearance.calHiddenDefault === undefined) appConfig.appearance.calHiddenDefault = true;
             if (appConfig.appearance.noticeOpacity === undefined) appConfig.appearance.noticeOpacity = 100;
             if (!appConfig.appearance.dateFormat) appConfig.appearance.dateFormat = 'full';
+            if (appConfig.appearance.showItemPrice === undefined) appConfig.appearance.showItemPrice = false;
+			if (appConfig.appearance.hideItemPriceValue === undefined) appConfig.appearance.hideItemPriceValue = true; 
+            if (!appConfig.appearance.itemPriceColor) appConfig.appearance.itemPriceColor = '#FF8DA1';
         }
 
         const defBadgeColors = {
@@ -827,6 +842,10 @@
             document.getElementById('set_nameAlign').value = appConfig.appearance.nameAlign; 
             document.getElementById('set_dateFormat').value = appConfig.appearance.dateFormat || 'full'; 
             document.getElementById('set_sortMethod').value = appConfig.sortMethod;
+            
+            document.getElementById('set_showItemPrice').checked = appConfig.appearance.showItemPrice;
+			document.getElementById('set_hideItemPriceValue').checked = appConfig.appearance.hideItemPriceValue;
+            document.getElementById('set_itemPriceColor').value = appConfig.appearance.itemPriceColor;
 
             // 角标颜色
             document.getElementById('set_badge_not_arrived').value = appConfig.appearance.badgeColors.not_arrived;
@@ -909,7 +928,7 @@
             }
         }
 
-        // 云同步相关逻辑 (全新更换为 Gitee 码云接口，永久解决 Token 自动封禁问题)
+        // 云同步相关逻辑 (全新更换为 JSONBin.io，全球最稳定的纯前端同步服务，无风控)
         function saveCloudConfig() {
             appConfig.cloud.token = document.getElementById('cfg_gh_token').value.trim();
             appConfig.cloud.gistId = document.getElementById('cfg_gh_gist_id').value.trim();
@@ -918,40 +937,42 @@
 
         function uploadToGitHub(e) {
             const token = document.getElementById('cfg_gh_token').value.trim();
-            if(!token) { showDialog("请先填写 Gitee 私人令牌", false, "", "知道了", null); return; }
+            if(!token) { showDialog("请先填写 JSONBin 的 API Key", false, "", "知道了", null); return; }
             
-            const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+            const binId = document.getElementById('cfg_gh_gist_id').value.trim();
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
             
-            // 切换为 Gitee 接口
-            const url = gistId ? `https://gitee.com/api/v5/gists/${gistId}` : `https://gitee.com/api/v5/gists`;
+            // 使用 JSONBin V3 API
+            const url = binId ? `https://api.jsonbin.io/v3/b/${binId}` : `https://api.jsonbin.io/v3/b`;
+            const method = binId ? 'PUT' : 'POST';
             
             fetch(url, {
-                method: gistId ? 'PATCH' : 'POST',
-                headers: { 'Content-Type': 'application/json;charset=UTF-8' },
-                body: JSON.stringify({
-                    access_token: token,
-                    description: "娃柜云端备份数据",
-                    public: false,
-                    files: { "wagui_data.json": { content: JSON.stringify({ appData, appConfig }) } }
-                })
+                method: method,
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Access-Key': token,
+                    'X-Bin-Private': 'true'
+                },
+                body: JSON.stringify({ appData, appConfig })
             }).then(res => {
                 if (res.status === 401 || res.status === 403) throw new Error("TOKEN_INVALID");
-                if (res.status === 404) throw new Error("GIST_NOT_FOUND");
+                if (res.status === 404) throw new Error("BIN_NOT_FOUND");
+                if (!res.ok) throw new Error("API_ERROR");
                 return res.json();
             }).then(data => {
-                if(data.id) {
-                    document.getElementById('cfg_gh_gist_id').value = data.id;
+                let newBinId = data.metadata ? data.metadata.id : (data.record ? binId : null);
+                if(newBinId) {
+                    document.getElementById('cfg_gh_gist_id').value = newBinId;
                     saveCloudConfig();
-                    showDialog("成功上传到 Gitee 云端！", false, "", "太棒了", null);
+                    showDialog("成功上传到 JSONBin 云端！", false, "", "太棒了", null);
                 } else {
-                    showDialog("上传失败，请检查 Gitee 令牌权限", false, "", "关闭", null);
+                    showDialog("上传失败，未能获取到 Bin ID", false, "", "关闭", null);
                 }
             }).catch(err => {
                 if (err.message === "TOKEN_INVALID") {
-                    showDialog("上传失败：Token无效或已被封禁！请去Gitee重新生成。", false, "", "知道了", null);
-                } else if (err.message === "GIST_NOT_FOUND") {
-                    showDialog("上传失败：找不到该代码片段ID，请核对是否填错。", false, "", "知道了", null);
+                    showDialog("上传失败：API Key 无效或错误！请核对。", false, "", "知道了", null);
+                } else if (err.message === "BIN_NOT_FOUND") {
+                    showDialog("上传失败：找不到该 Bin ID，请核对是否填错，或清空该项重新生成。", false, "", "知道了", null);
                 } else {
                     showDialog("网络错误或数据超限，上传失败", false, "", "关闭", null);
                 }
@@ -960,22 +981,22 @@
 
         function downloadFromGitHub(e) {
             const token = document.getElementById('cfg_gh_token').value.trim();
-            const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
-            if(!token || !gistId) { showDialog("请先填写 Gitee 令牌和代码片段 ID", false, "", "知道了", null); return; }
+            const binId = document.getElementById('cfg_gh_gist_id').value.trim();
+            if(!token || !binId) { showDialog("请先填写 API Key 和 Bin ID", false, "", "知道了", null); return; }
 
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
             
-            fetch(`https://gitee.com/api/v5/gists/${gistId}?access_token=${token}`)
-            .then(res => {
+            fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                method: 'GET',
+                headers: { 'X-Access-Key': token }
+            }).then(res => {
                 if (res.status === 401 || res.status === 403) throw new Error("TOKEN_INVALID");
-                if (res.status === 404) throw new Error("GIST_NOT_FOUND");
+                if (res.status === 404) throw new Error("BIN_NOT_FOUND");
+                if (!res.ok) throw new Error("API_ERROR");
                 return res.json();
             }).then(data => {
-                const fileObj = data.files["wagui_data.json"];
-                if (!fileObj) throw new Error("FILE_NOT_FOUND");
-                
-                // Gitee 直接返回完整的 content 字段
-                const parsed = JSON.parse(fileObj.content);
+                const parsed = data.record;
+                if (!parsed) throw new Error("FILE_NOT_FOUND");
                 
                 if(parsed.appData) appData = parsed.appData;
                 if(parsed.appConfig) appConfig = parsed.appConfig;
@@ -989,13 +1010,13 @@
                 showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
             }).catch(err => {
                 if (err.message === "TOKEN_INVALID") {
-                    showDialog("下载失败：Token无效！请去Gitee重新生成。", false, "", "知道了", null);
-                } else if (err.message === "GIST_NOT_FOUND") {
-                    showDialog("下载失败：找不到该代码片段ID，请核对。", false, "", "知道了", null);
+                    showDialog("下载失败：API Key 无效！请核对。", false, "", "知道了", null);
+                } else if (err.message === "BIN_NOT_FOUND") {
+                    showDialog("下载失败：找不到该 Bin ID，请核对。", false, "", "知道了", null);
                 } else if (err.message === "FILE_NOT_FOUND") {
-                    showDialog("下载失败：在这个包裹里没有找到备份文件。", false, "", "知道了", null);
+                    showDialog("下载失败：云端包裹内容为空或格式错误。", false, "", "知道了", null);
                 } else {
-                    showDialog("数据解析失败，请检查文件是否损坏", false, "", "关闭", null);
+                    showDialog("数据解析失败，请检查网络", false, "", "关闭", null);
                     console.error(err);
                 }
             }).finally(() => { btn.innerText = oldText; });
@@ -1132,20 +1153,32 @@
             const type = document.querySelector('input[name="entryType"]:checked').value;
             const isEdit = document.getElementById('editingItemId').value !== '';
             
+            // 智能修改本体输入框的文本
+            const labelBase = document.getElementById('labelPriceBase');
+            if (type === 'queue') labelBase.innerText = '预计定金';
+            else if (type === 'deposit') labelBase.innerText = '定金';
+            else if (type === 'pay_balance') labelBase.innerText = '尾款';
+            else labelBase.innerText = '本体';
+
             document.getElementById('pullQueueGroup').style.display = (!isEdit && type === 'deposit') ? 'block' : 'none';
             document.getElementById('pullDepositGroup').style.display = (!isEdit && type === 'pay_balance') ? 'block' : 'none';
             document.getElementById('itemName').readOnly = (!isEdit && type === 'pay_balance');
 
-            // 隐藏拉取提示
-            document.getElementById('pullEstHintGroup').style.display = 'none';
-
-            // 只有“在排”和“定金”显示预计待补金额
+            // 只有“在排”、“定金”、“尾款”显示预计补款组
             const estGrp = document.getElementById('estBalanceGroup');
-            if (type === 'queue' || type === 'deposit') {
+            if (type === 'queue' || type === 'deposit' || type === 'pay_balance') {
                 estGrp.style.display = 'flex';
             } else {
                 estGrp.style.display = 'none';
             }
+            
+            // 尾款模式下，把预计补款设置为只读仅显示
+            let isReadonly = (!isEdit && type === 'pay_balance');
+            document.getElementById('priceEstBaseBalance').readOnly = isReadonly;
+            document.getElementById('priceEstBalance').readOnly = isReadonly;
+            
+            // 每次切换时先隐藏尾款专用的绿字提示
+            document.getElementById('paidDepositHintGroup').style.display = 'none';
             
             document.getElementById('finalBalanceDateGroup').style.display = (type === 'deposit') ? 'flex' : 'none';
             
@@ -1155,7 +1188,7 @@
                 document.getElementById('labelEstDate').innerText = '预计出货';
             }
 
-            if(type === 'deposit') { document.getElementById('pullQueueSelect').innerHTML = '<option value="">-- 点击选择在排记录 --</option>' + appData.items.filter(i => i.status === 'unpaid_grouping' || i.status === 'crowdfunding').map(i => `<option value="${i.id}">${i.name} (预计付款: ¥${i.estBalance||0})</option>`).join(''); } 
+            if(type === 'deposit') { document.getElementById('pullQueueSelect').innerHTML = '<option value="">-- 点击选择在排记录 --</option>' + appData.items.filter(i => i.status === 'unpaid_grouping' || i.status === 'crowdfunding').map(i => `<option value="${i.id}">${i.name} (预计本体付款: ¥${i.basePrice||0})</option>`).join(''); } 
             else if(type === 'pay_balance') { document.getElementById('pullDepositSelect').innerHTML = '<option value="">-- 点击选择要补款的订单 --</option>' + appData.items.filter(i => i.status === 'need_balance').map(i => `<option value="${i.id}">${i.name} (已付: ¥${i.totalPrice*i.qty})</option>`).join(''); }
             
             if(!isEdit) checkAutoStatus();
@@ -1169,14 +1202,19 @@
                 document.getElementById('mainCat').value = item.mainCat; 
                 document.getElementById('subCat').value = item.subCat; 
                 
-                // 将原记录的对应项目自动同步过来
                 document.getElementById('priceBase').value = item.basePrice || '';
+                document.getElementById('priceEstBaseBalance').value = item.estBaseBalance || '';
                 document.getElementById('priceEstBalance').value = item.estBalance || '';
                 document.getElementById('priceShip').value = item.shipping || '';
                 
-                autoCalc('base'); // 触发系统计算填入总计
+                // 拉取前一阶段的图片
+                imgArray = item.images ? [...item.images] : [];
+                renderUploaders();
+
+                autoCalc('base'); 
             } 
         }
+        
         function autoFillFromDeposit() { 
             const id = document.getElementById('pullDepositSelect').value; 
             const item = appData.items.find(i => i.id == id); 
@@ -1184,15 +1222,30 @@
                 document.getElementById('itemName').value = item.name + " [尾款]"; 
                 document.getElementById('mainCat').value = item.mainCat; 
                 document.getElementById('subCat').value = item.subCat; 
-                if (item.estBalance) {
-                    document.getElementById('priceTotal').value = item.estBalance;
-                    autoCalc('total');
-                    document.getElementById('pullEstHintText').innerText = `拉取记录内预计补款为${item.estBalance}元`;
-                    document.getElementById('pullEstHintGroup').style.display = 'flex';
-                } else {
-                    document.getElementById('pullEstHintGroup').style.display = 'none';
-                }
-            } 
+                
+                // 自动拉取预计补款到本次付款输入框
+                document.getElementById('priceBase').value = item.estBaseBalance || '';
+                document.getElementById('priceShip').value = item.estBalance || '';
+                autoCalc('base'); // 计算出本次总计
+                
+                // 下方的框仅作原单数据的显示
+                document.getElementById('priceEstBaseBalance').value = item.estBaseBalance || '';
+                document.getElementById('priceEstBalance').value = item.estBalance || '';
+
+                // 已付定金金额提示，包含数量计算
+                let paidTotal = item.totalPrice * item.qty;
+                document.getElementById('paidDepositHintText').innerText = `已付定金 ${paidTotal} 元（计入定金总计）`;
+                document.getElementById('paidDepositHintGroup').style.display = 'flex';
+                
+                // 拉取前一阶段的图片
+                imgArray = item.images ? [...item.images] : [];
+                renderUploaders();
+
+            } else {
+                document.getElementById('paidDepositHintGroup').style.display = 'none';
+                document.getElementById('priceEstBaseBalance').value = '';
+                document.getElementById('priceEstBalance').value = '';
+            }
         }
 
         function saveItem() {
@@ -1238,37 +1291,77 @@
             const estDateSuffix = document.getElementById('estDateSuffix').value;
             const finalBalanceDate = document.getElementById('finalBalanceDate').value;
             const finalStatus = document.getElementById('itemStatus').value;
-            const estBalance = parseFloat(document.getElementById('priceEstBalance').value) || 0;
+            
+            const estBaseBalance = parseFloat(document.getElementById('priceEstBaseBalance').value) || 0;
+            const estBalance = parseFloat(document.getElementById('priceEstBalance').value) || 0; 
 
             if (editId) {
                 const idx = appData.items.findIndex(i => i.id == editId);
                 if (appData.items[idx].estDate !== estDate) { appData.items[idx].noticeDismissed = false; appData.items[idx].noticeRead = false; }
                 if(finalStatus === 'arrived' && appData.items[idx].status !== 'arrived') { appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA'); }
-                appData.items[idx] = { ...appData.items[idx], name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
+                
+                let targetItem = appData.items[idx];
+                
+                if (targetItem.depositBasePrice !== undefined) {
+                    // 这是分阶段合并后的编辑，他修改的是尾款部分的金额
+                    targetItem.balanceBasePrice = bPrice;
+                    targetItem.balanceShipping = sPrice;
+                    targetItem.basePrice = targetItem.depositBasePrice + bPrice;
+                    targetItem.shipping = targetItem.depositShipping + sPrice;
+                    targetItem.totalPrice = targetItem.basePrice + targetItem.shipping;
+                } else {
+                    targetItem.basePrice = bPrice;
+                    targetItem.shipping = sPrice;
+                    targetItem.totalPrice = tPrice;
+                }
+
+                appData.items[idx] = { ...targetItem, name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
                 appData.items[idx].images = [...imgArray]; 
-                appData.items[idx].estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
+                appData.items[idx].estBaseBalance = (type === 'full') ? 0 : estBaseBalance;
+                appData.items[idx].estBalance = (type === 'full') ? 0 : estBalance;
                 appData.items[idx].finalBalanceDate = (type === 'deposit') ? finalBalanceDate : '';
             } else {
                 if (type === 'pay_balance' && document.getElementById('pullDepositSelect').value) {
                     const id = document.getElementById('pullDepositSelect').value;
                     const idx = appData.items.findIndex(i => i.id == id);
-                    appData.items[idx].totalPrice += tPrice; appData.items[idx].shipping += sPrice; appData.items[idx].basePrice += bPrice;
+                    
+                    // 彻底切分定金和尾款的各项金额，防止重叠
+                    appData.items[idx].depositBasePrice = appData.items[idx].basePrice || 0;
+                    appData.items[idx].depositShipping = appData.items[idx].shipping || 0;
+                    
+                    appData.items[idx].balanceBasePrice = bPrice;
+                    appData.items[idx].balanceShipping = sPrice;
+
+                    appData.items[idx].basePrice = appData.items[idx].depositBasePrice + bPrice;
+                    appData.items[idx].shipping = appData.items[idx].depositShipping + sPrice;
+                    appData.items[idx].totalPrice = appData.items[idx].basePrice + appData.items[idx].shipping;
+                    
                     if(remark) appData.items[idx].remark = (appData.items[idx].remark ? appData.items[idx].remark + '\n' : '') + '[尾款]: ' + remark;
                     appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
                     appData.items[idx].entryType = type;
                     if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
-                    appData.items[idx].estBalance = 0; // 尾款结清，待补归零
+                    appData.items[idx].estBaseBalance = 0; 
+                    appData.items[idx].estBalance = 0; 
+                    appData.items[idx].images = [...imgArray];
                 } else if (type === 'deposit' && document.getElementById('pullQueueSelect').value) {
                     const id = document.getElementById('pullQueueSelect').value; const idx = appData.items.findIndex(i => i.id == id);
-                    appData.items[idx].totalPrice += tPrice; appData.items[idx].basePrice += bPrice;
+                    
+                    // 在排转定金时，直接使用本次定金填写的金额覆盖（因为在排等于还没给钱，避免重复计算）
+                    appData.items[idx].totalPrice = tPrice; 
+                    appData.items[idx].basePrice = bPrice;
+                    appData.items[idx].shipping = sPrice;
+
                     if(remark) appData.items[idx].remark = (appData.items[idx].remark ? appData.items[idx].remark + '\n' : '') + '[付定]: ' + remark;
                     appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
                     appData.items[idx].entryType = type;
-                    appData.items[idx].estBalance = estBalance; // 更新为新的待补
+                    appData.items[idx].estBaseBalance = estBaseBalance; 
+                    appData.items[idx].estBalance = estBalance; 
                     appData.items[idx].finalBalanceDate = finalBalanceDate;
+                    appData.items[idx].images = [...imgArray];
                 } else {
                     let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], noticeRead: false, noticeDismissed: false };
                     if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
+                    newItem.estBaseBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBaseBalance;
                     newItem.estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
                     newItem.finalBalanceDate = (type === 'deposit') ? finalBalanceDate : '';
                     appData.items.push(newItem);
@@ -1509,6 +1602,31 @@
         function toggleExpand(key, e) { e.stopPropagation(); expandState[key] = true; renderUI(); }
         function collapseExpand(key, e) { e.stopPropagation(); expandState[key] = false; renderUI(); }
         function setStatusFilter(f) { currentFilter = f; document.querySelectorAll('.s-tag').forEach(el => el.classList.remove('active')); document.getElementById('filter_' + f).classList.add('active'); renderUI(); }
+		
+		// 【新增】用来记录每个物品价格点击翻转状态的字典
+        let itemPriceClickState = {};
+        
+        // 【新增】单品独立点击阻止冒泡并加入二次确认
+        function toggleSingleItemPrice(id, e) {
+            e.stopPropagation(); 
+            
+            // 1. 先计算当前这个金额到底是不是隐藏状态
+            let currentHidden = appConfig.appearance.hideItemPriceValue;
+            if (itemPriceClickState[id]) currentHidden = !currentHidden;
+            if (!globalHidden) currentHidden = false; // 全局开启时，它必定是显示的
+            
+            // 2. 如果当前是隐藏的，想要看，就弹窗确认
+            if (currentHidden) {
+                showDialog("查看独立金额", false, "", "确认查看", () => { 
+                    itemPriceClickState[id] = !itemPriceClickState[id]; 
+                    renderUI(); 
+                });
+            } else {
+                // 如果当前已经是显示的，点击直接把它藏起来，不弹窗
+                itemPriceClickState[id] = !itemPriceClickState[id]; 
+                renderUI(); 
+            }
+        }
 
         // 通知系统
         function checkNotices() {
@@ -1661,7 +1779,9 @@
                         if(!dayData[dy]) dayData[dy] = {est:[], arr:[]};
                         dayData[dy].est.push(item);
                         monthEstSum += tPrice;
-                        if(item.estBalance) monthEstBalanceSum += parseFloat(item.estBalance) * item.qty;
+                        if(item.estBalance || item.estBaseBalance) {
+                            monthEstBalanceSum += (parseFloat(item.estBalance || 0) + parseFloat(item.estBaseBalance || 0)) * item.qty;
+                        }
                         monthQtySum += item.qty;
                         inThisMonth = true;
                     }
@@ -1728,7 +1848,8 @@
                 let tagColor = getStatusColor(i.status);
                 let tag = `<span style="color:${tagColor}; font-size:11px; font-weight:bold; background:${tagColor}20; padding:2px 6px; border-radius:4px;">${STATUS_MAP[i.status]||'未知'}</span>`;
                 
-                let estBalTxt = (i.status!=='arrived' && i.estBalance) ? `<span style="color:var(--badge-near); margin-left:5px;">(预计待补:¥${i.estBalance*i.qty})</span>` : '';
+                let itemEstTotal = (parseFloat(i.estBalance || 0) + parseFloat(i.estBaseBalance || 0)) * i.qty;
+                let estBalTxt = (i.status!=='arrived' && itemEstTotal > 0) ? `<span style="color:var(--badge-near); margin-left:5px;">(预计待补:¥${itemEstTotal})</span>` : '';
                 let itemPaid = i.entryType === 'queue' ? 0 : i.totalPrice * i.qty;
                 monthListHtml += `<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;" onclick="closeCalendar(); openIdCard(${i.id})">
                     ${img}
@@ -1774,7 +1895,8 @@
                 if(estList.length > 0) {
                     html += `<div style="font-size:13px; color:var(--badge-not_arrived); font-weight:bold; margin-bottom:5px;">⏳ 预计出货 (已付 ¥${estSum.toFixed(2)})</div>`;
                     estList.forEach(item => { 
-                        let estBalTxt = item.estBalance ? `<span style="color:var(--badge-near); margin-left:8px;">(预计待补: ¥${item.estBalance * item.qty})</span>` : '';
+                        let itemEstTotal = (parseFloat(item.estBalance || 0) + parseFloat(item.estBaseBalance || 0)) * item.qty;
+                        let estBalTxt = itemEstTotal > 0 ? `<span style="color:var(--badge-near); margin-left:8px;">(预计待补: ¥${itemEstTotal})</span>` : '';
                         let itemPaid = item.entryType === 'queue' ? 0 : item.totalPrice * item.qty;
                         html += `<div style="font-size:13px; padding:8px 0; border-bottom:1px dashed #eee; cursor:pointer;" onclick="closeCalendar(); openIdCard(${item.id})">${item.name} - ¥${itemPaid} ${estBalTxt}</div>`; 
                     });
@@ -1993,7 +2115,22 @@
                                 }
 
                                 let inHtml = appConfig.appearance.showName ? `<div class="item-name-overlay" style="text-align:${appConfig.appearance.nameAlign};">${textIn}</div>` : '';
-                                let outHtml = appConfig.appearance.showDate ? `<div style="font-size:11px; font-weight:600; text-align:${appConfig.appearance.nameAlign}; margin-top:6px; color:${outColor}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${textOut}</div>` : '';
+                                
+                                // 独立总价 HTML 核心处理
+                                let itemTotal = item.entryType === 'queue' ? 0 : item.totalPrice * item.qty;
+                                
+                                // 根据设置确定基础是否隐藏，加上单次点击的反转状态
+                                let baseHidden = appConfig.appearance.hideItemPriceValue;
+                                if (itemPriceClickState[item.id]) baseHidden = !baseHidden;
+                                // 联动全局小眼睛：如果全局眼睁开，则全部显示；如果闭上，听从上面计算的独立设置
+                                let finalHidden = globalHidden ? baseHidden : false;
+
+                                let priceStr = finalHidden ? getFace() : `¥${itemTotal.toFixed(2)}`;
+                                // 【核心修复】加上 onclick="toggleSingleItemPrice..." 阻止冒泡
+                                let priceHtml = appConfig.appearance.showItemPrice ? `<div onclick="toggleSingleItemPrice(${item.id}, event)" style="font-size:12px; font-weight:bold; color:${appConfig.appearance.itemPriceColor}; text-align:${appConfig.appearance.nameAlign}; margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${priceStr}</div>` : '';
+                                
+                                let outMargin = appConfig.appearance.showItemPrice ? '2px' : '6px';
+                                let outHtml = appConfig.appearance.showDate ? `<div style="font-size:11px; font-weight:600; text-align:${appConfig.appearance.nameAlign}; margin-top:${outMargin}; color:${outColor}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${textOut}</div>` : '';
 
                                 let imgHtml = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}">` : `<div class="no-img-text">${item.name}</div>`;
                                 let isLastAndMore = hasMore && !isExpanded && (index === limit - 1);
@@ -2007,13 +2144,14 @@
                                 } else {
                                     html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0;" onclick="openIdCard(${item.id})">
                                         <div class="item-card">${badgeHtml}${badgeNearHtml}${imgHtml}${importantHtml}${inHtml}</div>
+                                        ${priceHtml}
                                         ${outHtml}
                                     </div>`;
                                 }
                             });
                             if (isExpanded && hasMore) {
                                 html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0;" onclick="collapseExpand('${subKey}', event)">
-                                    <div class="item-card more-card" style="background: var(--input-bg);"><div class="more-text" style="color:var(--text-muted); font-size:16px;">收起 ▲</div></div>
+                                    <div class="item-card more-card" style="background: var(--input-bg);"><div class="more-text" style="color:var(--text-muted); font-size:16px;">收起 ⮝</div></div>
                                 </div>`;
                             }
                             html += `</div>`;
@@ -2033,9 +2171,35 @@
             if(item.images && item.images.length > 0) { document.getElementById('idImgContainer').innerHTML = item.images.map(src => `<img src="${src}">`).join(''); document.getElementById('idImgContainer').style.display = 'flex'; } 
             else { document.getElementById('idImgContainer').style.display = 'none'; }
             
-            document.getElementById('idName').innerText = item.name; document.getElementById('idTotal').innerText = `¥${item.totalPrice}`; document.getElementById('idShip').innerText = `¥${item.shipping}`; document.getElementById('idSource').innerText = item.source; 
+            document.getElementById('idName').innerText = item.name; 
+            
+            // 本体展示
+            let baseDisplay = `¥${item.basePrice || 0}`;
+            if (item.depositBasePrice !== undefined && item.balanceBasePrice !== undefined) {
+                baseDisplay = `¥${item.depositBasePrice} + ${item.balanceBasePrice}`;
+            }
+            document.getElementById('idBasePrice').innerText = baseDisplay;
+            
+            // 附加展示
+            let shipDisplay = `¥${item.shipping || 0}`;
+            if (item.depositShipping !== undefined && item.balanceShipping !== undefined) {
+                shipDisplay = `¥${item.depositShipping} + ${item.balanceShipping}`;
+            }
+            document.getElementById('idShip').innerText = shipDisplay;
+            
+            document.getElementById('idSource').innerText = item.source; 
             document.getElementById('idCat').innerText = item.subCat ? `${item.mainCat} / ${item.subCat}` : item.mainCat;
-            document.getElementById('idEstBalance').innerText = item.estBalance ? `¥${item.estBalance}` : '无';
+            document.getElementById('idBuyDate').innerText = formatDate(item.buyDate, '') || '暂无';
+            
+            document.getElementById('idQty').innerText = item.qty + '件';
+
+            // 待补展示
+            if (item.status === 'arrived') {
+                document.getElementById('idEstBalance').innerHTML = `<span style="color:var(--badge-arrived);">无</span>`;
+            } else {
+                let estBalTotal = (item.estBaseBalance || 0) + (item.estBalance || 0);
+                document.getElementById('idEstBalance').innerHTML = estBalTotal ? `¥${estBalTotal}` : '无';
+            }
 
             let estDisplay = formatDate(item.estDate, item.estDateSuffix) || '暂无';
             if (item.entryType === 'deposit' && item.finalBalanceDate) {
@@ -2062,9 +2226,35 @@
             let btnHtml = '';
             if(item.status !== 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('arrived')">📦 签收</button>`;
             else btnHtml = `<button class="id-btn action" onclick="changeStatus('not_arrived')" style="background:#f0f0f0;color:#666;">回退</button>`;
-            document.getElementById('idActionGroup').innerHTML = `<button class="id-btn edit" onclick="startEdit()">✎ 编辑</button>${btnHtml}<button class="id-btn delete" onclick="confirmDelete()">🗑 删除</button>`;
+            
+            // 快捷拉取按钮
+            let shortcutBtn = '';
+            if (item.entryType === 'queue') {
+                shortcutBtn = `<button class="id-btn action" style="background:#E6F7FF; color:#1890FF;" onclick="shortcutAction(${item.id}, 'deposit')">✅ 已成团</button>`;
+            } else if (item.entryType === 'deposit') {
+                shortcutBtn = `<button class="id-btn action" style="background:#FFF0F6; color:#EB2F96;" onclick="shortcutAction(${item.id}, 'pay_balance')">💰 付尾款</button>`;
+            }
+
+            document.getElementById('idActionGroup').innerHTML = `<button class="id-btn edit" onclick="startEdit()">✎ 编辑</button>${shortcutBtn}${btnHtml}<button class="id-btn delete" onclick="confirmDelete()">🗑 删除</button>`;
             document.getElementById('idCardOverlay').style.display = 'flex';
         }
+
+        // 快捷转段操作
+        function shortcutAction(id, targetType) {
+            closeIdCard();
+            openDrawer(); // 重置面板
+            document.querySelector(`input[name="entryType"][value="${targetType}"]`).checked = true;
+            toggleEntryType(); // 触发类型切换逻辑
+            
+            if (targetType === 'deposit') {
+                document.getElementById('pullQueueSelect').value = id;
+                autoFillFromQueue();
+            } else if (targetType === 'pay_balance') {
+                document.getElementById('pullDepositSelect').value = id;
+                autoFillFromDeposit();
+            }
+        }
+
         function closeIdCard() { document.getElementById('idCardOverlay').style.display = 'none'; }
         function changeStatus(newStatus) { 
             let item = appData.items.find(i => i.id == currentViewId);
@@ -2076,7 +2266,20 @@
 
         function startEdit() {
             closeIdCard(); const item = appData.items.find(i => i.id == currentViewId);
-            document.getElementById('editingItemId').value = item.id; document.getElementById('itemName').value = item.name; document.getElementById('priceBase').value = item.basePrice||''; document.getElementById('priceShip').value = item.shipping||''; document.getElementById('priceTotal').value = item.totalPrice||''; document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat||''; document.getElementById('itemSource').value = item.source; 
+            document.getElementById('editingItemId').value = item.id; 
+            document.getElementById('itemName').value = item.name; 
+            
+            if (item.depositBasePrice !== undefined) {
+                document.getElementById('priceBase').value = item.balanceBasePrice || 0;
+                document.getElementById('priceShip').value = item.balanceShipping || 0;
+                document.getElementById('priceTotal').value = (item.balanceBasePrice || 0) + (item.balanceShipping || 0);
+            } else {
+                document.getElementById('priceBase').value = item.basePrice || '';
+                document.getElementById('priceShip').value = item.shipping || '';
+                document.getElementById('priceTotal').value = item.totalPrice || '';
+            }
+
+            document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat||''; document.getElementById('itemSource').value = item.source; 
             
             let itemDateVal = item.buyDate || ''; let d1 = document.getElementById('itemDate'); d1.type = itemDateVal ? 'date' : 'text'; d1.value = itemDateVal;
             let estDateVal = item.estDate || ''; let d2 = document.getElementById('estDate'); d2.type = estDateVal ? 'date' : 'text'; d2.value = estDateVal;
@@ -2085,7 +2288,10 @@
             document.getElementById('estDateSuffix').value = item.estDateSuffix || '';
             document.getElementById('itemQty').value = item.qty; document.getElementById('itemRemark').value = item.remark||'';
             document.getElementById('isImportant').checked = !!item.isImportant; document.getElementById('importantArea').style.display = item.isImportant ? 'block' : 'none'; document.getElementById('importantRemark').value = item.importantRemark || ''; 
+            
+            document.getElementById('priceEstBaseBalance').value = item.estBaseBalance || '';
             document.getElementById('priceEstBalance').value = item.estBalance || '';
+            
             activeInput = 'base';
             
             document.getElementById('typeControl').style.display = 'flex';
@@ -2109,15 +2315,24 @@
             
             document.getElementById('itemName').value = ''; document.getElementById('priceBase').value = ''; document.getElementById('priceShip').value = ''; document.getElementById('priceTotal').value = ''; document.getElementById('itemRemark').value = ''; 
             
-            let todayStr = new Date().toLocaleDateString('en-CA');
+            // 默认今天的日期
+            let today = new Date();
+            let yyyy = today.getFullYear();
+            let mm = String(today.getMonth() + 1).padStart(2, '0');
+            let dd = String(today.getDate()).padStart(2, '0');
+            let todayStr = `${yyyy}-${mm}-${dd}`;
+            
             let d1 = document.getElementById('itemDate'); d1.type = 'date'; d1.value = todayStr;
             let d2 = document.getElementById('estDate'); d2.type = 'text'; d2.value = '';
             let d3 = document.getElementById('finalBalanceDate'); d3.type = 'text'; d3.value = '';
             document.getElementById('estDateSuffix').value = '';
             
             document.getElementById('isImportant').checked = false; document.getElementById('importantArea').style.display = 'none'; document.getElementById('importantRemark').value = ''; 
+            
+            document.getElementById('priceEstBaseBalance').value = '';
             document.getElementById('priceEstBalance').value = '';
-            document.getElementById('pullEstHintGroup').style.display = 'none';
+            document.getElementById('paidDepositHintGroup').style.display = 'none';
+            
             activeInput = 'base'; imgArray = []; renderUploaders(); renderQuickRemarks(); document.getElementById('addDrawer').style.display = 'flex'; 
         }
         function closeDrawer() { document.getElementById('addDrawer').style.display = 'none'; }
