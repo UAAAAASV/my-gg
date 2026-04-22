@@ -562,7 +562,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label" style="font-size: 12px;">API Key (X-Access-Key)</label>
+                            <label class="form-label" style="font-size: 12px;">Master Key (X-Master-Key)</label>
                             <input type="password" id="cfg_gh_token" placeholder="输入生成的 API Key..." onchange="saveCloudConfig()">
                         </div>
                         <div class="form-group">
@@ -1023,7 +1023,7 @@
                 method: method,
                 headers: { 
                     'Content-Type': 'application/json',
-                    'X-Access-Key': token,
+                    'X-Master-Key': token,
                     'X-Bin-Private': 'true'
                 },
                 body: JSON.stringify({ appData, appConfig })
@@ -1061,7 +1061,7 @@
             
             fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
                 method: 'GET',
-                headers: { 'X-Access-Key': token }
+                headers: { 'X-Master-Key': token }
             }).then(res => {
                 if (res.status === 401 || res.status === 403) throw new Error("TOKEN_INVALID");
                 if (res.status === 404) throw new Error("BIN_NOT_FOUND");
