@@ -556,17 +556,17 @@
                     </div>
 
                     <div class="settings-section" id="sec-cloud">
-                        <div class="settings-title">JSONBin 云端同步<span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">云同步</span></div>
+                        <div class="settings-title">GitHub 云端同步<span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">无限图片容量</span></div>
                         <div style="font-size:12px; color:#999; margin-bottom:15px; line-height:1.5;">
-                             👉 <a href="https://jsonbin.io/" target="_blank" style="color:var(--primary);">点击前往 JSONBin.io 免费注册并获取您的 API Key</a>
+                             👉 <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--primary);">点击前往 GitHub 免费生成 Token (须勾选 gist 权限)</a>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label" style="font-size: 12px;">Master Key (X-Master-Key)</label>
-                            <input type="password" id="cfg_gh_token" placeholder="输入生成的 API Key..." onchange="saveCloudConfig()">
+                            <label class="form-label" style="font-size: 12px;">GitHub Token (通常是 ghp_ 开头)</label>
+                            <input type="password" id="cfg_gh_token" placeholder="输入生成的 Token..." onchange="saveCloudConfig()">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" style="font-size: 12px;">数据桶 ID (Bin ID)</label>
+                            <label class="form-label" style="font-size: 12px;">Gist ID (数据桶 ID)</label>
                             <input type="text" id="cfg_gh_gist_id" placeholder="首次上传后系统会自动填入..." onchange="saveCloudConfig()">
                         </div>
                         
@@ -1001,127 +1001,94 @@
             }
         }
 
-        // 云同步相关逻辑 (全新更换为 JSONBin.io，全球最稳定的纯前端同步服务，无风控)
         function saveCloudConfig() {
             appConfig.cloud.token = document.getElementById('cfg_gh_token').value.trim();
             appConfig.cloud.gistId = document.getElementById('cfg_gh_gist_id').value.trim();
             localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
         }
 
-        function uploadToGitHub(e) {
+function uploadToGitHub(e) {
             const token = document.getElementById('cfg_gh_token').value.trim();
-            if(!token) { showDialog("请先填写 JSONBin 的 API Key", false, "", "知道了", null); return; }
+            if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null); return; }
             
-            const binId = document.getElementById('cfg_gh_gist_id').value.trim();
+            const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
             
-            // 使用 JSONBin V3 API
-            const url = binId ? `https://api.jsonbin.io/v3/b/${binId}` : `https://api.jsonbin.io/v3/b`;
-            const method = binId ? 'PUT' : 'POST';
+            // 【关键修复】在上传前，把密码从备份数据中抹除，防止被黑白猫机器人查杀！
+            let safeConfig = JSON.parse(JSON.stringify(appConfig));
+            if(safeConfig.cloud) safeConfig.cloud.token = ''; 
+            
+            const url = gistId ? `https://api.github.com/gists/${gistId}` : `https://api.github.com/gists`;
+            const method = gistId ? 'PATCH' : 'POST';
+            const dataStr = JSON.stringify({ appData, appConfig: safeConfig });
             
             fetch(url, {
                 method: method,
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': token,
-                    'X-Bin-Private': 'true'
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Authorization': `token ${token}`
                 },
-                body: JSON.stringify({ appData, appConfig })
-            }).then(res => {
-                if (res.status === 401 || res.status === 403) throw new Error("TOKEN_INVALID");
-                if (res.status === 404) throw new Error("BIN_NOT_FOUND");
-                if (!res.ok) throw new Error("API_ERROR");
-                return res.json();
-            }).then(data => {
-                let newBinId = data.metadata ? data.metadata.id : (data.record ? binId : null);
-                if(newBinId) {
-                    document.getElementById('cfg_gh_gist_id').value = newBinId;
-                    saveCloudConfig();
-                    showDialog("成功上传到 JSONBin 云端！", false, "", "太棒了", null);
-                } else {
-                    showDialog("上传失败，未能获取到 Bin ID", false, "", "关闭", null);
-                }
-            }).catch(err => {
-                if (err.message === "TOKEN_INVALID") {
-                    showDialog("上传失败：API Key 无效或错误！请核对。", false, "", "知道了", null);
-                } else if (err.message === "BIN_NOT_FOUND") {
-                    showDialog("上传失败：找不到该 Bin ID，请核对是否填错，或清空该项重新生成。", false, "", "知道了", null);
-                } else {
-                    showDialog("网络错误或数据超限，上传失败", false, "", "关闭", null);
-                }
-            }).finally(() => { btn.innerText = oldText; });
-        }
-
-        function uploadToGitHub(e) {
-            const token = document.getElementById('cfg_gh_token').value.trim();
-            if(!token) { showDialog("请先填写 Master Key", false, "", "知道了", null); return; }
-            
-            const binId = document.getElementById('cfg_gh_gist_id').value.trim();
-            const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
-            
-            const url = binId ? `https://api.jsonbin.io/v3/b/${binId}` : `https://api.jsonbin.io/v3/b`;
-            const method = binId ? 'PUT' : 'POST';
-            
-            fetch(url, {
-                method: method,
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': token,
-                    'X-Bin-Private': 'true'
-                },
-                body: JSON.stringify({ appData, appConfig })
+                body: JSON.stringify({
+                    description: "我的娃柜备份",
+                    public: false,
+                    files: { "myCabinet.json": { content: dataStr } }
+                })
             }).then(async res => {
-                if (res.status === 401 || res.status === 403) {
-                    let errData = await res.json().catch(()=>({}));
-                    throw new Error("AUTH_FAIL: " + (errData.message || "权限不足或密钥错误"));
+                if (res.status === 401 || res.status === 403 || res.status === 404) {
+                    let err = await res.json().catch(()=>({}));
+                    throw new Error(err.message || "认证失败，请检查Token");
                 }
-                if (res.status === 404) throw new Error("BIN_NOT_FOUND");
                 if (!res.ok) throw new Error("API_ERROR");
                 return res.json();
             }).then(data => {
-                let newBinId = data.metadata ? data.metadata.id : (data.record ? binId : null);
-                if(newBinId) {
-                    document.getElementById('cfg_gh_gist_id').value = newBinId;
+                if(data.id) {
+                    document.getElementById('cfg_gh_gist_id').value = data.id;
                     saveCloudConfig();
-                    showDialog("成功上传到 JSONBin 云端！", false, "", "太棒了", null);
+                    showDialog("成功上传到 GitHub 云端！", false, "", "太棒了", null);
                 } else {
-                    showDialog("上传失败，未能获取到 Bin ID", false, "", "关闭", null);
+                    showDialog("上传失败，未能获取到 Gist ID", false, "", "关闭", null);
                 }
             }).catch(err => {
-                if (err.message.startsWith("AUTH_FAIL")) {
-                    showDialog("密钥被拒绝！请清空输入框并重新粘贴完整密钥。服务器提示：" + err.message, false, "", "知道了", null);
-                } else if (err.message === "BIN_NOT_FOUND") {
-                    showDialog("找不到该 Bin ID，请直接清空ID框，让系统重新生成一个。", false, "", "知道了", null);
-                } else {
-                    showDialog("网络错误：" + err.message, false, "", "关闭", null);
-                }
+                showDialog("上传失败：" + err.message + "\n请检查 Token 是否过期，或清空 ID 框重试。", false, "", "知道了", null);
             }).finally(() => { btn.innerText = oldText; });
         }
 
         function downloadFromGitHub(e) {
             const token = document.getElementById('cfg_gh_token').value.trim();
-            const binId = document.getElementById('cfg_gh_gist_id').value.trim();
-            if(!token || !binId) { showDialog("请先填写 Key 和 Bin ID", false, "", "知道了", null); return; }
+            const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+            if(!token || !gistId) { showDialog("请先填写 Token 和 Gist ID", false, "", "知道了", null); return; }
 
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
             
-            fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+            fetch(`https://api.github.com/gists/${gistId}`, {
                 method: 'GET',
-                headers: { 'X-Master-Key': token }
-            }).then(async res => {
-                if (res.status === 401 || res.status === 403) {
-                    let errData = await res.json().catch(()=>({}));
-                    throw new Error("AUTH_FAIL: " + (errData.message || "权限不足或密钥错误"));
+                headers: { 
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Authorization': `token ${token}`
                 }
-                if (res.status === 404) throw new Error("BIN_NOT_FOUND");
+            }).then(async res => {
+                if (res.status === 401 || res.status === 404) {
+                    let err = await res.json().catch(()=>({}));
+                    throw new Error(err.message || "找不到数据桶或Token失效");
+                }
                 if (!res.ok) throw new Error("API_ERROR");
                 return res.json();
             }).then(data => {
-                const parsed = data.record;
-                if (!parsed) throw new Error("FILE_NOT_FOUND");
+                const file = data.files && data.files["myCabinet.json"];
+                if (!file || !file.content) throw new Error("云端没有找到存档数据");
                 
+                const parsed = JSON.parse(file.content);
                 if(parsed.appData) appData = parsed.appData;
-                if(parsed.appConfig) appConfig = parsed.appConfig;
+                
+                // 【关键修复】下载时保护本地的密码不被空数据覆盖
+                if(parsed.appConfig) {
+                    let localToken = appConfig.cloud.token;
+                    let localGistId = appConfig.cloud.gistId;
+                    appConfig = parsed.appConfig;
+                    if(!appConfig.cloud) appConfig.cloud = {};
+                    appConfig.cloud.token = localToken;
+                    appConfig.cloud.gistId = localGistId;
+                }
                 
                 appData.items.forEach(item => {
                     if (item.status === 'unpaid' || item.status === 'grouping') item.status = 'unpaid_grouping';
@@ -1131,15 +1098,7 @@
                 saveData();
                 showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
             }).catch(err => {
-                if (err.message.startsWith("AUTH_FAIL")) {
-                    showDialog("密钥错误！服务器提示：" + err.message, false, "", "知道了", null);
-                } else if (err.message === "BIN_NOT_FOUND") {
-                    showDialog("下载失败：找不到该 Bin ID，请核对。", false, "", "知道了", null);
-                } else if (err.message === "FILE_NOT_FOUND") {
-                    showDialog("下载失败：云端内容为空。", false, "", "知道了", null);
-                } else {
-                    showDialog("数据解析失败，请检查网络", false, "", "关闭", null);
-                }
+                showDialog("下载失败：" + err.message, false, "", "知道了", null);
             }).finally(() => { btn.innerText = oldText; });
         }
 
@@ -2514,3 +2473,5 @@
     </script>
 </body>
 </html>
+
+
