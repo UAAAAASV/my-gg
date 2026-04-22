@@ -552,11 +552,11 @@
                                 导入文件<input type="file" style="display:none;" accept=".json" onchange="importData(this)">
                             </label>
                         </div>
-                        <div style="font-size:12px; color:#999; margin-top:10px;">如果不使用云端，可以手动导出JSON文件保存到电脑。</div>
+                        <div style="font-size:12px; color:#999; margin-top:10px;">如果不使用云端，可以手动导出JSON文件保存。</div>
                     </div>
 
                     <div class="settings-section" id="sec-cloud">
-                        <div class="settings-title">GitHub 云端同步<span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">无限图片容量</span></div>
+                        <div class="settings-title">GitHub 云端同步<span style="font-size: 11px; background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:normal;">测试中</span></div>
                         <div style="font-size:12px; color:#999; margin-bottom:15px; line-height:1.5;">
                              👉 <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--primary);">点击前往 GitHub 免费生成 Token (须勾选 gist 权限)</a>
                         </div>
@@ -1014,7 +1014,7 @@ function uploadToGitHub(e) {
             const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
             
-            // 【关键修复】在上传前，把密码从备份数据中抹除，防止被黑白猫机器人查杀！
+            // 【关键修复】在上传前抹除密码防止查杀
             let safeConfig = JSON.parse(JSON.stringify(appConfig));
             if(safeConfig.cloud) safeConfig.cloud.token = ''; 
             
