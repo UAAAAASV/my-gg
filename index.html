@@ -1052,18 +1052,67 @@
             }).finally(() => { btn.innerText = oldText; });
         }
 
+        function uploadToGitHub(e) {
+            const token = document.getElementById('cfg_gh_token').value.trim();
+            if(!token) { showDialog("请先填写 Master Key", false, "", "知道了", null); return; }
+            
+            const binId = document.getElementById('cfg_gh_gist_id').value.trim();
+            const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
+            
+            const url = binId ? `https://api.jsonbin.io/v3/b/${binId}` : `https://api.jsonbin.io/v3/b`;
+            const method = binId ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': token,
+                    'X-Bin-Private': 'true'
+                },
+                body: JSON.stringify({ appData, appConfig })
+            }).then(async res => {
+                if (res.status === 401 || res.status === 403) {
+                    let errData = await res.json().catch(()=>({}));
+                    throw new Error("AUTH_FAIL: " + (errData.message || "权限不足或密钥错误"));
+                }
+                if (res.status === 404) throw new Error("BIN_NOT_FOUND");
+                if (!res.ok) throw new Error("API_ERROR");
+                return res.json();
+            }).then(data => {
+                let newBinId = data.metadata ? data.metadata.id : (data.record ? binId : null);
+                if(newBinId) {
+                    document.getElementById('cfg_gh_gist_id').value = newBinId;
+                    saveCloudConfig();
+                    showDialog("成功上传到 JSONBin 云端！", false, "", "太棒了", null);
+                } else {
+                    showDialog("上传失败，未能获取到 Bin ID", false, "", "关闭", null);
+                }
+            }).catch(err => {
+                if (err.message.startsWith("AUTH_FAIL")) {
+                    showDialog("密钥被拒绝！请清空输入框并重新粘贴完整密钥。服务器提示：" + err.message, false, "", "知道了", null);
+                } else if (err.message === "BIN_NOT_FOUND") {
+                    showDialog("找不到该 Bin ID，请直接清空ID框，让系统重新生成一个。", false, "", "知道了", null);
+                } else {
+                    showDialog("网络错误：" + err.message, false, "", "关闭", null);
+                }
+            }).finally(() => { btn.innerText = oldText; });
+        }
+
         function downloadFromGitHub(e) {
             const token = document.getElementById('cfg_gh_token').value.trim();
             const binId = document.getElementById('cfg_gh_gist_id').value.trim();
-            if(!token || !binId) { showDialog("请先填写 API Key 和 Bin ID", false, "", "知道了", null); return; }
+            if(!token || !binId) { showDialog("请先填写 Key 和 Bin ID", false, "", "知道了", null); return; }
 
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
             
             fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
                 method: 'GET',
                 headers: { 'X-Master-Key': token }
-            }).then(res => {
-                if (res.status === 401 || res.status === 403) throw new Error("TOKEN_INVALID");
+            }).then(async res => {
+                if (res.status === 401 || res.status === 403) {
+                    let errData = await res.json().catch(()=>({}));
+                    throw new Error("AUTH_FAIL: " + (errData.message || "权限不足或密钥错误"));
+                }
                 if (res.status === 404) throw new Error("BIN_NOT_FOUND");
                 if (!res.ok) throw new Error("API_ERROR");
                 return res.json();
@@ -1082,15 +1131,14 @@
                 saveData();
                 showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
             }).catch(err => {
-                if (err.message === "TOKEN_INVALID") {
-                    showDialog("下载失败：API Key 无效！请核对。", false, "", "知道了", null);
+                if (err.message.startsWith("AUTH_FAIL")) {
+                    showDialog("密钥错误！服务器提示：" + err.message, false, "", "知道了", null);
                 } else if (err.message === "BIN_NOT_FOUND") {
                     showDialog("下载失败：找不到该 Bin ID，请核对。", false, "", "知道了", null);
                 } else if (err.message === "FILE_NOT_FOUND") {
-                    showDialog("下载失败：云端包裹内容为空或格式错误。", false, "", "知道了", null);
+                    showDialog("下载失败：云端内容为空。", false, "", "知道了", null);
                 } else {
                     showDialog("数据解析失败，请检查网络", false, "", "关闭", null);
-                    console.error(err);
                 }
             }).finally(() => { btn.innerText = oldText; });
         }
