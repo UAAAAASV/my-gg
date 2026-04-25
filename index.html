@@ -24,7 +24,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-tap-highlight-color: transparent;}
         body { background-color: var(--bg-base); color: var(--text-main); -webkit-font-smoothing: antialiased; padding-bottom: 100px; overflow-x: hidden;}
         
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; height: 65px; font-size: 24px; font-weight: 600; position: sticky; top: 0; background: var(--bg-base); z-index: 90;}
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; height: 65px; font-size: 24px; font-weight: 600; background: var(--bg-base); }
         .app-title { cursor: pointer; user-select: none; }
         .header .icons { display: flex; gap: 16px; align-items: center;}
         .header .icons span { font-size: 22px; cursor: pointer; color: var(--text-main); position: relative; display: flex; align-items: center; justify-content: center;}
@@ -32,7 +32,23 @@
         
         .search-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 84; animation: fadeIn 0.2s;}
         .search-drawer { position: fixed; top: -100%; left: 0; width: 100%; background: var(--surface); padding: 15px 20px 25px; z-index: 85; box-shadow: 0 10px 20px rgba(0,0,0,0.08); transition: top 0.3s ease; border-radius: 0 0 24px 24px; box-sizing: border-box;}
-        .search-drawer.active { top: 65px; }
+        
+        /* 吸顶锁定模式控制 */
+        body.sticky-all .header { position: sticky; top: 0; z-index: 90; }
+        body.sticky-all .search-drawer.active { top: 65px; }
+        body.sticky-all .main-title-bar { position: sticky; top: 65px; z-index: 50; }
+        body.sticky-all .sub-title { position: sticky; top: 110px; z-index: 40; }
+
+        body.sticky-catOnly .header { position: relative; z-index: 90; }
+        body.sticky-catOnly .search-drawer.active { top: 0; z-index: 95; }
+        body.sticky-catOnly .main-title-bar { position: sticky; top: 0; z-index: 50; }
+        body.sticky-catOnly .sub-title { position: sticky; top: 46px; z-index: 40; }
+
+        body.sticky-none .header { position: relative; z-index: 90; }
+        body.sticky-none .search-drawer.active { top: 0; z-index: 95; }
+        body.sticky-none .main-title-bar { position: relative; z-index: 50; }
+        body.sticky-none .sub-title { position: relative; z-index: 40; }
+
         .search-box { display: flex; align-items: center; background: var(--input-bg); padding: 10px 16px; border-radius: 30px; width: 100%; box-sizing: border-box; margin: 0;}
         .search-box input { border: none; outline: none; flex: 1; font-size: 15px; margin-left: 8px; background: transparent; min-width: 0; width: 100%;}
         .close-search { margin-left: 12px; color: var(--text-muted); font-size: 18px; cursor: pointer; font-weight: bold; flex-shrink: 0;}
@@ -49,7 +65,8 @@
         .s-tag { padding: 6px 14px; background: var(--surface); border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; color: var(--text-muted); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;}
         .s-tag.active { background: var(--theme-dark); color: white; }
 
-        .kaomoji { display: inline-block; font-size: 16px; font-weight: normal; color: var(--primary); letter-spacing: 1px;}
+        /* 固定颜文字容器高度，防止被特殊字符撑开破坏布局 */
+        .kaomoji { display: inline-flex; align-items: center; justify-content: center; height: 24px; line-height: 1; font-size: 16px; font-weight: normal; color: var(--primary); letter-spacing: 1px; vertical-align: middle;}
         .anim-float { animation: floatTxt 2.5s ease-in-out infinite; }
         .anim-shake { animation: shakeTxt 0.5s ease-in-out infinite; }
         .anim-flip { animation: flipTxt 2s linear infinite; }
@@ -77,11 +94,11 @@
         @keyframes charJump { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.1)} }
 
         .main-category-block { margin: 0 20px 20px; background: var(--surface); border-radius: var(--radius-lg); padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
-        .main-title-bar { position: sticky; top: 65px; z-index: 50; background: var(--surface); display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: bold; padding: 10px 0; border-bottom: 2px solid var(--bg-base); margin: -10px 0 15px 0; cursor: pointer; user-select: none;}
+        .main-title-bar { background: var(--surface); display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: bold; padding: 10px 0; border-bottom: 2px solid var(--bg-base); margin: -10px 0 15px 0; cursor: pointer; user-select: none;}
         .main-sum { font-size: 14px; color: var(--primary); background: var(--primary-light); padding: 4px 12px; border-radius: 20px;}
         
         .sub-category-block { margin-bottom: 15px; }
-        .sub-title { position: sticky; top: 110px; z-index: 40; background: var(--surface); font-size: 14px; font-weight: 600; color: #555; padding: 8px 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; cursor: pointer; user-select: none;}
+        .sub-title { background: var(--surface); font-size: 14px; font-weight: 600; color: #555; padding: 8px 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; cursor: pointer; user-select: none;}
         
         /* 缩小间距，优化 3 列显示 */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; }
@@ -205,7 +222,7 @@
         .cal-stats { background:var(--input-bg); padding:15px; border-radius:12px; margin-top:15px; font-size:13px; color:var(--text-main); line-height:1.6; display:flex; flex-direction:column; gap:8px;}
     </style>
 </head>
-<body>
+<body class="sticky-all">
 
     <div class="header">
         <div class="app-title" id="appTitleText" ondblclick="editAppTitle()">娃柜</div>
@@ -455,6 +472,17 @@
                                 </select>
                             </div>
                         </div>
+
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div style="flex:1;">
+                                <label class="form-label">吸顶锁定模式</label>
+                                <select id="set_stickyBehavior" onchange="updateAppearance('stickyBehavior', this.value)" style="margin-bottom: 10px;">
+                                    <option value="all">顶栏与分类同时锁定 (默认)</option>
+                                    <option value="catOnly">仅锁定分类 (顶栏滑走)</option>
+                                    <option value="none">不锁定 (自由滑动)</option>
+                                </select>
+                            </div>
+                        </div>
                         
                         <div class="form-group" style="margin-top:10px;">
                             <label class="form-label">卡片文本显示位置</label>
@@ -694,7 +722,7 @@
         if (!appConfig.title) appConfig.title = "娃柜";
         if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
         if (!appConfig.appearance) {
-            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, itemPriceColor: '#FF8DA1', hideItemPriceValue: true, showFullDateText: true, cardLine1: 'name', cardLine2: 'price', cardLine3: 'date' };
+            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, itemPriceColor: '#FF8DA1', hideItemPriceValue: true, showFullDateText: true, cardLine1: 'name', cardLine2: 'price', cardLine3: 'date', stickyBehavior: 'all' };
         } else {
             if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
             if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
@@ -704,8 +732,8 @@
             if (appConfig.appearance.hideItemPriceValue === undefined) appConfig.appearance.hideItemPriceValue = true; 
             if (!appConfig.appearance.itemPriceColor) appConfig.appearance.itemPriceColor = '#FF8DA1';
             if (appConfig.appearance.showFullDateText === undefined) appConfig.appearance.showFullDateText = true;
-			if (appConfig.appearance.wrapDateText === undefined) appConfig.appearance.wrapDateText = false;
-			if (appConfig.appearance.wrapDateText === undefined) appConfig.appearance.wrapDateText = false;
+            if (appConfig.appearance.wrapDateText === undefined) appConfig.appearance.wrapDateText = false;
+            if (!appConfig.appearance.stickyBehavior) appConfig.appearance.stickyBehavior = 'all';
             
             // 兼容迁移旧的位置设定
             if (!appConfig.appearance.cardLine1) {
@@ -740,6 +768,7 @@
         if (!appConfig.cloud) appConfig.cloud = { token: '', gistId: '' };
         
         document.documentElement.style.setProperty('--theme-dark', appConfig.appearance.themeDark);
+        document.body.className = `sticky-${appConfig.appearance.stickyBehavior}`;
         Object.keys(appConfig.appearance.badgeColors).forEach(k => {
             document.documentElement.style.setProperty(`--badge-${k}`, appConfig.appearance.badgeColors[k]);
         });
@@ -755,7 +784,7 @@
         if (!appConfig.topIcons.calendar) appConfig.topIcons.calendar = { type: 'text', val: '📅' };
         if (!appConfig.topIconsOrder) appConfig.topIconsOrder = ['search', 'notice', 'calendar', 'settings', 'eye'];
 
-        // 更新的分类默认结构（人偶与娃娃拆分）
+        // 更新的分类默认结构
         const defaultData = { 
             items: [], 
             categories: { 
@@ -833,6 +862,8 @@
 
         function formatDate(dateStr, suffix) {
             if(!dateStr) return '';
+            if(suffix === 'custom' || suffix === 'date') suffix = '';
+            
             let parts = dateStr.split('-');
             if(parts.length < 2) {
                 if (suffix && dateStr !== suffix && !dateStr.includes(suffix)) {
@@ -917,6 +948,13 @@
             showDialog("重命名", true, "输入新名称 (同步更新已有物品)", "确认", (val) => {
                 if(val && val.trim() && val.trim() !== oldVal) {
                     let newVal = val.trim();
+                    if (type === 'list' && path === 'categories.main' && appData.categories.main.includes(newVal)) {
+                        return showDialog("该主分类已存在！", false, "", "知道了", null);
+                    }
+                    if (type === 'sub' && appData.categories.subMap[mainCat].includes(newVal)) {
+                        return showDialog("该小分类已存在！", false, "", "知道了", null);
+                    }
+
                     if (type === 'list') {
                         if(path === 'categories.main') {
                             appData.categories.main[idx] = newVal;
@@ -1010,6 +1048,7 @@
             document.getElementById('set_nameAlign').value = appConfig.appearance.nameAlign; 
             document.getElementById('set_dateFormat').value = appConfig.appearance.dateFormat || 'full'; 
             document.getElementById('set_sortMethod').value = appConfig.sortMethod;
+            document.getElementById('set_stickyBehavior').value = appConfig.appearance.stickyBehavior || 'all';
             
             document.getElementById('set_cardLine1').value = appConfig.appearance.cardLine1 || 'name';
             document.getElementById('set_cardLine2').value = appConfig.appearance.cardLine2 || 'price';
@@ -1019,8 +1058,7 @@
             document.getElementById('set_calHiddenDefault').checked = appConfig.appearance.calHiddenDefault;
             document.getElementById('set_hideItemPriceValue').checked = appConfig.appearance.hideItemPriceValue;
             document.getElementById('set_showFullDateText').checked = appConfig.appearance.showFullDateText;
-			document.getElementById('set_wrapDateText').checked = appConfig.appearance.wrapDateText;
-			document.getElementById('set_wrapDateText').checked = appConfig.appearance.wrapDateText;
+            document.getElementById('set_wrapDateText').checked = appConfig.appearance.wrapDateText;
             document.getElementById('set_itemPriceColor').value = appConfig.appearance.itemPriceColor;
 
             // 角标颜色
@@ -1048,6 +1086,10 @@
             appConfig.appearance[key] = value; 
             localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); 
             if(key === 'themeDark') document.documentElement.style.setProperty('--theme-dark', value);
+            if(key === 'stickyBehavior') {
+                document.body.classList.remove('sticky-all', 'sticky-catOnly', 'sticky-none');
+                document.body.classList.add('sticky-' + value);
+            }
             renderUI(); 
         }
 
@@ -1215,6 +1257,7 @@
                 if(val && val.trim()) { 
                     let v = val.trim();
                     if(path === 'categories.main') {
+                        if (appData.categories.main.includes(v)) return showDialog("主分类已存在！", false, "", "知道了", null);
                         appData.categories.main.push(v);
                         if(!appData.categories.subMap[v]) appData.categories.subMap[v] = [];
                     }
@@ -1231,6 +1274,7 @@
                     let mName = appData.categories.main[idx];
                     appData.categories.main.splice(idx, 1); 
                     delete appData.categories.subMap[mName];
+                    appData.items.forEach(i => { if(i.mainCat === mName) { i.mainCat = ''; i.subCat = ''; } });
                 }
                 if(path === 'sources') appData.sources.splice(idx, 1); 
                 if(path === 'kaomojis') appData.kaomojis.splice(idx, 1); 
@@ -1245,8 +1289,12 @@
             if(!mainCat) { showDialog("提示", false, "", "知道了", null); return; }
             showDialog("添加小分类", true, "输入小分类名称", "确认", (val) => { 
                 if(val && val.trim()) { 
+                    let v = val.trim();
+                    if(appData.categories.subMap[mainCat] && appData.categories.subMap[mainCat].includes(v)) {
+                        return showDialog("小分类已存在！", false, "", "知道了", null);
+                    }
                     if(!appData.categories.subMap[mainCat]) appData.categories.subMap[mainCat] = [];
-                    appData.categories.subMap[mainCat].push(val.trim()); 
+                    appData.categories.subMap[mainCat].push(v); 
                     saveData(); renderSettingsSubCat(); renderFormOptions(); 
                 } 
             });
@@ -1254,7 +1302,9 @@
         function delSubCat(idx) {
             let mainCat = document.getElementById('set_subCat_mainSelect').value;
             showDialog("警告", false, "", "确定删除", () => { 
+                let subName = appData.categories.subMap[mainCat][idx];
                 appData.categories.subMap[mainCat].splice(idx, 1); 
+                appData.items.forEach(i => { if(i.mainCat === mainCat && i.subCat === subName) i.subCat = ''; });
                 saveData(); renderSettingsSubCat(); renderFormOptions(); 
             }); 
             document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
@@ -1550,9 +1600,10 @@
             const estDateSuffix = document.getElementById('estDateSuffix').value;
             const finalBalanceDate = document.getElementById('finalBalanceDate').value;
             
-            // 获取撤排期限
+            // 获取撤排期限，防止 custom 脏数据存入
             const queueDeadline = document.getElementById('queueDeadline').value;
-            const queueDeadlineSuffix = document.getElementById('queueDeadlineSuffix').value;
+            let queueDeadlineSuffix = document.getElementById('queueDeadlineSuffix').value;
+            if (queueDeadlineSuffix === 'custom' || queueDeadlineSuffix === 'date') queueDeadlineSuffix = '';
 
             const finalStatus = document.getElementById('itemStatus').value;
             
@@ -2211,6 +2262,7 @@
             } else { 
                 overlay.style.display = 'none';
                 document.getElementById('searchInput').value = ''; 
+                document.getElementById('searchInput').blur();
                 renderUI(); 
             }
         }
@@ -2295,7 +2347,8 @@
             document.getElementById('totalShippingDisplay').innerHTML = globalHidden ? getFace() : sumS.toFixed(2);
             document.getElementById('totalQtyDisplay').innerHTML = globalHidden ? getFace() : `${sumQty}件`;
             
-            const container = document.getElementById('cabinetsContainer'); container.innerHTML = '';
+            const container = document.getElementById('cabinetsContainer'); 
+            let finalHtml = '';
             let bgWithOp = hexToRgba(appConfig.appearance.noticeBgColor, appConfig.appearance.noticeOpacity !== undefined ? appConfig.appearance.noticeOpacity : 100);
 
             for (const [mName, mData] of Object.entries(mainGroups)) {
@@ -2452,7 +2505,7 @@
                             });
                             if (isExpanded && hasMore) {
                                 html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0;" onclick="collapseExpand('${subKey}', event)">
-                                    <div class="item-card more-card" style="background: var(--input-bg);"><div class="more-text" style="color:var(--text-muted); font-size:16px;">收起 ⮝</div></div>
+                                    <div class="item-card more-card" style="background: var(--input-bg);"><div class="more-text" style="color:var(--text-muted); font-size:16px;">收起 ▲</div></div>
                                 </div>`;
                             }
                             html += `</div>`;
@@ -2461,8 +2514,9 @@
                     }
                 }
                 html += `</div>`;
-                container.innerHTML += html;
+                finalHtml += html;
             }
+            container.innerHTML = finalHtml;
         }
 
         let currentViewId = null;
