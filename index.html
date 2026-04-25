@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -272,15 +271,15 @@
             <div class="form-group row">
                 <div>
                     <label class="form-label" id="labelPriceBase">本体</label>
-                    <input type="number" id="priceBase" placeholder="0.00" oninput="autoCalc('base')">
+                    <input type="number" id="priceBase" placeholder="0.00" step="0.01" oninput="autoCalc('base')">
                 </div>
                 <div>
                     <label class="form-label">附加</label>
-                    <input type="number" id="priceShip" placeholder="0.00" oninput="autoCalc('ship')">
+                    <input type="number" id="priceShip" placeholder="0.00" step="0.01" oninput="autoCalc('ship')">
                 </div>
                 <div>
                     <label class="form-label">总计</label>
-                    <input type="number" id="priceTotal" placeholder="0.00" oninput="autoCalc('total')">
+                    <input type="number" id="priceTotal" placeholder="0.00" step="0.01" oninput="autoCalc('total')">
                 </div>
             </div>
 
@@ -295,16 +294,16 @@
             <div class="form-group row" id="estBalanceGroup" style="display: none;">
                 <div>
                     <label class="form-label" style="color: var(--badge-balance);">预计尾款补款 <span style="font-size:10px;font-weight:normal;color:#aaa;">(预计不计入)</span></label>
-                    <input type="number" id="priceEstBaseBalance" placeholder="0.00">
+                    <input type="number" id="priceEstBaseBalance" placeholder="0.00" step="0.01">
                 </div>
                 <div>
                     <label class="form-label" style="color: var(--badge-balance);">预计附加补款 <span style="font-size:10px;font-weight:normal;color:#aaa;">(预计不计入)</span></label>
-                    <input type="number" id="priceEstBalance" placeholder="0.00">
+                    <input type="number" id="priceEstBalance" placeholder="0.00" step="0.01">
                 </div>
             </div>
 
             <div class="form-group row">
-                <div><label class="form-label">主分类</label><select id="mainCat"></select></div>
+                <div><label class="form-label">主分类</label><select id="mainCat" onchange="updateSubCatOptions()"></select></div>
                 <div><label class="form-label">小分类</label><select id="subCat"><option value="">无</option></select></div>
             </div>
 
@@ -375,6 +374,7 @@
             <div class="form-group">
                 <label class="form-label">备注</label>
                 <textarea id="itemRemark" placeholder="发货工期、单号等备忘信息..."></textarea>
+                <div id="quickRemarksArea_normal" style="display:flex; flex-wrap:wrap; gap:6px; margin-top: 6px;"></div>
             </div>
 
             <div class="form-group">
@@ -449,8 +449,8 @@
                                     <option value="left">文本靠左对齐</option><option value="center">文本居中对齐</option><option value="right">文本靠右对齐</option>
                                 </select>
                                 <select id="set_dateFormat" onchange="updateAppearance('dateFormat', this.value)">
-                                    <option value="full">显示完整年份 (2026-04-19)</option>
-                                    <option value="short">显示后两位年份 (26-04-19)</option>
+                                    <option value="full">完整年份 (2026-03-19)</option>
+                                    <option value="short">两位年份 (26-03-19)</option>
                                     <option value="none">隐藏年份 (04-19)</option>
                                 </select>
                             </div>
@@ -488,16 +488,16 @@
                         </div>
 
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showFullDateText" onchange="updateAppearance('showFullDateText', this.checked)">日期文本完整显示 (含前缀)</label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showFullDateText" onchange="updateAppearance('showFullDateText', this.checked)">完整显示日期文本</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideItemPriceValue" onchange="updateAppearance('hideItemPriceValue', this.checked)">默认隐藏独立总价数值</label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideItemPriceValue" onchange="updateAppearance('hideItemPriceValue', this.checked)">遮挡独立总价</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_enableAnim" onchange="updateAppearance('enableAnim', this.checked)">隐藏金额时使用动态效果</label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_enableAnim" onchange="updateAppearance('enableAnim', this.checked)">遮挡时使用动态</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_calHiddenDefault" onchange="updateAppearance('calHiddenDefault', this.checked)">日历概览数据默认遮挡</label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_calHiddenDefault" onchange="updateAppearance('calHiddenDefault', this.checked)">遮挡日历概览数据</label></div>
                         </div>
 
                         <div class="settings-title" style="margin-top:20px;">角标颜色自定义</div>
@@ -518,6 +518,8 @@
                                 <option value="create_desc">按创建时间 (晚 -> 早)</option>
                                 <option value="est_asc">按出货时间 (近 -> 远)</option>
                                 <option value="est_desc">按出货时间 (远 -> 近)</option>
+                                <option value="name_asc">按名称拼音 (A -> Z)</option>
+                                <option value="name_desc">按名称拼音 (Z -> A)</option>
                             </select>
                             <button class="settings-add-btn" style="border:none; padding:12px 15px; border-radius:8px; font-weight:bold; flex-shrink:0;" onclick="openSortDrawer('items')">拖动排序</button>
                         </div>
@@ -535,11 +537,19 @@
                         <div class="icon-edit-row"><span style="width:35px; font-size:13px;">金额</span><input type="text" id="cfg_icon_eye" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('eye', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('eye', this)"></label></div>
                         <div style="font-size:11px; color:#999; margin-top:5px;">清空文字框内容即可恢复默认图标</div>
                     </div>
-
                     <div class="settings-section" id="sec-category">
+                        <div class="settings-title" style="font-size:12px; color:#999; border:none; padding:0; margin-bottom:5px; font-weight:normal;">💡 提示：长按下方标签可进行重命名</div>
                         <div class="settings-title">快捷注意语句 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('quickRemarks')">排序</span><span class="settings-add-btn" onclick="addListObj('quickRemarks')">+ 新增</span></div></div><div class="tag-list" id="set_quickRemarks" style="margin-bottom:15px;"></div>
                         <div class="settings-title">主分类 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('mainCat')">排序</span><span class="settings-add-btn" onclick="addListObj('categories.main')">+ 新增</span></div></div><div class="tag-list" id="set_mainCat" style="margin-bottom:15px;"></div>
-                        <div class="settings-title">小分类 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('subCat')">排序</span><span class="settings-add-btn" onclick="addListObj('categories.sub')">+ 新增</span></div></div><div class="tag-list" id="set_subCat" style="margin-bottom:15px;"></div>
+                        <div class="settings-title" style="flex-wrap: nowrap;">
+                            <div style="white-space: nowrap; flex-shrink: 0;">小分类</div>
+                            <div style="display:flex; gap:8px; align-items:center; flex: 1; justify-content: flex-end; min-width: 0;">
+                                <select id="set_subCat_mainSelect" onchange="renderSettingsSubCat()" style="background:var(--primary); color:white; border:none; border-radius:10px; padding:0 10px; font-size:13px; height:26px; line-height:26px; outline:none; cursor:pointer; font-weight:normal; text-align:center; text-align-last:center; flex: 1; max-width: 100px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; appearance:none; -webkit-appearance:none; box-sizing:border-box;"></select>
+                                <span class="settings-add-btn" style="flex-shrink: 0; height:26px; display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box; padding:0 10px; line-height:1;" onclick="openSortDrawer('subCat')">排序</span>
+                                <span class="settings-add-btn" style="flex-shrink: 0; height:26px; display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box; padding:0 10px; line-height:1;" onclick="addSubCat()">+ 新增</span>
+                            </div>
+                        </div>
+                        <div class="tag-list" id="set_subCat" style="margin-bottom:15px;"></div>
                         <div class="settings-title">购买来源 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('sources')">排序</span><span class="settings-add-btn" onclick="addListObj('sources')">+ 新增</span></div></div><div class="tag-list" id="set_sources" style="margin-bottom:15px;"></div>
                         <div class="settings-title">自定义颜文字 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('kaomojis')">排序</span><span class="settings-add-btn" onclick="addListObj('kaomojis')">+ 新增</span></div></div><div class="tag-list" id="set_kaomojis"></div>
                     </div>
@@ -618,11 +628,11 @@
                     <div>本体: <span id="idBasePrice">¥0</span></div>
                     <div>附加: <span id="idShip">¥0</span></div>
                      <div>数量: <span id="idQty">1件</span></div>
-					 <div>待补: <span id="idEstBalance" style="color:#FF4D4F; font-weight:bold;">¥0</span></div>
+					 <div>待补: <span id="idEstBalance">¥0</span></div>
                     <div>分类: <span id="idCat">BJD</span></div>
 					<div>来源: <span id="idSource">淘宝</span></div>
                     <div>购买日期: <span id="idBuyDate">暂无</span></div>
-                    <div><span id="idEstLabel">预计出货</span>: <span id="idEstDate">暂无</span></div>
+                    <div><span id="idEstLabel" style="color:var(--text-muted); font-weight:normal;">预计出货</span>: <span id="idEstDate">暂无</span></div>
                 </div>
                 <div class="id-remark" id="idRemarkBox"></div>
                 <div class="id-actions" id="idActionGroup"></div>
@@ -740,15 +750,34 @@
         if (!appConfig.topIcons.calendar) appConfig.topIcons.calendar = { type: 'text', val: '📅' };
         if (!appConfig.topIconsOrder) appConfig.topIconsOrder = ['search', 'notice', 'calendar', 'settings', 'eye'];
 
+        // 更新的分类默认结构（人偶与娃娃拆分）
         const defaultData = { 
             items: [], 
-            categories: { main: ['人偶', '娃娃', '周边', '手办'], sub: ['特6','8分', '4分', '12分','20cm', '吧唧'] },
+            categories: { 
+                main: ['人偶', '娃娃', '周边', '手办'], 
+                subMap: {
+                    '人偶': ['特6', '8分', '4分', '12分'],
+                    '娃娃': ['20cm'],
+                    '周边': [],
+                    '手办': []
+                }
+            },
             sources: ['拼团','淘宝', '拼多多','闲鱼', '微店',  '其他'],
             kaomojis: ['( ´ ▽ ` )', '(o^▽^o)', '(*¯︶¯*)', 'ᕕ( ᐛ )ᕗ', '(´･ᴗ･ ` )', '(≧◡≦)',  '(๑•̀ㅂ•́)و✧', 'ヾ(≧▽≦*)o', 'ε٩(๑> ₃ <)۶з', '(✿◡‿◡)', '╰(*°▽°*)╯'],
             quickRemarks: ['设置内修改添加']
         };
         let appData = JSON.parse(localStorage.getItem('myCabinetDataV7')) || defaultData;
         if (!appData.quickRemarks) appData.quickRemarks = [...defaultData.quickRemarks];
+
+        // 迁移大分类联动小分类数据结构
+        if (!appData.categories.subMap) {
+            appData.categories.subMap = {};
+            appData.categories.main.forEach(m => {
+                if (m === '人偶' && !appData.categories.sub) appData.categories.subMap[m] = ['特6', '8分', '4分', '12分'];
+                else if (m === '娃娃' && !appData.categories.sub) appData.categories.subMap[m] = ['20cm'];
+                else appData.categories.subMap[m] = appData.categories.sub ? [...appData.categories.sub] : [];
+            });
+        }
 
         // 数据迁移
         let migrated = false;
@@ -800,7 +829,12 @@
         function formatDate(dateStr, suffix) {
             if(!dateStr) return '';
             let parts = dateStr.split('-');
-            if(parts.length < 2) return dateStr + (suffix ? suffix : ''); // 非日期格式直接拼接后缀
+            if(parts.length < 2) {
+                if (suffix && dateStr !== suffix && !dateStr.includes(suffix)) {
+                    return dateStr + suffix;
+                }
+                return dateStr;
+            }
             
             let format = appConfig.appearance.dateFormat || 'full';
             let res = '';
@@ -851,6 +885,68 @@
         let getStatusColor = (s) => {
             const m = { not_arrived:'not_arrived', need_balance:'balance', unpaid_grouping:'unpaid_grouping', crowdfunding:'crowd', arrived:'arrived' };
             return `var(--badge-${m[s]||'unpaid_grouping'})`;
+        };
+
+        // 长按重命名逻辑
+        let pressTimer = null;
+        function startPress(type, path, idx, mainCat) {
+            pressTimer = window.setTimeout(() => {
+                renameListObj(type, path, idx, mainCat);
+            }, 600); // 长按600ms判定
+        }
+        function cancelPress() {
+            if(pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+        }
+
+        function renameListObj(type, path, idx, mainCat) {
+            let oldVal;
+            if (type === 'list') {
+                if(path === 'categories.main') oldVal = appData.categories.main[idx];
+                else if(path === 'sources') oldVal = appData.sources[idx];
+                else if(path === 'kaomojis') oldVal = appData.kaomojis[idx];
+                else if(path === 'quickRemarks') oldVal = appData.quickRemarks[idx];
+            } else if (type === 'sub') {
+                oldVal = appData.categories.subMap[mainCat][idx];
+            }
+            
+            showDialog("重命名", true, "输入新名称 (同步更新已有物品)", "确认", (val) => {
+                if(val && val.trim() && val.trim() !== oldVal) {
+                    let newVal = val.trim();
+                    if (type === 'list') {
+                        if(path === 'categories.main') {
+                            appData.categories.main[idx] = newVal;
+                            appData.categories.subMap[newVal] = appData.categories.subMap[oldVal];
+                            delete appData.categories.subMap[oldVal];
+                            appData.items.forEach(i => { if(i.mainCat === oldVal) i.mainCat = newVal; });
+                        }
+                        else if(path === 'sources') {
+                            appData.sources[idx] = newVal;
+                            appData.items.forEach(i => { if(i.source === oldVal) i.source = newVal; });
+                        }
+                        else if(path === 'kaomojis') appData.kaomojis[idx] = newVal;
+                        else if(path === 'quickRemarks') appData.quickRemarks[idx] = newVal;
+                    } else if (type === 'sub') {
+                        appData.categories.subMap[mainCat][idx] = newVal;
+                        appData.items.forEach(i => { if(i.mainCat === mainCat && i.subCat === oldVal) i.subCat = newVal; });
+                    }
+                    saveData(); renderSettings(); if(type==='sub') renderSettingsSubCat(); renderFormOptions(); renderUI();
+                }
+            });
+            document.getElementById('dialogInput').value = oldVal;
+        }
+
+        // 渲染带有长按触发的列表
+        const renderListWithPress = (id, arr, path) => { 
+            document.getElementById(id).innerHTML = arr.map((item, idx) => 
+                `<div class="edit-tag" style="user-select:none; -webkit-touch-callout:none;"
+                    onmousedown="startPress('list', '${path}', ${idx}, null)" 
+                    onmouseup="cancelPress()" 
+                    onmouseleave="cancelPress()"
+                    ontouchstart="startPress('list', '${path}', ${idx}, null)"
+                    ontouchend="cancelPress()"
+                    ontouchmove="cancelPress()"
+                >${item} <span class="del" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); delListObj('${path}', ${idx})">×</span></div>`
+            ).join(''); 
         };
 
         // 图标自定义渲染
@@ -932,8 +1028,13 @@
             document.getElementById('cfg_gh_token').value = appConfig.cloud.token || '';
             document.getElementById('cfg_gh_gist_id').value = appConfig.cloud.gistId || '';
             
-            const renderList = (id, arr, path) => { document.getElementById(id).innerHTML = arr.map((item, idx) => `<div class="edit-tag">${item} <span class="del" onclick="delListObj('${path}', ${idx})">×</span></div>`).join(''); };
-            renderList('set_mainCat', appData.categories.main, 'categories.main'); renderList('set_subCat', appData.categories.sub, 'categories.sub'); renderList('set_sources', appData.sources, 'sources'); renderList('set_kaomojis', appData.kaomojis, 'kaomojis'); renderList('set_quickRemarks', appData.quickRemarks, 'quickRemarks');
+            renderListWithPress('set_mainCat', appData.categories.main, 'categories.main'); 
+            renderListWithPress('set_sources', appData.sources, 'sources'); 
+            renderListWithPress('set_kaomojis', appData.kaomojis, 'kaomojis'); 
+            renderListWithPress('set_quickRemarks', appData.quickRemarks, 'quickRemarks');
+            
+            document.getElementById('set_subCat_mainSelect').innerHTML = appData.categories.main.map(c => `<option value="${c}">${c}</option>`).join('');
+            renderSettingsSubCat();
         }
         
         function updateAppearance(key, value) { 
@@ -1007,7 +1108,7 @@
             localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
         }
 
-function uploadToGitHub(e) {
+        function uploadToGitHub(e) {
             const token = document.getElementById('cfg_gh_token').value.trim();
             if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null); return; }
             
@@ -1102,22 +1203,92 @@ function uploadToGitHub(e) {
             }).finally(() => { btn.innerText = oldText; });
         }
 
+        function addListObj(path) { 
+            showDialog("添加内容", true, "输入名称", "确认", (val) => { 
+                if(val && val.trim()) { 
+                    let v = val.trim();
+                    if(path === 'categories.main') {
+                        appData.categories.main.push(v);
+                        if(!appData.categories.subMap[v]) appData.categories.subMap[v] = [];
+                    }
+                    if(path === 'sources') appData.sources.push(v); 
+                    if(path === 'kaomojis') appData.kaomojis.push(v); 
+                    if(path === 'quickRemarks') appData.quickRemarks.push(v); 
+                    saveData(); renderSettings(); renderFormOptions(); renderQuickRemarks(); 
+                } 
+            }); 
+        }
+        function delListObj(path, idx) { 
+            showDialog("警告", false, "", "确定删除", () => { 
+                if(path === 'categories.main') {
+                    let mName = appData.categories.main[idx];
+                    appData.categories.main.splice(idx, 1); 
+                    delete appData.categories.subMap[mName];
+                }
+                if(path === 'sources') appData.sources.splice(idx, 1); 
+                if(path === 'kaomojis') appData.kaomojis.splice(idx, 1); 
+                if(path === 'quickRemarks') appData.quickRemarks.splice(idx, 1); 
+                saveData(); renderSettings(); renderFormOptions(); renderQuickRemarks(); 
+            }); 
+            document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F'; 
+        }
 
-        function addListObj(path) { showDialog("添加内容", true, "输入名称", "确认", (val) => { if(val && val.trim()) { if(path === 'categories.main') appData.categories.main.push(val.trim()); if(path === 'categories.sub') appData.categories.sub.push(val.trim()); if(path === 'sources') appData.sources.push(val.trim()); if(path === 'kaomojis') appData.kaomojis.push(val.trim()); if(path === 'quickRemarks') appData.quickRemarks.push(val.trim()); saveData(); renderSettings(); renderFormOptions(); renderQuickRemarks(); } }); }
-        function delListObj(path, idx) { showDialog("警告", false, "", "确定删除", () => { if(path === 'categories.main') appData.categories.main.splice(idx, 1); if(path === 'categories.sub') appData.categories.sub.splice(idx, 1); if(path === 'sources') appData.sources.splice(idx, 1); if(path === 'kaomojis') appData.kaomojis.splice(idx, 1); if(path === 'quickRemarks') appData.quickRemarks.splice(idx, 1); saveData(); renderSettings(); renderFormOptions(); renderQuickRemarks(); }); document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F'; }
+        function addSubCat() {
+            let mainCat = document.getElementById('set_subCat_mainSelect').value;
+            if(!mainCat) { showDialog("提示", false, "", "知道了", null); return; }
+            showDialog("添加小分类", true, "输入小分类名称", "确认", (val) => { 
+                if(val && val.trim()) { 
+                    if(!appData.categories.subMap[mainCat]) appData.categories.subMap[mainCat] = [];
+                    appData.categories.subMap[mainCat].push(val.trim()); 
+                    saveData(); renderSettingsSubCat(); renderFormOptions(); 
+                } 
+            });
+        }
+        function delSubCat(idx) {
+            let mainCat = document.getElementById('set_subCat_mainSelect').value;
+            showDialog("警告", false, "", "确定删除", () => { 
+                appData.categories.subMap[mainCat].splice(idx, 1); 
+                saveData(); renderSettingsSubCat(); renderFormOptions(); 
+            }); 
+            document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
+        }
+        function renderSettingsSubCat() {
+            let mainCat = document.getElementById('set_subCat_mainSelect').value;
+            if(!mainCat) { document.getElementById('set_subCat').innerHTML = ''; return; }
+            let subs = appData.categories.subMap[mainCat] || [];
+            
+            document.getElementById('set_subCat').innerHTML = subs.map((item, idx) => 
+                `<div class="edit-tag" style="user-select:none; -webkit-touch-callout:none;"
+                    onmousedown="startPress('sub', null, ${idx}, '${mainCat}')" 
+                    onmouseup="cancelPress()" 
+                    onmouseleave="cancelPress()"
+                    ontouchstart="startPress('sub', null, ${idx}, '${mainCat}')"
+                    ontouchend="cancelPress()"
+                    ontouchmove="cancelPress()"
+                >${item} <span class="del" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); delSubCat(${idx})">×</span></div>`
+            ).join('');
+        }
 
         function renderFormOptions() {
             document.getElementById('mainCat').innerHTML = appData.categories.main.map(c => `<option value="${c}">${c}</option>`).join('');
-            document.getElementById('subCat').innerHTML = '<option value="">无</option>' + appData.categories.sub.map(c => `<option value="${c}">${c}</option>`).join('');
             document.getElementById('itemSource').innerHTML = appData.sources.map(s => `<option value="${s}">${s}</option>`).join('');
+            updateSubCatOptions();
+        }
+        
+        function updateSubCatOptions(selectedSub) {
+            let m = document.getElementById('mainCat').value;
+            let subs = appData.categories.subMap[m] || [];
+            document.getElementById('subCat').innerHTML = '<option value="">无</option>' + subs.map(c => `<option value="${c}">${c}</option>`).join('');
+            if(selectedSub) document.getElementById('subCat').value = selectedSub;
         }
         
         function renderQuickRemarks() {
-            document.getElementById('quickRemarksArea').innerHTML = appData.quickRemarks.map(text => `<div style="background:var(--input-bg); color:var(--text-main); font-size:12px; padding:4px 8px; border-radius:12px; cursor:pointer;" onclick="insertQuickRemark('${text}')">${text}</div>`).join('');
+            document.getElementById('quickRemarksArea').innerHTML = appData.quickRemarks.map(text => `<div style="background:var(--input-bg); color:var(--text-main); font-size:12px; padding:4px 8px; border-radius:12px; cursor:pointer;" onclick="insertQuickRemark('${text}', 'importantRemark')">${text}</div>`).join('');
+            document.getElementById('quickRemarksArea_normal').innerHTML = appData.quickRemarks.map(text => `<div style="background:var(--input-bg); color:var(--text-main); font-size:12px; padding:4px 8px; border-radius:12px; cursor:pointer;" onclick="insertQuickRemark('${text}', 'itemRemark')">${text}</div>`).join('');
         }
         
-        function insertQuickRemark(text) {
-            const el = document.getElementById('importantRemark');
+        function insertQuickRemark(text, targetId) {
+            const el = document.getElementById(targetId);
             el.value += (el.value ? ' ' : '') + text;
         }
         
@@ -1281,7 +1452,7 @@ function uploadToGitHub(e) {
             if(item) { 
                 document.getElementById('itemName').value = item.name + " [定金]"; 
                 document.getElementById('mainCat').value = item.mainCat; 
-                document.getElementById('subCat').value = item.subCat; 
+                updateSubCatOptions(item.subCat); 
                 
                 document.getElementById('priceBase').value = item.basePrice || '';
                 document.getElementById('priceEstBaseBalance').value = item.estBaseBalance || '';
@@ -1302,7 +1473,7 @@ function uploadToGitHub(e) {
             if(item) { 
                 document.getElementById('itemName').value = item.name + " [尾款]"; 
                 document.getElementById('mainCat').value = item.mainCat; 
-                document.getElementById('subCat').value = item.subCat; 
+                updateSubCatOptions(item.subCat); 
                 
                 // 自动拉取预计补款到本次付款输入框
                 document.getElementById('priceBase').value = item.estBaseBalance || '';
@@ -1553,7 +1724,11 @@ function uploadToGitHub(e) {
                 if(type === 'statusTags') { arr = appConfig.statusOrder; title = '状态标签排序'; }
                 if(type === 'topIcons') { arr = appConfig.topIconsOrder; title = '顶部图标排序'; }
                 if(type === 'mainCat') { arr = appData.categories.main; title = '主分类排序'; }
-                if(type === 'subCat') { arr = appData.categories.sub; title = '小分类排序'; }
+                if(type === 'subCat') { 
+                    let mainCat = document.getElementById('set_subCat_mainSelect').value;
+                    arr = appData.categories.subMap[mainCat] || []; 
+                    title = '小分类排序'; 
+                }
                 if(type === 'sources') { arr = appData.sources; title = '来源排序'; }
                 if(type === 'kaomojis') { arr = appData.kaomojis; title = '颜文字排序'; }
                 if(type === 'quickRemarks') { arr = appData.quickRemarks; title = '快捷语句排序'; }
@@ -1663,7 +1838,10 @@ function uploadToGitHub(e) {
                 if(currentSortType === 'statusTags') appConfig.statusOrder = newOrderVals;
                 if(currentSortType === 'topIcons') appConfig.topIconsOrder = newOrderVals;
                 if(currentSortType === 'mainCat') appData.categories.main = newOrderVals;
-                if(currentSortType === 'subCat') appData.categories.sub = newOrderVals;
+                if(currentSortType === 'subCat') {
+                    let mainCat = document.getElementById('set_subCat_mainSelect').value;
+                    appData.categories.subMap[mainCat] = newOrderVals;
+                }
                 if(currentSortType === 'sources') appData.sources = newOrderVals;
                 if(currentSortType === 'kaomojis') appData.kaomojis = newOrderVals;
                 if(currentSortType === 'quickRemarks') appData.quickRemarks = newOrderVals;
@@ -2052,6 +2230,8 @@ function uploadToGitHub(e) {
                     let db = b.estDate ? new Date(b.estDate).getTime() : 9999999999999;
                     return appConfig.sortMethod === 'est_asc' ? da - db : db - da;
                 }
+                if (appConfig.sortMethod === 'name_asc') return a.name.localeCompare(b.name, 'zh-CN');
+                if (appConfig.sortMethod === 'name_desc') return b.name.localeCompare(a.name, 'zh-CN');
                 return 0; // manual
             });
 
@@ -2295,11 +2475,16 @@ function uploadToGitHub(e) {
             document.getElementById('idQty').innerText = item.qty + '件';
 
             // 待补展示
+            let estBalContainer = document.getElementById('idEstBalance');
             if (item.status === 'arrived') {
-                document.getElementById('idEstBalance').innerHTML = `<span style="color:var(--badge-arrived);">无</span>`;
+                estBalContainer.innerHTML = `<span style="color:var(--badge-arrived);">无</span>`;
             } else {
                 let estBalTotal = (item.estBaseBalance || 0) + (item.estBalance || 0);
-                document.getElementById('idEstBalance').innerHTML = estBalTotal ? `¥${estBalTotal}` : '无';
+                if (estBalTotal > 0) {
+                    estBalContainer.innerHTML = `<span style="color:#FF4D4F; font-weight:bold;">¥${estBalTotal}</span>`;
+                } else {
+                    estBalContainer.innerHTML = `<span style="color:var(--badge-arrived);">无</span>`;
+                }
             }
 
             // 动态日期标签和显示
@@ -2393,7 +2578,9 @@ function uploadToGitHub(e) {
                 document.getElementById('priceTotal').value = item.totalPrice || '';
             }
 
-            document.getElementById('mainCat').value = item.mainCat; document.getElementById('subCat').value = item.subCat||''; document.getElementById('itemSource').value = item.source; 
+            document.getElementById('mainCat').value = item.mainCat; 
+            updateSubCatOptions(item.subCat); 
+            document.getElementById('itemSource').value = item.source; 
             
             let itemDateVal = item.buyDate || ''; let d1 = document.getElementById('itemDate'); d1.type = itemDateVal ? 'date' : 'text'; d1.value = itemDateVal;
             let estDateVal = item.estDate || ''; let d2 = document.getElementById('estDate'); d2.type = estDateVal ? (estDateVal.match(/^\d{4}-\d{2}-\d{2}$/) ? 'date' : 'text') : 'text'; d2.value = estDateVal;
@@ -2473,5 +2660,3 @@ function uploadToGitHub(e) {
     </script>
 </body>
 </html>
-
-
