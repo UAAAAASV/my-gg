@@ -1453,12 +1453,12 @@
             let t = parseFloat(eTotal.value);
 
             if (source === 'base') {
-                if (!isNaN(b) && isNaN(s) && isNaN(t)) {
+                if (isNaN(b) && isNaN(s)) {
+                    eTotal.value = '';
+                } else if (!isNaN(b) && isNaN(s)) {
                     eTotal.value = b.toFixed(2);
                 } else if (!isNaN(b) && !isNaN(s) && activeInput !== 'total') {
                     eTotal.value = (b + s).toFixed(2);
-                } else if (!isNaN(b) && !isNaN(t) && isNaN(s)) {
-                    eShip.value = (t - b >= 0 ? t - b : 0).toFixed(2);
                 } else if (!isNaN(b) && !isNaN(t) && !isNaN(s) && activeInput === 'total') {
                     eShip.value = (t - b >= 0 ? t - b : 0).toFixed(2);
                 } else if (!isNaN(b) && !isNaN(s)) {
@@ -1467,12 +1467,14 @@
                 activeInput = 'base';
             } 
             else if (source === 'ship') {
-                if (!isNaN(s) && !isNaN(b) && activeInput !== 'total') {
-                    eTotal.value = (b + s).toFixed(2);
-                } else if (!isNaN(s) && !isNaN(t) && (isNaN(b) || activeInput === 'total')) {
-                    eBase.value = (t - s >= 0 ? t - s : 0).toFixed(2);
-                } else if (!isNaN(s) && isNaN(b) && isNaN(t)) {
+                if (isNaN(s) && isNaN(b)) {
+                    eTotal.value = '';
+                } else if (!isNaN(s) && isNaN(b)) {
                     eTotal.value = s.toFixed(2);
+                } else if (!isNaN(s) && !isNaN(b) && activeInput !== 'total') {
+                    eTotal.value = (b + s).toFixed(2);
+                } else if (!isNaN(s) && !isNaN(t) && !isNaN(b) && activeInput === 'total') {
+                    eBase.value = (t - s >= 0 ? t - s : 0).toFixed(2);
                 } else if (!isNaN(s) && !isNaN(b)) {
                     eTotal.value = (b + s).toFixed(2);
                 }
@@ -1482,6 +1484,8 @@
                 if (!isNaN(t)) {
                     let shipVal = isNaN(s) ? 0 : s;
                     eBase.value = (t - shipVal >= 0 ? t - shipVal : 0).toFixed(2);
+                } else {
+                    eBase.value = '';
                 }
                 activeInput = 'total';
             }
@@ -1550,11 +1554,17 @@
                 document.getElementById('mainCat').value = item.mainCat; 
                 updateSubCatOptions(item.subCat); 
                 
-                document.getElementById('priceBase').value = item.basePrice || '';
-                document.getElementById('priceEstBaseBalance').value = item.estBaseBalance || '';
-                document.getElementById('priceEstBalance').value = item.estBalance || '';
-                document.getElementById('priceShip').value = item.shipping || '';
+                document.getElementById('priceBase').value = item.basePrice !== undefined ? item.basePrice : '';
+                document.getElementById('priceEstBaseBalance').value = item.estBaseBalance !== undefined ? item.estBaseBalance : '';
+                document.getElementById('priceEstBalance').value = item.estBalance !== undefined ? item.estBalance : '';
+                document.getElementById('priceShip').value = item.shipping !== undefined ? item.shipping : '';
                 
+                // 拉取备注
+                document.getElementById('itemRemark').value = item.remark || '';
+                document.getElementById('isImportant').checked = !!item.isImportant;
+                document.getElementById('importantArea').style.display = item.isImportant ? 'block' : 'none';
+                document.getElementById('importantRemark').value = item.importantRemark || '';
+
                 // 拉取前一阶段的图片
                 imgArray = item.images ? [...item.images] : [];
                 renderUploaders();
@@ -1572,13 +1582,19 @@
                 updateSubCatOptions(item.subCat); 
                 
                 // 自动拉取预计补款到本次付款输入框
-                document.getElementById('priceBase').value = item.estBaseBalance || '';
-                document.getElementById('priceShip').value = item.estBalance || '';
+                document.getElementById('priceBase').value = item.estBaseBalance !== undefined ? item.estBaseBalance : '';
+                document.getElementById('priceShip').value = item.estBalance !== undefined ? item.estBalance : '';
                 autoCalc('base'); // 计算出本次总计
                 
                 // 下方的框仅作原单数据的显示
-                document.getElementById('priceEstBaseBalance').value = item.estBaseBalance || '';
-                document.getElementById('priceEstBalance').value = item.estBalance || '';
+                document.getElementById('priceEstBaseBalance').value = item.estBaseBalance !== undefined ? item.estBaseBalance : '';
+                document.getElementById('priceEstBalance').value = item.estBalance !== undefined ? item.estBalance : '';
+
+                // 拉取备注
+                document.getElementById('itemRemark').value = item.remark || '';
+                document.getElementById('isImportant').checked = !!item.isImportant;
+                document.getElementById('importantArea').style.display = item.isImportant ? 'block' : 'none';
+                document.getElementById('importantRemark').value = item.importantRemark || '';
 
                 // 已付定金金额提示，包含数量计算
                 let paidTotal = item.totalPrice * item.qty;
@@ -1593,6 +1609,10 @@
                 document.getElementById('paidDepositHintGroup').style.display = 'none';
                 document.getElementById('priceEstBaseBalance').value = '';
                 document.getElementById('priceEstBalance').value = '';
+                document.getElementById('itemRemark').value = '';
+                document.getElementById('isImportant').checked = false;
+                document.getElementById('importantArea').style.display = 'none';
+                document.getElementById('importantRemark').value = '';
             }
         }
 
