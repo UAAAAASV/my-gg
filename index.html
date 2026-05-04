@@ -19,6 +19,10 @@
             --badge-crowd: #607D8B;
             --badge-near: #FF4D4F;
             --badge-arrived: #4CAF50;
+            --badge-dead_like: #A8A8A8;
+            --badge-dead: #8C8C8C;
+            --badge-exploded: #FF4500;
+            --badge-run_away: #606060;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-tap-highlight-color: transparent;}
@@ -414,6 +418,10 @@
 					<option value="need_balance">💰 待补款</option>
                     <option value="not_arrived">📦 待发货</option>
                     <option value="arrived">✅ 已收货</option>
+                    <option value="dead_like">🪦 似了</option>
+                    <option value="dead">💀 死了</option>
+                    <option value="exploded">💥 自爆了</option>
+                    <option value="run_away">🏃 跑路了</option>
                 </select>
             </div>
 
@@ -539,6 +547,11 @@
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待开售</label><input type="color" style="width:40px;" id="set_badge_crowd" onchange="updateBadgeColor('crowd', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">临近</label><input type="color" style="width:40px;" id="set_badge_near" onchange="updateBadgeColor('near', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">已收货</label><input type="color" style="width:40px;" id="set_badge_arrived" onchange="updateBadgeColor('arrived', this.value)"></div>
+                            
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">似了</label><input type="color" style="width:40px;" id="set_badge_dead_like" onchange="updateBadgeColor('dead_like', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">死了</label><input type="color" style="width:40px;" id="set_badge_dead" onchange="updateBadgeColor('dead', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">自爆了</label><input type="color" style="width:40px;" id="set_badge_exploded" onchange="updateBadgeColor('exploded', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">跑路了</label><input type="color" style="width:40px;" id="set_badge_run_away" onchange="updateBadgeColor('run_away', this.value)"></div>
                         </div>
 
                         <div class="settings-title" style="margin-top:20px;">分类内排序方式</div>
@@ -555,8 +568,8 @@
                             <button class="settings-add-btn" style="border:none; padding:12px 15px; border-radius:8px; font-weight:bold; flex-shrink:0;" onclick="openSortDrawer('items')">拖动排序</button>
                         </div>
                         
-                        <div class="settings-title" style="margin-top:20px;">状态标签排序</div>
-                        <button style="width:100%; padding:10px; background:var(--input-bg); border:none; border-radius:8px; font-weight:bold; color:var(--text-main); cursor:pointer;" onclick="openSortDrawer('statusTags')">拖动排序状态标签</button>
+                        <div class="settings-title" style="margin-top:20px;">状态标签管理</div>
+                        <button style="width:100%; padding:10px; background:var(--input-bg); border:none; border-radius:8px; font-weight:bold; color:var(--text-main); cursor:pointer;" onclick="openSortDrawer('statusTags')">拖动排序与显示控制</button>
                     </div>
 
                     <div class="settings-section" id="sec-icons">
@@ -570,7 +583,7 @@
                     </div>
                     <div class="settings-section" id="sec-category">
                         <div class="settings-title" style="font-size:12px; color:#999; border:none; padding:0; margin-bottom:5px; font-weight:normal;">💡 提示：长按下方标签可进行重命名</div>
-                        <div class="settings-title">快捷注意语句 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('quickRemarks')">排序</span><span class="settings-add-btn" onclick="addListObj('quickRemarks')">+ 新增</span></div></div><div class="tag-list" id="set_quickRemarks" style="margin-bottom:15px;"></div>
+                        <div class="settings-title">快捷语句 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('quickRemarks')">排序</span><span class="settings-add-btn" onclick="addListObj('quickRemarks')">+ 新增</span></div></div><div class="tag-list" id="set_quickRemarks" style="margin-bottom:15px;"></div>
                         <div class="settings-title">主分类 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('mainCat')">排序</span><span class="settings-add-btn" onclick="addListObj('categories.main')">+ 新增</span></div></div><div class="tag-list" id="set_mainCat" style="margin-bottom:15px;"></div>
                         <div class="settings-title" style="flex-wrap: nowrap;">
                             <div style="white-space: nowrap; flex-shrink: 0;">小分类</div>
@@ -630,7 +643,7 @@
                 <h2 style="margin: 0; font-size: 18px;" id="sortDrawerTitle">手动排序</h2>
                 <button class="btn-primary" style="padding: 8px 16px; border-radius: 8px; font-size:13px; font-weight:bold;" onclick="saveSort()">保存顺序</button>
             </div>
-            <div style="font-size:12px; color:#999; padding:0 20px 10px; border-bottom:1px solid #eee;">按住右侧的 ☰ 拖动进行排序（部分排序需保存后生效）。</div>
+            <div style="font-size:12px; color:#999; padding:0 20px 10px; border-bottom:1px solid #eee;">按住右侧的 ☰ 拖动进行排序（保存后生效）。</div>
             
             <!-- 物品排序专用的带侧边栏布局 -->
             <div id="sortLayoutItems" style="display:none; flex:1; height: 100%; background: #fff; overflow:hidden;">
@@ -755,7 +768,8 @@
         }
 
         const defBadgeColors = {
-            not_arrived: '#FFB347', balance: '#5B9AFF', unpaid_grouping: '#9C27B0', crowd: '#607D8B', near: '#FF4D4F', arrived: '#4CAF50'
+            not_arrived: '#FFB347', balance: '#5B9AFF', unpaid_grouping: '#9C27B0', crowd: '#607D8B', near: '#FF4D4F', arrived: '#4CAF50',
+            dead_like: '#A8A8A8', dead: '#8C8C8C', exploded: '#FF4500', run_away: '#606060'
         };
         if (!appConfig.appearance.badgeColors) {
             appConfig.appearance.badgeColors = JSON.parse(JSON.stringify(defBadgeColors));
@@ -766,6 +780,7 @@
         }
         
         if (!appConfig.cloud) appConfig.cloud = { token: '', gistId: '' };
+        if (!appConfig.statusHidden) appConfig.statusHidden = {};
         
         document.documentElement.style.setProperty('--theme-dark', appConfig.appearance.themeDark);
         document.body.className = `sticky-${appConfig.appearance.stickyBehavior}`;
@@ -822,15 +837,21 @@
         });
         if (migrated) localStorage.setItem('myCabinetDataV7', JSON.stringify(appData));
 
-        const STATUS_MAP = { none: '无', crowdfunding: '待开售', unpaid_grouping: '待成团', need_balance: '待补款', not_arrived: '待发货', arrived: '已收货' };
+        const STATUS_MAP = { none: '无', crowdfunding: '待开售', unpaid_grouping: '待成团', need_balance: '待补款', not_arrived: '待发货', arrived: '已收货', dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了' };
         
         const STATUS_TAG_NAMES = {
             all: '全部', not_arrived: '待发货', need_balance: '待补款', unpaid_grouping: '待成团', 
-            crowdfunding: '待开售', arrived: '已收货', important: '注意', near: '临近'
+            crowdfunding: '待开售', arrived: '已收货', important: '注意', near: '临近',
+            dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了'
         };
 
+        const allTags = ['all', 'not_arrived', 'need_balance', 'unpaid_grouping', 'crowdfunding', 'arrived', 'important', 'near', 'dead_like', 'dead', 'exploded', 'run_away'];
         if (!appConfig.statusOrder) {
-            appConfig.statusOrder = ['all', 'not_arrived', 'need_balance', 'unpaid_grouping', 'crowdfunding', 'arrived', 'important', 'near'];
+            appConfig.statusOrder = [...allTags];
+        } else {
+            allTags.forEach(t => {
+                if (!appConfig.statusOrder.includes(t)) appConfig.statusOrder.push(t);
+            });
         }
 
         let globalHidden = true;
@@ -919,7 +940,7 @@
         }
 
         let getStatusColor = (s) => {
-            const m = { not_arrived:'not_arrived', need_balance:'balance', unpaid_grouping:'unpaid_grouping', crowdfunding:'crowd', arrived:'arrived' };
+            const m = { not_arrived:'not_arrived', need_balance:'balance', unpaid_grouping:'unpaid_grouping', crowdfunding:'crowd', arrived:'arrived', dead_like:'dead_like', dead:'dead', exploded:'exploded', run_away:'run_away' };
             return `var(--badge-${m[s]||'unpaid_grouping'})`;
         };
 
@@ -1068,6 +1089,11 @@
             document.getElementById('set_badge_crowd').value = appConfig.appearance.badgeColors.crowd;
             document.getElementById('set_badge_near').value = appConfig.appearance.badgeColors.near;
             document.getElementById('set_badge_arrived').value = appConfig.appearance.badgeColors.arrived;
+            
+            document.getElementById('set_badge_dead_like').value = appConfig.appearance.badgeColors.dead_like;
+            document.getElementById('set_badge_dead').value = appConfig.appearance.badgeColors.dead;
+            document.getElementById('set_badge_exploded').value = appConfig.appearance.badgeColors.exploded;
+            document.getElementById('set_badge_run_away').value = appConfig.appearance.badgeColors.run_away;
 
             // 渲染云同步配置
             document.getElementById('cfg_gh_token').value = appConfig.cloud.token || '';
@@ -1364,6 +1390,7 @@
         function renderStatusTags() {
             let tagHtml = '';
             appConfig.statusOrder.forEach(key => {
+                if (appConfig.statusHidden[key]) return;
                 let name = STATUS_TAG_NAMES[key];
                 let cntSpan = key === 'all' ? '' : ` <span id="cnt_${key}"></span>`;
                 let activeCls = currentFilter === key ? 'active' : '';
@@ -1702,6 +1729,15 @@
             saveData(); closeDrawer(); renderUI(); checkNotices(); if(editId) { closeIdCard(); openIdCard(editId); } 
         }
 
+        // 标签可见性切换
+        function toggleTagVisible(tag, el) {
+            appConfig.statusHidden[tag] = !appConfig.statusHidden[tag];
+            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            el.innerText = appConfig.statusHidden[tag] ? '🚫' : '👁️';
+            renderStatusTags();
+            renderUI();
+        }
+
         // 拖拽排序逻辑与侧边栏控制
         function openSortDrawer(type) {
             currentSortType = type;
@@ -1728,6 +1764,10 @@
                         if (currentFilter === 'unpaid_grouping') return item.status === 'unpaid_grouping';
                         if (currentFilter === 'crowdfunding') return item.status === 'crowdfunding';
                         if (currentFilter === 'arrived') return item.status === 'arrived';
+                        if (currentFilter === 'dead_like') return item.status === 'dead_like';
+                        if (currentFilter === 'dead') return item.status === 'dead';
+                        if (currentFilter === 'exploded') return item.status === 'exploded';
+                        if (currentFilter === 'run_away') return item.status === 'run_away';
                         if (currentFilter === 'important') return isImp;
                         if (currentFilter === 'near') return isNear;
                         return true;
@@ -1791,7 +1831,7 @@
                 const c = document.getElementById('sortListContainerNormal');
                 let arr = []; let title = ''; let listHtml = '';
                 
-                if(type === 'statusTags') { arr = appConfig.statusOrder; title = '状态标签排序'; }
+                if(type === 'statusTags') { arr = appConfig.statusOrder; title = '状态标签管理'; }
                 if(type === 'topIcons') { arr = appConfig.topIconsOrder; title = '顶部图标排序'; }
                 if(type === 'mainCat') { arr = appData.categories.main; title = '主分类排序'; }
                 if(type === 'subCat') { 
@@ -1806,7 +1846,13 @@
                 document.getElementById('sortDrawerTitle').innerText = title;
                 listHtml = arr.map(item => {
                     let display = item;
-                    if(type === 'statusTags') display = STATUS_TAG_NAMES[item];
+                    let eyeIcon = '';
+                    if(type === 'statusTags') {
+                        display = STATUS_TAG_NAMES[item];
+                        let isHidden = appConfig.statusHidden[item];
+                        let eyeStr = isHidden ? '🚫' : '👁️';
+                        eyeIcon = `<div onclick="toggleTagVisible('${item}', this); event.stopPropagation();" style="padding:5px 15px; font-size:16px; cursor:pointer;" title="切换显示">${eyeStr}</div>`;
+                    }
                     if(type === 'topIcons') {
                         let m = {search:'搜索', notice:'通知', calendar:'日历', settings:'设置', eye:'金额'};
                         display = m[item] || item;
@@ -1814,6 +1860,7 @@
                     return `
                     <div class="sort-item" data-val="${item.replace(/"/g, '&quot;')}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:var(--input-bg); border-radius:12px; margin-bottom:10px; user-select:none;">
                         <div style="font-weight:bold; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${display}</div>
+                        ${eyeIcon}
                         <div class="drag-handle" style="padding:5px 10px; font-size:18px; color:#999; cursor:grab; margin-right:-10px;">☰</div>
                     </div>`;
                 }).join('');
@@ -2284,6 +2331,7 @@
             const search = document.getElementById('searchInput').value.toLowerCase();
             let sumT = 0, sumB = 0, sumS = 0, sumQty = 0; 
             let cntNotArrived = 0, cntNeedBalance = 0, cntUnpaidGrouping = 0, cntImportant = 0, cntNear = 0, cntCrowdfunding = 0, cntArrived = 0;
+            let cntDeadLike = 0, cntDead = 0, cntExploded = 0, cntRunAway = 0;
             let today = new Date().getTime();
 
             // 栅格列数计算优化，窄屏也能挤出 3 列
@@ -2318,6 +2366,10 @@
                 if (item.status === 'unpaid_grouping') cntUnpaidGrouping++;
                 if (item.status === 'crowdfunding') cntCrowdfunding++;
                 if (item.status === 'arrived') cntArrived++;
+                if (item.status === 'dead_like') cntDeadLike++;
+                if (item.status === 'dead') cntDead++;
+                if (item.status === 'exploded') cntExploded++;
+                if (item.status === 'run_away') cntRunAway++;
                 
                 if (isImp) cntImportant++;
                 if (isNear) cntNear++;
@@ -2327,6 +2379,10 @@
                 if (currentFilter === 'unpaid_grouping' && item.status !== 'unpaid_grouping') return;
                 if (currentFilter === 'crowdfunding' && item.status !== 'crowdfunding') return;
                 if (currentFilter === 'arrived' && item.status !== 'arrived') return;
+                if (currentFilter === 'dead_like' && item.status !== 'dead_like') return;
+                if (currentFilter === 'dead' && item.status !== 'dead') return;
+                if (currentFilter === 'exploded' && item.status !== 'exploded') return;
+                if (currentFilter === 'run_away' && item.status !== 'run_away') return;
                 if (currentFilter === 'important' && !isImp) return;
                 if (currentFilter === 'near' && !isNear) return;
 
@@ -2346,13 +2402,18 @@
                 mainGroups[mCat].sum += itemT;
             });
 
-            document.getElementById('cnt_not_arrived').innerText = cntNotArrived > 0 ? cntNotArrived : '';
-            document.getElementById('cnt_need_balance').innerText = cntNeedBalance > 0 ? cntNeedBalance : '';
-            document.getElementById('cnt_unpaid_grouping').innerText = cntUnpaidGrouping > 0 ? cntUnpaidGrouping : '';
-            document.getElementById('cnt_crowdfunding').innerText = cntCrowdfunding > 0 ? cntCrowdfunding : '';
-            document.getElementById('cnt_arrived').innerText = cntArrived > 0 ? cntArrived : '';
-            document.getElementById('cnt_important').innerText = cntImportant > 0 ? cntImportant : '';
-            document.getElementById('cnt_near').innerText = cntNear > 0 ? cntNear : '';
+            const setCnt = (id, val) => { let el = document.getElementById(id); if(el) el.innerText = val > 0 ? val : ''; };
+            setCnt('cnt_not_arrived', cntNotArrived);
+            setCnt('cnt_need_balance', cntNeedBalance);
+            setCnt('cnt_unpaid_grouping', cntUnpaidGrouping);
+            setCnt('cnt_crowdfunding', cntCrowdfunding);
+            setCnt('cnt_arrived', cntArrived);
+            setCnt('cnt_important', cntImportant);
+            setCnt('cnt_near', cntNear);
+            setCnt('cnt_dead_like', cntDeadLike);
+            setCnt('cnt_dead', cntDead);
+            setCnt('cnt_exploded', cntExploded);
+            setCnt('cnt_run_away', cntRunAway);
 
             document.getElementById('totalPriceDisplay').innerHTML = globalHidden ? getFace() : sumT.toFixed(2);
             document.getElementById('totalBaseDisplay').innerHTML = globalHidden ? getFace() : sumB.toFixed(2);
@@ -2417,6 +2478,10 @@
                                 if (item.status === 'need_balance') { badge = STATUS_MAP.need_balance; bg = 'var(--badge-balance)'; }
                                 if (item.status === 'unpaid_grouping') { badge = STATUS_MAP.unpaid_grouping; bg = 'var(--badge-unpaid_grouping)'; }
                                 if (item.status === 'crowdfunding') { badge = STATUS_MAP.crowdfunding; bg = 'var(--badge-crowd)'; }
+                                if (item.status === 'dead_like') { badge = STATUS_MAP.dead_like; bg = 'var(--badge-dead_like)'; }
+                                if (item.status === 'dead') { badge = STATUS_MAP.dead; bg = 'var(--badge-dead)'; }
+                                if (item.status === 'exploded') { badge = STATUS_MAP.exploded; bg = 'var(--badge-exploded)'; }
+                                if (item.status === 'run_away') { badge = STATUS_MAP.run_away; bg = 'var(--badge-run_away)'; }
 
                                 let badgeHtml = badge ? `<div class="badge" style="background:${bg}">${badge}</div>` : '';
 
@@ -2598,7 +2663,7 @@
             rb.innerHTML = remarkContent || '没有留下备注。'; rb.style.display = remarkContent ? 'block' : 'none';
 
             const badge = document.getElementById('idStatusBadge'); badge.className = 'id-status';
-            const badgeMap = { arrived: 'arrived', not_arrived: 'not_arrived', need_balance: 'balance', unpaid_grouping: 'unpaid_grouping', crowdfunding: 'crowd' };
+            const badgeMap = { arrived: 'arrived', not_arrived: 'not_arrived', need_balance: 'balance', unpaid_grouping: 'unpaid_grouping', crowdfunding: 'crowd', dead_like: 'dead_like', dead: 'dead', exploded: 'exploded', run_away: 'run_away' };
             let cKey = badgeMap[item.status];
             if(cKey) {
                 badge.innerText = STATUS_MAP[item.status]; 
