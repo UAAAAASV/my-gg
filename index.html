@@ -1221,28 +1221,28 @@
                     let err = await res.json().catch(()=>({}));
                     throw new Error(err.message || "找不到数据桶或Token失效");
                 }
-                if (!res.ok) throw new Error("API_ERROR");
+                if (!res.ok) throw new Error("网络请求异常: " + res.status);
                 return res.json();
-            }).then(async data => { // 注意这里加了 async
+            }).then(async data => {
                 const file = data.files && data.files["myCabinet.json"];
                 if (!file) throw new Error("云端没有找到存档数据");
                 
                 let contentStr = file.content;
                 
-                // 【核心修复】如果数据体积过大被 GitHub API 截断，则去请求完整的原始文件数据
-                if (file.truncated || !contentStr) {
-                    btn.innerText = "⏳ 拉取大数据...";
-                    let rawRes = await fetch(file.raw_url, {
-                        headers: { 'Authorization': `token ${token}` }
-                    });
-                    if (!rawRes.ok) throw new Error("拉取完整数据失败");
+                // 【核心修复】：如果 Gist 数据过大(超过限制)被截断，需重新拉取原始的完整数据
+                if (file.truncated) {
+                    btn.innerText = "⏳ 正在拉取完整大文件...";
+                    const rawRes = await fetch(file.raw_url);
+                    if (!rawRes.ok) throw new Error("拉取完整数据失败，请检查网络");
                     contentStr = await rawRes.text();
+                } else if (!contentStr) {
+                    throw new Error("云端文件内容为空");
                 }
                 
                 const parsed = JSON.parse(contentStr);
                 if(parsed.appData) appData = parsed.appData;
                 
-                // 下载时保护本地的密码不被空数据覆盖
+                // 保护本地的密码不被覆盖
                 if(parsed.appConfig) {
                     let localToken = appConfig.cloud.token;
                     let localGistId = appConfig.cloud.gistId;
@@ -1260,10 +1260,7 @@
                 saveData();
                 showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
             }).catch(err => {
-                // 【修复】更友好的网络错误提示
-                let msg = err.message;
-                if (msg === 'Failed to fetch') msg = '网络连接失败，请检查网络是否畅通，或尝试开启/关闭代理加速工具。';
-                showDialog("下载失败：" + msg, false, "", "知道了", null);
+                showDialog("下载失败：" + err.message + "\n(若提示 Failed to fetch，请调整网络或稍后再试)", false, "", "知道了", null);
             }).finally(() => { btn.innerText = oldText; });
         }
 
