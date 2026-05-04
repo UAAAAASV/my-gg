@@ -1223,14 +1223,26 @@
                 }
                 if (!res.ok) throw new Error("API_ERROR");
                 return res.json();
-            }).then(data => {
+            }).then(async data => { // 注意这里加了 async
                 const file = data.files && data.files["myCabinet.json"];
-                if (!file || !file.content) throw new Error("云端没有找到存档数据");
+                if (!file) throw new Error("云端没有找到存档数据");
                 
-                const parsed = JSON.parse(file.content);
+                let contentStr = file.content;
+                
+                // 【核心修复】如果数据体积过大被 GitHub API 截断，则去请求完整的原始文件数据
+                if (file.truncated || !contentStr) {
+                    btn.innerText = "⏳ 拉取大数据...";
+                    let rawRes = await fetch(file.raw_url, {
+                        headers: { 'Authorization': `token ${token}` }
+                    });
+                    if (!rawRes.ok) throw new Error("拉取完整数据失败");
+                    contentStr = await rawRes.text();
+                }
+                
+                const parsed = JSON.parse(contentStr);
                 if(parsed.appData) appData = parsed.appData;
                 
-                // 【关键修复】下载时保护本地的密码不被空数据覆盖
+                // 下载时保护本地的密码不被空数据覆盖
                 if(parsed.appConfig) {
                     let localToken = appConfig.cloud.token;
                     let localGistId = appConfig.cloud.gistId;
@@ -1248,7 +1260,10 @@
                 saveData();
                 showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
             }).catch(err => {
-                showDialog("下载失败：" + err.message, false, "", "知道了", null);
+                // 【修复】更友好的网络错误提示
+                let msg = err.message;
+                if (msg === 'Failed to fetch') msg = '网络连接失败，请检查网络是否畅通，或尝试开启/关闭代理加速工具。';
+                showDialog("下载失败：" + msg, false, "", "知道了", null);
             }).finally(() => { btn.innerText = oldText; });
         }
 
