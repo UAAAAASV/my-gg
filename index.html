@@ -68,6 +68,10 @@
         .status-tags::-webkit-scrollbar { display: none; }
         .s-tag { padding: 6px 14px; background: var(--surface); border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; color: var(--text-muted); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;}
         .s-tag.active { background: var(--theme-dark); color: white; }
+        
+        /* 临近标签特化样式 */
+        .s-tag.near-tag { padding: 5px 13px; border: 1px solid var(--badge-near); color: var(--badge-near); background: transparent; }
+        .s-tag.near-tag.active { background: var(--badge-near) !important; color: white !important; border-color: var(--badge-near); }
 
         /* 固定颜文字容器高度，防止被特殊字符撑开破坏布局 */
         .kaomoji { display: inline-flex; align-items: center; justify-content: center; height: 24px; line-height: 1; font-size: 16px; font-weight: normal; color: var(--primary); letter-spacing: 1px; vertical-align: middle;}
@@ -141,7 +145,7 @@
         .row { display: flex; gap: 12px; }
         .row > div { flex: 1; min-width: 0; }
 
-        .segmented-control { display: flex; background: var(--input-bg); padding: 4px; border-radius: 10px; margin-bottom: 20px;}
+        .segmented-control { display: flex; background: var(--input-bg); padding: 4px; border-radius: 10px; margin-bottom: 20px; transition: opacity 0.3s;}
         .segmented-control label { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; font-weight: 600; color: var(--text-muted); border-radius: 8px; cursor: pointer; transition: 0.2s;}
         .segmented-control input[type="radio"] { display: none; }
         .segmented-control input[type="radio"]:checked + label { background: var(--surface); color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
@@ -329,8 +333,16 @@
             </div>
 
             <div class="form-group row">
-                <div><label class="form-label">来源</label><select id="itemSource"></select></div>
+                <div>
+                    <label class="form-label">来源</label>
+                    <select id="itemSource" onchange="document.getElementById('groupbuySelectGroup').style.display = (this.value === '拼团' ? 'block' : 'none')"></select>
+                </div>
                 <div><label class="form-label">数量</label><input type="number" id="itemQty" value="1" min="1"></div>
+            </div>
+
+            <div class="form-group" id="groupbuySelectGroup" style="display:none; margin-top:-6px; margin-bottom:16px;">
+                <label class="form-label" style="color:var(--primary); font-size:12px;">所属拼团 (选填)</label>
+                <select id="groupbuyId" style="background:var(--primary-light); color:var(--theme-dark); font-weight:bold;"></select>
             </div>
 
             <!-- 购买日期 与 预计出货 -->
@@ -415,7 +427,7 @@
                     <option value="none">⚪ 无</option>
                     <option value="crowdfunding">🚀 待开售</option>
 					<option value="unpaid_grouping">👥 待成团-未付款</option>
-					<option value="need_balance">💰 待补款</option>
+					<option value="need_balance">💰 待补款-待补邮</option>
                     <option value="not_arrived">📦 待发货</option>
                     <option value="arrived">✅ 已收货</option>
                     <option value="dead_like">🪦 似了</option>
@@ -432,6 +444,33 @@
         </div>
     </div>
 
+    <!-- 拼团配置管理抽屉 -->
+    <div class="drawer-overlay" id="gbEditDrawer" style="z-index: 150;" onclick="if(event.target===this) closeGbEdit()">
+        <div class="drawer" style="padding: 20px 24px 30px;">
+            <div class="drawer-handler"></div>
+            <h3 style="margin: 0 0 20px; text-align: center; font-size: 18px; color: var(--theme-dark);">👥 设置拼团规则</h3>
+            <input type="hidden" id="gbEditId">
+            <div class="form-group"><label class="form-label">团名称 / 代称</label><input type="text" id="gbName" placeholder="如：XX团 " style="font-weight: bold; color: var(--primary);"></div>
+            <div class="form-group row">
+                <div><label class="form-label">团平台</label><input type="text" id="gbPlatform" placeholder="如：QQ / 微信"></div>
+                <div><label class="form-label">群/团号</label><input type="text" id="gbNum" placeholder="如：12345678"></div>
+            </div>
+            <div class="form-group row">
+                <div><label class="form-label">撤排期限</label><input type="text" id="gbDeadline" placeholder="如：调价后24h"></div>
+                <div><label class="form-label">囤货期限</label><input type="text" id="gbStockpile" placeholder="如：最多囤3个月"></div>
+            </div>
+            <div class="form-group row">
+                <div><label class="form-label">排发方式</label><input type="text" id="gbDispatch" placeholder="如：咸鱼下单"></div>
+                <div><label class="form-label">邮/打包费</label><input type="text" id="gbPostRule" placeholder="如：邮x包2"></div>
+            </div>
+            <div class="form-group"><label class="form-label">团其他规则</label><textarea id="gbOther" placeholder="输入其他需要备忘的拼团限制或规则..." style="height: 65px;"></textarea></div>
+            <div class="btn-group" style="margin-top: 10px;">
+                <button class="btn-cancel" onclick="closeGbEdit()">关闭</button>
+                <button class="btn-primary" onclick="saveGbEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 设置 -->
     <div class="drawer-overlay" id="settingsDrawer" onclick="if(event.target===this) closeSettings()">
         <div class="drawer" style="padding:20px 0;">
@@ -442,7 +481,7 @@
                 <div class="settings-sidebar">
                     <div class="settings-nav-item active" id="nav_sec-appearance" onclick="scrollToSec('sec-appearance')">外观</div>
                     <div class="settings-nav-item" id="nav_sec-icons" onclick="scrollToSec('sec-icons')">图标</div>
-                    <div class="settings-nav-item" id="nav_sec-category" onclick="scrollToSec('sec-category')">分类</div>
+                    <div class="settings-nav-item" id="nav_sec-category" onclick="scrollToSec('sec-category')">编辑</div>
                     <div class="settings-nav-item" id="nav_sec-data" onclick="scrollToSec('sec-data')">备份</div>
                     <div class="settings-nav-item" id="nav_sec-cloud" onclick="scrollToSec('sec-cloud')">云同步</div>
                 </div>
@@ -530,6 +569,9 @@
   						  <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_wrapDateText" onchange="updateAppearance('wrapDateText', this.checked)">换行显示日期文本</label></div>
 						</div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_fullDefaultNotArrived" onchange="updateAppearance('fullDefaultNotArrived', this.checked)"> <span id="text_fullDefaultNotArrived">全款物品状态默认为【待发货】</span></label></div>
+                        </div>
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideItemPriceValue" onchange="updateAppearance('hideItemPriceValue', this.checked)">遮挡独立总价</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
@@ -579,10 +621,14 @@
                         <div class="icon-edit-row"><span style="width:35px; font-size:13px;">日历</span><input type="text" id="cfg_icon_calendar" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('calendar', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('calendar', this)"></label></div>
                         <div class="icon-edit-row"><span style="width:35px; font-size:13px;">设置</span><input type="text" id="cfg_icon_settings" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('settings', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('settings', this)"></label></div>
                         <div class="icon-edit-row"><span style="width:35px; font-size:13px;">金额</span><input type="text" id="cfg_icon_eye" style="flex:1;" placeholder="emoji/文字" onchange="updateTopIcon('eye', 'text', this.value)"><label class="settings-add-btn">图<input type="file" style="display:none;" accept="image/*" onchange="updateTopIconImg('eye', this)"></label></div>
-                        <div style="font-size:11px; color:#999; margin-top:5px;">清空文字框内容即可恢复默认图标</div>
+                        <div style="font-size:11px; color:#999; margin-top:5px;">　　　　　清空文字框内容即可恢复默认图标</div>
                     </div>
                     <div class="settings-section" id="sec-category">
-                        <div class="settings-title" style="font-size:12px; color:#999; border:none; padding:0; margin-bottom:5px; font-weight:normal;">💡 提示：长按下方标签可进行重命名</div>
+                        <div class="settings-title" style="font-size:12px; color:#999; border:none; padding:0; margin-bottom:5px; font-weight:normal;">　　  　 💡长按标签可进行编辑</div>
+                        
+                        <div class="settings-title">拼团管理 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openGbEdit()">+ 新增</span></div></div>
+                        <div class="tag-list" id="set_groupbuys" style="margin-bottom:15px;"></div>
+
                         <div class="settings-title">快捷语句 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('quickRemarks')">排序</span><span class="settings-add-btn" onclick="addListObj('quickRemarks')">+ 新增</span></div></div><div class="tag-list" id="set_quickRemarks" style="margin-bottom:15px;"></div>
                         <div class="settings-title">主分类 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('mainCat')">排序</span><span class="settings-add-btn" onclick="addListObj('categories.main')">+ 新增</span></div></div><div class="tag-list" id="set_mainCat" style="margin-bottom:15px;"></div>
                         <div class="settings-title" style="flex-wrap: nowrap;">
@@ -735,7 +781,7 @@
         if (!appConfig.title) appConfig.title = "娃柜";
         if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
         if (!appConfig.appearance) {
-            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, itemPriceColor: '#FF8DA1', hideItemPriceValue: true, showFullDateText: true, cardLine1: 'name', cardLine2: 'price', cardLine3: 'date', stickyBehavior: 'all' };
+            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, itemPriceColor: '#FF8DA1', hideItemPriceValue: true, showFullDateText: true, cardLine1: 'name', cardLine2: 'price', cardLine3: 'date', stickyBehavior: 'all', fullDefaultNotArrived: true };
         } else {
             if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
             if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
@@ -747,6 +793,7 @@
             if (appConfig.appearance.showFullDateText === undefined) appConfig.appearance.showFullDateText = true;
             if (appConfig.appearance.wrapDateText === undefined) appConfig.appearance.wrapDateText = false;
             if (!appConfig.appearance.stickyBehavior) appConfig.appearance.stickyBehavior = 'all';
+            if (appConfig.appearance.fullDefaultNotArrived === undefined) appConfig.appearance.fullDefaultNotArrived = true;
             
             // 兼容迁移旧的位置设定
             if (!appConfig.appearance.cardLine1) {
@@ -813,10 +860,12 @@
             },
             sources: ['拼团','淘宝', '拼多多','闲鱼', '微店',  '其他'],
             kaomojis: ['( ´ ▽ ` )', '(o^▽^o)', '(*¯︶¯*)', 'ᕕ( ᐛ )ᕗ', '(´･ᴗ･ ` )', '(≧◡≦)',  '(๑•̀ㅂ•́)و✧', 'ヾ(≧▽≦*)o', 'ε٩(๑> ₃ <)۶з', '(✿◡‿◡)', '╰(*°▽°*)╯'],
-            quickRemarks: ['设置内修改添加']
+            quickRemarks: ['设置内修改添加'],
+            groupbuys: [] 
         };
         let appData = JSON.parse(localStorage.getItem('myCabinetDataV7')) || defaultData;
         if (!appData.quickRemarks) appData.quickRemarks = [...defaultData.quickRemarks];
+        if (!appData.groupbuys) appData.groupbuys = [];
 
         // 迁移大分类联动小分类数据结构
         if (!appData.categories.subMap) {
@@ -840,17 +889,25 @@
         const STATUS_MAP = { none: '无', crowdfunding: '待开售', unpaid_grouping: '待成团', need_balance: '待补款', not_arrived: '待发货', arrived: '已收货', dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了' };
         
         const STATUS_TAG_NAMES = {
-            all: '全部', not_arrived: '待发货', need_balance: '待补款', unpaid_grouping: '待成团', 
-            crowdfunding: '待开售', arrived: '已收货', important: '注意', near: '临近',
+            all: '全部', near: '临近', not_arrived: '待发货', need_balance: '待补款', unpaid_grouping: '待成团', 
+            crowdfunding: '待开售', arrived: '已收货', important: '注意',
             dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了'
         };
 
-        const allTags = ['all', 'not_arrived', 'need_balance', 'unpaid_grouping', 'crowdfunding', 'arrived', 'important', 'near', 'dead_like', 'dead', 'exploded', 'run_away'];
+        const allTags = ['all', 'near', 'not_arrived', 'need_balance', 'unpaid_grouping', 'crowdfunding', 'arrived', 'important', 'dead_like', 'dead', 'exploded', 'run_away'];
         if (!appConfig.statusOrder) {
             appConfig.statusOrder = [...allTags];
         } else {
             allTags.forEach(t => {
-                if (!appConfig.statusOrder.includes(t)) appConfig.statusOrder.push(t);
+                if (!appConfig.statusOrder.includes(t)) {
+                    if (t === 'near') {
+                        let allIdx = appConfig.statusOrder.indexOf('all');
+                        if (allIdx !== -1) appConfig.statusOrder.splice(allIdx + 1, 0, t);
+                        else appConfig.statusOrder.push(t);
+                    } else {
+                        appConfig.statusOrder.push(t);
+                    }
+                }
             });
         }
 
@@ -949,7 +1006,7 @@
         function startPress(type, path, idx, mainCat) {
             pressTimer = window.setTimeout(() => {
                 renameListObj(type, path, idx, mainCat);
-            }, 600); // 长按600ms判定
+            }, 600); 
         }
         function cancelPress() {
             if(pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
@@ -999,7 +1056,6 @@
             document.getElementById('dialogInput').value = oldVal;
         }
 
-        // 渲染带有长按触发的列表
         const renderListWithPress = (id, arr, path) => { 
             document.getElementById(id).innerHTML = arr.map((item, idx) => 
                 `<div class="edit-tag" style="user-select:none; -webkit-touch-callout:none;"
@@ -1056,6 +1112,70 @@
         // 设置中心及左侧滚动
         function openSettings() { renderSettings(); document.getElementById('settingsDrawer').style.display = 'flex'; }
         function closeSettings() { document.getElementById('settingsDrawer').style.display = 'none'; }
+        
+        function renderGroupbuys() {
+            document.getElementById('set_groupbuys').innerHTML = appData.groupbuys.map((gb) => 
+                `<div class="edit-tag" style="cursor:pointer;" onclick="openGbEdit(${gb.id})">${gb.name} <span class="del" onclick="event.stopPropagation(); delGb(${gb.id})">×</span></div>`
+            ).join('');
+        }
+        function openGbEdit(id) {
+            let gb = id ? appData.groupbuys.find(g => g.id == id) : null;
+            document.getElementById('gbEditId').value = id || '';
+            document.getElementById('gbName').value = gb ? gb.name : '';
+            document.getElementById('gbPlatform').value = gb ? (gb.platform || '') : '';
+            document.getElementById('gbNum').value = gb ? (gb.groupNum || '') : '';
+            
+            document.getElementById('gbDeadline').value = gb ? (gb.deadline || '') : '';
+            document.getElementById('gbStockpile').value = gb ? (gb.stockpile || '') : '';
+            document.getElementById('gbDispatch').value = gb ? (gb.dispatch || '') : '';
+            document.getElementById('gbPostRule').value = gb ? (gb.postRule || '') : '';
+            document.getElementById('gbOther').value = gb ? (gb.other || '') : '';
+            
+            document.getElementById('gbEditDrawer').style.display = 'flex';
+        }
+		
+		function closeGbEdit() { document.getElementById('gbEditDrawer').style.display = 'none'; }
+		
+        function saveGbEdit() {
+            let id = document.getElementById('gbEditId').value;
+            let name = document.getElementById('gbName').value.trim();
+            if (!name) return showDialog("团名称不能为空", false, "", "知道了", null);
+            if (id) {
+                let gb = appData.groupbuys.find(g => g.id == id);
+                if (gb) {
+                    gb.name = name; 
+                    gb.platform = document.getElementById('gbPlatform').value.trim();
+                    gb.groupNum = document.getElementById('gbNum').value.trim(); 
+                    gb.deadline = document.getElementById('gbDeadline').value.trim();
+                    gb.stockpile = document.getElementById('gbStockpile').value.trim();
+                    gb.dispatch = document.getElementById('gbDispatch').value.trim();
+                    gb.postRule = document.getElementById('gbPostRule').value.trim();
+                    gb.other = document.getElementById('gbOther').value.trim();
+                }
+            } else {
+                appData.groupbuys.push({
+                    id: Date.now(), 
+                    name: name, 
+                    platform: document.getElementById('gbPlatform').value.trim(),
+                    groupNum: document.getElementById('gbNum').value.trim(), 
+                    deadline: document.getElementById('gbDeadline').value.trim(),
+                    stockpile: document.getElementById('gbStockpile').value.trim(),
+                    dispatch: document.getElementById('gbDispatch').value.trim(),
+                    postRule: document.getElementById('gbPostRule').value.trim(),
+                    other: document.getElementById('gbOther').value.trim()
+                });
+            }
+            saveData(); renderGroupbuys(); renderFormOptions(); closeGbEdit();
+        }
+        function delGb(id) {
+            showDialog("确定删除此拼团配置吗？", false, "", "删除", () => {
+                appData.groupbuys = appData.groupbuys.filter(g => g.id != id);
+                appData.items.forEach(i => { if(i.groupbuyId == id) i.groupbuyId = null; });
+                saveData(); renderGroupbuys(); renderFormOptions();
+            });
+            document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
+        }
+
         function renderSettings() {
             ['search', 'notice', 'calendar', 'settings', 'eye'].forEach(key => {
                 let obj = appConfig.topIcons[key];
@@ -1082,6 +1202,10 @@
             document.getElementById('set_wrapDateText').checked = appConfig.appearance.wrapDateText;
             document.getElementById('set_itemPriceColor').value = appConfig.appearance.itemPriceColor;
 
+            let isFullNotArr = appConfig.appearance.fullDefaultNotArrived;
+            document.getElementById('set_fullDefaultNotArrived').checked = isFullNotArr;
+            document.getElementById('text_fullDefaultNotArrived').innerText = isFullNotArr ? '全款物品状态默认为【待发货】' : '全款物品状态默认为【已收货】';
+
             // 角标颜色
             document.getElementById('set_badge_not_arrived').value = appConfig.appearance.badgeColors.not_arrived;
             document.getElementById('set_badge_balance').value = appConfig.appearance.badgeColors.balance;
@@ -1106,6 +1230,7 @@
             
             document.getElementById('set_subCat_mainSelect').innerHTML = appData.categories.main.map(c => `<option value="${c}">${c}</option>`).join('');
             renderSettingsSubCat();
+            renderGroupbuys();
         }
         
         function updateAppearance(key, value) { 
@@ -1115,6 +1240,9 @@
             if(key === 'stickyBehavior') {
                 document.body.classList.remove('sticky-all', 'sticky-catOnly', 'sticky-none');
                 document.body.classList.add('sticky-' + value);
+            }
+            if(key === 'fullDefaultNotArrived') {
+                document.getElementById('text_fullDefaultNotArrived').innerText = value ? '全款物品状态默认为【待发货】' : '全款物品状态默认为【已收货】';
             }
             renderUI(); 
         }
@@ -1160,7 +1288,11 @@
                 reader.onload = function(e) {
                     try {
                         const data = JSON.parse(e.target.result);
-                        if(data.appData) appData = data.appData; if(data.appConfig) appConfig = data.appConfig;
+                        if(data.appData) {
+                            appData = data.appData;
+                            if(!appData.groupbuys) appData.groupbuys = [];
+                        }
+                        if(data.appConfig) appConfig = data.appConfig;
                         
                         // 兼容更新
                         let migrated = false;
@@ -1190,7 +1322,6 @@
             const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
             
-            // 【关键修复】在上传前抹除密码防止查杀
             let safeConfig = JSON.parse(JSON.stringify(appConfig));
             if(safeConfig.cloud) safeConfig.cloud.token = ''; 
             
@@ -1255,7 +1386,6 @@
                 
                 let contentStr = file.content;
                 
-                // 【核心修复】：如果 Gist 数据过大(超过限制)被截断，需重新拉取原始的完整数据
                 if (file.truncated) {
                     btn.innerText = "⏳ 正在拉取完整大文件...";
                     const rawRes = await fetch(file.raw_url);
@@ -1266,9 +1396,11 @@
                 }
                 
                 const parsed = JSON.parse(contentStr);
-                if(parsed.appData) appData = parsed.appData;
+                if(parsed.appData) {
+                    appData = parsed.appData;
+                    if(!appData.groupbuys) appData.groupbuys = [];
+                }
                 
-                // 保护本地的密码不被覆盖
                 if(parsed.appConfig) {
                     let localToken = appConfig.cloud.token;
                     let localGistId = appConfig.cloud.gistId;
@@ -1367,6 +1499,7 @@
         function renderFormOptions() {
             document.getElementById('mainCat').innerHTML = appData.categories.main.map(c => `<option value="${c}">${c}</option>`).join('');
             document.getElementById('itemSource').innerHTML = appData.sources.map(s => `<option value="${s}">${s}</option>`).join('');
+            document.getElementById('groupbuyId').innerHTML = '<option value="">无 / 独立成团</option>' + appData.groupbuys.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
             updateSubCatOptions();
         }
         
@@ -1394,7 +1527,8 @@
                 let name = STATUS_TAG_NAMES[key];
                 let cntSpan = key === 'all' ? '' : ` <span id="cnt_${key}"></span>`;
                 let activeCls = currentFilter === key ? 'active' : '';
-                tagHtml += `<div class="s-tag ${activeCls}" id="filter_${key}" onclick="setStatusFilter('${key}')">${name}${cntSpan}</div>`;
+                let extraCls = key === 'near' ? ' near-tag' : '';
+                tagHtml += `<div class="s-tag ${activeCls}${extraCls}" id="filter_${key}" onclick="setStatusFilter('${key}')">${name}${cntSpan}</div>`;
             });
             document.getElementById('statusTagsContainer').innerHTML = tagHtml;
         }
@@ -1438,6 +1572,8 @@
                 statusSelect.value = 'need_balance';
             } else if (type === 'pay_balance') {
                 statusSelect.value = 'not_arrived';
+            } else if (type === 'full') {
+                statusSelect.value = appConfig.appearance.fullDefaultNotArrived ? 'not_arrived' : 'arrived';
             }
         }
 
@@ -1507,8 +1643,8 @@
             // 智能修改本体输入框的文本
             const labelBase = document.getElementById('labelPriceBase');
             if (type === 'queue') labelBase.innerText = '预计定金';
-            else if (type === 'deposit') labelBase.innerText = '定金';
-            else if (type === 'pay_balance') labelBase.innerText = '尾款';
+            else if (type === 'deposit') labelBase.innerText = '已付定金';
+            else if (type === 'pay_balance') labelBase.innerText = '已付尾款';
             else labelBase.innerText = '本体';
 
             document.getElementById('pullQueueGroup').style.display = (!isEdit && type === 'deposit') ? 'block' : 'none';
@@ -1543,7 +1679,26 @@
             if(type === 'deposit') { document.getElementById('pullQueueSelect').innerHTML = '<option value="">-- 点击选择在排记录 --</option>' + appData.items.filter(i => i.status === 'unpaid_grouping' || i.status === 'crowdfunding').map(i => `<option value="${i.id}">${i.name} (预计本体付款: ¥${i.basePrice||0})</option>`).join(''); } 
             else if(type === 'pay_balance') { document.getElementById('pullDepositSelect').innerHTML = '<option value="">-- 点击选择要补款的订单 --</option>' + appData.items.filter(i => i.status === 'need_balance').map(i => `<option value="${i.id}">${i.name} (已付: ¥${i.totalPrice*i.qty})</option>`).join(''); }
             
-            if(!isEdit) checkAutoStatus();
+            // 编辑状态下的阶段回退价格填充逻辑防错乱
+            if (isEdit) {
+                const editId = document.getElementById('editingItemId').value;
+                const item = appData.items.find(i => i.id == editId);
+                if (item) {
+                    if (type === 'pay_balance') {
+                        document.getElementById('priceBase').value = item.balanceBasePrice !== undefined ? item.balanceBasePrice : '';
+                        document.getElementById('priceShip').value = item.balanceShipping !== undefined ? item.balanceShipping : '';
+                    } else if (type === 'deposit') {
+                        document.getElementById('priceBase').value = item.depositBasePrice !== undefined ? item.depositBasePrice : (item.basePrice || 0);
+                        document.getElementById('priceShip').value = item.depositShipping !== undefined ? item.depositShipping : (item.shipping || 0);
+                    } else {
+                        document.getElementById('priceBase').value = item.basePrice || 0;
+                        document.getElementById('priceShip').value = item.shipping || 0;
+                    }
+                    autoCalc('base');
+                }
+            } else {
+                checkAutoStatus();
+            }
         }
 
         function autoFillFromQueue() { 
@@ -1665,6 +1820,7 @@
             if (queueDeadlineSuffix === 'custom' || queueDeadlineSuffix === 'date') queueDeadlineSuffix = '';
 
             const finalStatus = document.getElementById('itemStatus').value;
+            const gbId = document.getElementById('itemSource').value === '拼团' ? document.getElementById('groupbuyId').value : null;
             
             const estBaseBalance = parseFloat(document.getElementById('priceEstBaseBalance').value) || 0;
             const estBalance = parseFloat(document.getElementById('priceEstBalance').value) || 0; 
@@ -1676,19 +1832,28 @@
                 
                 let targetItem = appData.items[idx];
                 
-                if (targetItem.depositBasePrice !== undefined) {
-                    targetItem.balanceBasePrice = bPrice;
-                    targetItem.balanceShipping = sPrice;
-                    targetItem.basePrice = targetItem.depositBasePrice + bPrice;
-                    targetItem.shipping = targetItem.depositShipping + sPrice;
-                    targetItem.totalPrice = targetItem.basePrice + targetItem.shipping;
+                // 如果是从其他退回
+                if (type === 'pay_balance') {
+                    if (targetItem.depositBasePrice !== undefined) {
+                        targetItem.balanceBasePrice = bPrice;
+                        targetItem.balanceShipping = sPrice;
+                        targetItem.basePrice = targetItem.depositBasePrice + bPrice;
+                        targetItem.shipping = targetItem.depositShipping + sPrice;
+                        targetItem.totalPrice = targetItem.basePrice + targetItem.shipping;
+                    } else {
+                        targetItem.basePrice = bPrice;
+                        targetItem.shipping = sPrice;
+                        targetItem.totalPrice = tPrice;
+                    }
                 } else {
+                    delete targetItem.balanceBasePrice;
+                    delete targetItem.balanceShipping;
                     targetItem.basePrice = bPrice;
                     targetItem.shipping = sPrice;
                     targetItem.totalPrice = tPrice;
                 }
 
-                appData.items[idx] = { ...targetItem, name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
+                appData.items[idx] = { ...targetItem, name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
                 appData.items[idx].images = [...imgArray]; 
                 appData.items[idx].estBaseBalance = (type === 'full') ? 0 : estBaseBalance;
                 appData.items[idx].estBalance = (type === 'full') ? 0 : estBalance;
@@ -1711,7 +1876,7 @@
                     appData.items[idx].shipping = appData.items[idx].depositShipping + sPrice;
                     appData.items[idx].totalPrice = appData.items[idx].basePrice + appData.items[idx].shipping;
                     
-                    if(remark) appData.items[idx].remark = (appData.items[idx].remark ? appData.items[idx].remark + '\n' : '') + '[尾款]: ' + remark;
+                    appData.items[idx].remark = remark; // 直接覆盖防叠加
                     appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
                     appData.items[idx].entryType = type;
                     if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
@@ -1727,7 +1892,7 @@
                     appData.items[idx].basePrice = bPrice;
                     appData.items[idx].shipping = sPrice;
 
-                    if(remark) appData.items[idx].remark = (appData.items[idx].remark ? appData.items[idx].remark + '\n' : '') + '[付定]: ' + remark;
+                    appData.items[idx].remark = remark; // 直接覆盖防叠加
                     appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
                     appData.items[idx].entryType = type;
                     appData.items[idx].estBaseBalance = estBaseBalance; 
@@ -1736,7 +1901,7 @@
                     appData.items[idx].images = [...imgArray];
                     appData.items[idx].queueDeadline = '';
                 } else {
-                    let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], noticeRead: false, noticeDismissed: false };
+                    let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], noticeRead: false, noticeDismissed: false };
                     if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
                     newItem.estBaseBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBaseBalance;
                     newItem.estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
@@ -2435,6 +2600,16 @@
             setCnt('cnt_exploded', cntExploded);
             setCnt('cnt_run_away', cntRunAway);
 
+            // 自动隐藏内容数为 0 的状态标签
+            const mapCnt = { not_arrived: cntNotArrived, need_balance: cntNeedBalance, unpaid_grouping: cntUnpaidGrouping, crowdfunding: cntCrowdfunding, arrived: cntArrived, important: cntImportant, near: cntNear, dead_like: cntDeadLike, dead: cntDead, exploded: cntExploded, run_away: cntRunAway };
+            appConfig.statusOrder.forEach(key => {
+                let el = document.getElementById('filter_' + key);
+                if(el) {
+                    if (key !== 'all' && mapCnt[key] === 0) el.style.display = 'none';
+                    else el.style.display = '';
+                }
+            });
+
             document.getElementById('totalPriceDisplay').innerHTML = globalHidden ? getFace() : sumT.toFixed(2);
             document.getElementById('totalBaseDisplay').innerHTML = globalHidden ? getFace() : sumB.toFixed(2);
             document.getElementById('totalShippingDisplay').innerHTML = globalHidden ? getFace() : sumS.toFixed(2);
@@ -2639,7 +2814,33 @@
             }
             document.getElementById('idShip').innerText = shipDisplay;
             
-            document.getElementById('idSource').innerText = item.source; 
+            // 拼团来源特化显示
+            let sourceDisplay = item.source;
+            let groupbuyInfoHtml = '';
+
+            if (item.source === '拼团' && item.groupbuyId) {
+                let gb = appData.groupbuys.find(g => g.id == item.groupbuyId);
+                if (gb) {
+                    // 加了虚线下划线表示可点击
+                    sourceDisplay = `拼团 - <span style="color:var(--primary); cursor:pointer; font-weight:bold; border-bottom: 1px dashed var(--primary); padding-bottom:2px;" onclick="document.getElementById('idGroupbuyDetail').style.display = document.getElementById('idGroupbuyDetail').style.display === 'none' ? 'block' : 'none'">${gb.name}</span>`;
+                    groupbuyInfoHtml = `
+                    <div id="idGroupbuyDetail" style="display:none; background:var(--primary-light); padding:15px; border-radius:12px; margin-bottom:15px; font-size:12px; color:var(--text-main); line-height:1.6;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-bottom: 8px;">
+                            <div><span style="color:var(--text-muted);">平台：</span>${gb.platform || '无'}</div>
+                            <div><span style="color:var(--text-muted);">群号：</span>${gb.groupNum || '无'}</div>
+                            <div><span style="color:var(--text-muted);">撤排：</span>${gb.deadline || '无'}</div>
+                            <div><span style="color:var(--text-muted);">囤货：</span>${gb.stockpile || '无'}</div>
+                            <div><span style="color:var(--text-muted);">排发：</span>${gb.dispatch || '无'}</div>
+                            <div><span style="color:var(--text-muted);">邮/包：</span>${gb.postRule || '无'}</div>
+                        </div>
+                        <div style="border-top: 1px dashed #ffb6c1; padding-top: 8px; margin-top: 4px;">
+                            <span style="color:var(--text-muted);">其他规则：</span>${gb.other || '无'}
+                        </div>
+                    </div>`;
+                }
+            }
+            document.getElementById('idSource').innerHTML = sourceDisplay;
+
             document.getElementById('idCat').innerText = item.subCat ? `${item.mainCat} / ${item.subCat}` : item.mainCat;
             document.getElementById('idBuyDate').innerText = formatDate(item.buyDate, '') || '暂无';
             
@@ -2680,7 +2881,9 @@
             const rb = document.getElementById('idRemarkBox'); let remarkContent = '';
             if (item.isImportant && item.importantRemark) remarkContent += `<div style="color:${appConfig.appearance.noticeBgColor}; font-weight:bold; margin-bottom:8px;">⚠️ 注意：${item.importantRemark}</div>`;
             if (item.remark) remarkContent += `<div>${item.remark.replace(/\n/g, '<br>')}</div>`;
-            rb.innerHTML = remarkContent || '没有留下备注。'; rb.style.display = remarkContent ? 'block' : 'none';
+            
+            rb.innerHTML = groupbuyInfoHtml + (remarkContent || '没有留下备注...'); 
+            rb.style.display = (groupbuyInfoHtml || remarkContent) ? 'block' : 'none';
 
             const badge = document.getElementById('idStatusBadge'); badge.className = 'id-status';
             const badgeMap = { arrived: 'arrived', not_arrived: 'not_arrived', need_balance: 'balance', unpaid_grouping: 'unpaid_grouping', crowdfunding: 'crowd', dead_like: 'dead_like', dead: 'dead', exploded: 'exploded', run_away: 'run_away' };
@@ -2694,8 +2897,8 @@
             }
 
             let btnHtml = '';
-            if(item.status !== 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('arrived')">📦 签收</button>`;
-            else btnHtml = `<button class="id-btn action" onclick="changeStatus('not_arrived')" style="background:#f0f0f0;color:#666;">回退</button>`;
+            if(item.status === 'not_arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('arrived')">📦 签收</button>`;
+            else if(item.status === 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('not_arrived')" style="background:#f0f0f0;color:#666;">回退</button>`;
             
             // 快捷拉取按钮
             let shortcutBtn = '';
@@ -2714,6 +2917,11 @@
             closeIdCard();
             openDrawer(); // 重置面板
             document.querySelector(`input[name="entryType"][value="${targetType}"]`).checked = true;
+            
+            // 锁定分段控制器，防止手动切换回来
+            document.getElementById('typeControl').style.pointerEvents = 'none';
+            document.getElementById('typeControl').style.opacity = '0.5';
+
             toggleEntryType(); // 触发类型切换逻辑
             
             if (targetType === 'deposit') {
@@ -2736,22 +2944,19 @@
 
         function startEdit() {
             closeIdCard(); const item = appData.items.find(i => i.id == currentViewId);
+            
+            // 恢复选择器锁定状态
+            document.getElementById('typeControl').style.pointerEvents = 'auto';
+            document.getElementById('typeControl').style.opacity = '1';
+
             document.getElementById('editingItemId').value = item.id; 
             document.getElementById('itemName').value = item.name; 
-            
-            if (item.depositBasePrice !== undefined) {
-                document.getElementById('priceBase').value = item.balanceBasePrice || 0;
-                document.getElementById('priceShip').value = item.balanceShipping || 0;
-                document.getElementById('priceTotal').value = (item.balanceBasePrice || 0) + (item.balanceShipping || 0);
-            } else {
-                document.getElementById('priceBase').value = item.basePrice || '';
-                document.getElementById('priceShip').value = item.shipping || '';
-                document.getElementById('priceTotal').value = item.totalPrice || '';
-            }
 
             document.getElementById('mainCat').value = item.mainCat; 
             updateSubCatOptions(item.subCat); 
             document.getElementById('itemSource').value = item.source; 
+            document.getElementById('groupbuySelectGroup').style.display = (item.source === '拼团') ? 'block' : 'none';
+            document.getElementById('groupbuyId').value = item.groupbuyId || '';
             
             let itemDateVal = item.buyDate || ''; let d1 = document.getElementById('itemDate'); d1.type = itemDateVal ? 'date' : 'text'; d1.value = itemDateVal;
             let estDateVal = item.estDate || ''; let d2 = document.getElementById('estDate'); d2.type = estDateVal ? (estDateVal.match(/^\d{4}-\d{2}-\d{2}$/) ? 'date' : 'text') : 'text'; d2.value = estDateVal;
@@ -2784,13 +2989,17 @@
             let rBtn = document.querySelector(`input[name="entryType"][value="${eType}"]`);
             if(rBtn) rBtn.checked = true;
             
-            toggleEntryType(); 
+            toggleEntryType(); // 此函数内现在自带阶段倒退的记忆价格填入逻辑
             document.getElementById('itemStatus').value = item.status; 
 
             imgArray = item.images ? [...item.images] : []; renderUploaders(); renderQuickRemarks(); document.getElementById('btnSave').innerText = '保存修改'; document.getElementById('addDrawer').style.display = 'flex';
         }
 
         function openDrawer() { 
+            // 恢复选择器锁定状态
+            document.getElementById('typeControl').style.pointerEvents = 'auto';
+            document.getElementById('typeControl').style.opacity = '1';
+
             document.getElementById('editingItemId').value = ''; 
             document.getElementById('typeControl').style.display = 'flex'; 
             document.getElementById('btnSave').innerText = '确认保存'; 
@@ -2820,6 +3029,10 @@
             document.getElementById('priceEstBaseBalance').value = '';
             document.getElementById('priceEstBalance').value = '';
             document.getElementById('paidDepositHintGroup').style.display = 'none';
+            
+            let currentSource = document.getElementById('itemSource').value;
+            document.getElementById('groupbuySelectGroup').style.display = (currentSource === '拼团') ? 'block' : 'none'; 
+            document.getElementById('groupbuyId').value = '';
             
             activeInput = 'base'; imgArray = []; renderUploaders(); renderQuickRemarks(); document.getElementById('addDrawer').style.display = 'flex'; 
         }
