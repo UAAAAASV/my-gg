@@ -69,9 +69,15 @@
         .s-tag { padding: 6px 14px; background: var(--surface); border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; color: var(--text-muted); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;}
         .s-tag.active { background: var(--theme-dark); color: white; }
         
-        /* 临近标签特化样式 */
-        .s-tag.near-tag { padding: 5px 13px; border: 1px solid var(--badge-near); color: var(--badge-near); background: transparent; }
-        .s-tag.near-tag.active { background: var(--badge-near) !important; color: white !important; border-color: var(--badge-near); }
+        /* 临近标签特化样式 (加了!important确保覆盖) */
+        .s-tag.near-tag { padding: 5px 13px; border: 1px solid var(--badge-near) !important; color: var(--badge-near) !important; background: transparent !important; }
+        .s-tag.near-tag.active { background: var(--badge-near) !important; color: white !important; border-color: var(--badge-near) !important; }
+
+        /* 拼团独立筛选条样式 */
+        .group-filters { display: flex; gap: 8px; margin: 0 20px 10px; overflow-x: auto; scrollbar-width: none; }
+        .group-filters::-webkit-scrollbar { display: none; }
+        .g-tag { padding: 5px 14px; background: var(--surface); border-radius: 8px; font-size: 12px; font-weight: bold; white-space: nowrap; color: var(--text-muted); cursor: pointer; transition: 0.2s; border: 1px solid var(--input-bg); box-shadow: 0 2px 5px rgba(0,0,0,0.01);}
+        .g-tag.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
 
         /* 固定颜文字容器高度，防止被特殊字符撑开破坏布局 */
         .kaomoji { display: inline-flex; align-items: center; justify-content: center; height: 24px; line-height: 1; font-size: 16px; font-weight: normal; color: var(--primary); letter-spacing: 1px; vertical-align: middle;}
@@ -260,7 +266,11 @@
 
     <div class="status-tags" id="statusTagsContainer"></div>
 
+    <!-- 新增：独立的拼团筛选横条 -->
+    <div class="group-filters" id="groupFiltersContainer" style="display:none;"></div>
+
     <div id="cabinetsContainer"></div>
+	
     <div class="fab" onclick="openDrawer()"></div>
 
     <!-- 录入抽屉 -->
@@ -898,17 +908,19 @@
         if (!appConfig.statusOrder) {
             appConfig.statusOrder = [...allTags];
         } else {
+            // 确保每个标签都在
             allTags.forEach(t => {
-                if (!appConfig.statusOrder.includes(t)) {
-                    if (t === 'near') {
-                        let allIdx = appConfig.statusOrder.indexOf('all');
-                        if (allIdx !== -1) appConfig.statusOrder.splice(allIdx + 1, 0, t);
-                        else appConfig.statusOrder.push(t);
-                    } else {
-                        appConfig.statusOrder.push(t);
-                    }
-                }
+                if (!appConfig.statusOrder.includes(t)) appConfig.statusOrder.push(t);
             });
+            // 强行把 near 挪到 all 的右边，防旧数据错乱
+            let allIdx = appConfig.statusOrder.indexOf('all');
+            let nearIdx = appConfig.statusOrder.indexOf('near');
+            if (allIdx !== -1 && nearIdx !== -1 && nearIdx !== allIdx + 1) {
+                appConfig.statusOrder.splice(nearIdx, 1);
+                allIdx = appConfig.statusOrder.indexOf('all');
+                appConfig.statusOrder.splice(allIdx + 1, 0, 'near');
+                localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            }
         }
 
         let globalHidden = true;
@@ -922,6 +934,7 @@
         let mainCatFold = {}; 
         let subCatFold = {}; 
         let currentFilter = 'all';
+        let currentGroupFilter = 'all'; // 新增：拼团单独筛选变量
         let noticeTimer = null;
         let currentSortType = 'items';
         let currentSortIndices = [];
@@ -2194,6 +2207,29 @@
         function collapseExpand(key, e) { e.stopPropagation(); expandState[key] = false; renderUI(); }
         function setStatusFilter(f) { currentFilter = f; document.querySelectorAll('.s-tag').forEach(el => el.classList.remove('active')); document.getElementById('filter_' + f).classList.add('active'); renderUI(); }
 
+        // ================= 新增拼团独立筛选逻辑 =================
+        function renderGroupFilters() {
+            if (!appData.groupbuys || appData.groupbuys.length === 0) {
+                document.getElementById('groupFiltersContainer').style.display = 'none';
+                return;
+            }
+            document.getElementById('groupFiltersContainer').style.display = 'flex';
+            let html = `<div class="g-tag ${currentGroupFilter === 'all' ? 'active' : ''}" onclick="setGroupFilter('all')">全部分组</div>`;
+            
+            appData.groupbuys.forEach(gb => {
+                let activeStr = currentGroupFilter == gb.id ? 'active' : '';
+                html += `<div class="g-tag ${activeStr}" onclick="setGroupFilter('${gb.id}')">${gb.name}</div>`;
+            });
+            document.getElementById('groupFiltersContainer').innerHTML = html;
+        }
+
+        function setGroupFilter(id) {
+            currentGroupFilter = id;
+            renderGroupFilters();
+            renderUI();
+        }
+        // =========================================================
+
         // 通知系统
         function checkNotices() {
             let count = 0; let now = new Date().getTime();
@@ -2570,6 +2606,9 @@
                 if (currentFilter === 'run_away' && item.status !== 'run_away') return;
                 if (currentFilter === 'important' && !isImp) return;
                 if (currentFilter === 'near' && !isNear) return;
+
+                // 新增：拦截非选中拼团的物品，实现与上方状态双重叠加筛选！
+                if (currentGroupFilter !== 'all' && item.groupbuyId != currentGroupFilter) return;
 
                 if (search && !item.name.toLowerCase().includes(search) && !(item.remark||'').toLowerCase().includes(search) && !(item.importantRemark||'').toLowerCase().includes(search)) return;
                 
@@ -3040,7 +3079,7 @@
         function saveData() { localStorage.setItem('myCabinetDataV7', JSON.stringify(appData)); }
 
         window.addEventListener('resize', () => { renderUI(); });
-        renderTopIcons(); renderFormOptions(); renderStatusTags(); renderUI(); checkNotices();
+        renderTopIcons(); renderFormOptions(); renderStatusTags(); renderGroupFilters(); renderUI(); checkNotices();
     </script>
 </body>
 </html>
