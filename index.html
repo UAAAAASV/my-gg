@@ -10,11 +10,12 @@
             --primary: #FF8DA1; --primary-light: #FFE8EC;
             --input-bg: #F2F3F5; --radius-lg: 20px; --radius-md: 12px;
             --theme-dark: #222222; 
-            --est-color: #5B9AFF; /* 预计/在排专属颜色 */
+            --est-color: #5B9AFF; 
             --font-family: -apple-system, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
             
             /* 角标颜色变量 */
             --badge-not_arrived: #FFB347; 
+            --badge-shipped: #2196F3; 
             --badge-balance: #5B9AFF; 
             --badge-unpaid_grouping: #9C27B0;
             --badge-crowd: #607D8B;
@@ -24,6 +25,9 @@
             --badge-dead: #8C8C8C;
             --badge-exploded: #FF4500;
             --badge-run_away: #606060;
+            --badge-withdrawn: #A8A8A8; 
+            --badge-failed: #8C8C8C;    
+            --badge-dlc: #5B9AFF;       
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-tap-highlight-color: transparent;}
@@ -38,7 +42,6 @@
         .search-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 84; animation: fadeIn 0.2s;}
         .search-drawer { position: fixed; top: -100%; left: 0; width: 100%; background: var(--surface); padding: 15px 20px 25px; z-index: 85; box-shadow: 0 10px 20px rgba(0,0,0,0.08); transition: top 0.3s ease; border-radius: 0 0 24px 24px; box-sizing: border-box;}
         
-        /* 吸顶锁定模式控制 */
         body.sticky-all .header { position: sticky; top: 0; z-index: 90; }
         body.sticky-all .search-drawer.active { top: 65px; }
         body.sticky-all .main-title-bar { position: sticky; top: 65px; z-index: 50; }
@@ -77,34 +80,10 @@
         .group-filters::-webkit-scrollbar { display: none; }
         .g-tag { padding: 5px 14px; background: var(--surface); border-radius: 8px; font-size: 12px; font-weight: bold; white-space: nowrap; color: var(--text-muted); cursor: pointer; transition: 0.2s; border: 1px solid var(--input-bg); box-shadow: 0 2px 5px rgba(0,0,0,0.01);}
         .g-tag.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+        .g-tag.source-tag { border-radius: 16px; border-style: dashed; } 
 
         .kaomoji { display: inline-flex; align-items: center; justify-content: center; height: 24px; line-height: 1; font-size: 16px; font-weight: normal; color: var(--primary); letter-spacing: 1px; vertical-align: middle;}
-        .anim-float { animation: floatTxt 2.5s ease-in-out infinite; }
-        .anim-shake { animation: shakeTxt 0.5s ease-in-out infinite; }
-        .anim-flip { animation: flipTxt 2s linear infinite; }
-        .anim-pulse { animation: pulseTxt 1s infinite alternate; }
-        .anim-bounce { animation: bounceTxt 0.6s infinite alternate cubic-bezier(0.5,0.05,1,0.5); }
         
-        @keyframes spinScale { 0% {transform: rotate(0deg) scale(1);} 50% {transform: rotate(180deg) scale(1.2);} 100% {transform: rotate(360deg) scale(1);} }
-        @keyframes wobble { 0%, 100% {transform: translateX(0) rotate(0deg);} 15% {transform: translateX(-3px) rotate(-5deg);} 30% {transform: translateX(3px) rotate(3deg);} 45% {transform: translateX(-3px) rotate(-3deg);} 60% {transform: translateX(3px) rotate(2deg);} 75% {transform: translateX(-1px) rotate(-1deg);} }
-        @keyframes heartbeat { 0% {transform: scale(1);} 14% {transform: scale(1.3);} 28% {transform: scale(1);} 42% {transform: scale(1.3);} 70% {transform: scale(1);} }
-        @keyframes swing { 20% {transform: rotate3d(0, 0, 1, 15deg);} 40% {transform: rotate3d(0, 0, 1, -10deg);} 60% {transform: rotate3d(0, 0, 1, 5deg);} 80% {transform: rotate3d(0, 0, 1, -5deg);} 100% {transform: rotate3d(0, 0, 1, 0deg);} }
-        .anim-spin-scale { animation: spinScale 2s linear infinite; }
-        .anim-wobble { animation: wobble 2s ease-in-out infinite; }
-        .anim-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
-        .anim-swing { animation: swing 2s ease-in-out infinite; transform-origin: top center; }
-
-        .char-wave { display: inline-block; animation: charWave 1s ease-in-out infinite; }
-        .char-jump { display: inline-block; animation: charJump 0.8s ease-in-out infinite; }
-
-        @keyframes floatTxt { 0%,100%{transform:translate(0,0)} 25%{transform:translate(3px,-2px) rotate(2deg)} 50%{transform:translate(-2px,3px) rotate(-1deg)} 75%{transform:translate(2px,2px) rotate(1deg)} }
-        @keyframes shakeTxt { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-2px) translateY(1px)} 75%{transform:translateX(2px) translateY(-1px)} }
-        @keyframes flipTxt { 0%{transform:rotateY(0deg)} 100%{transform:rotateY(360deg)} }
-        @keyframes pulseTxt { from { transform: scale(1); } to { transform: scale(1.1); } }
-        @keyframes bounceTxt { from { transform: translateY(0); } to { transform: translateY(-5px); } }
-        @keyframes charWave { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-        @keyframes charJump { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.1)} }
-
         .main-category-block { margin: 0 20px 20px; background: var(--surface); border-radius: var(--radius-lg); padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
         .main-title-bar { background: var(--surface); display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: bold; padding: 10px 0; border-bottom: 2px solid var(--bg-base); margin: -10px 0 15px 0; cursor: pointer; user-select: none;}
         .main-sum { font-size: 14px; color: var(--primary); background: var(--primary-light); padding: 4px 12px; border-radius: 20px;}
@@ -113,7 +92,8 @@
         .sub-title { background: var(--surface); font-size: 14px; font-weight: 600; color: #555; padding: 8px 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; cursor: pointer; user-select: none;}
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; }
-        .item-card { background: var(--bg-base); border-radius: var(--radius-md); position: relative; aspect-ratio: 1; overflow: hidden; display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;}
+        .item-card { background: var(--bg-base); border-radius: var(--radius-md); position: relative; aspect-ratio: 1; overflow: hidden; display: flex; justify-content: center; align-items: center; text-align: center; width: 100%; transition: opacity 0.3s;}
+        .item-card.ignored-item { opacity: 0.45; filter: grayscale(30%); } 
         .item-card img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;}
         .item-card::after { content: ''; position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); pointer-events: none; z-index: 2;}
         
@@ -158,6 +138,26 @@
         .img-uploader img { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 1; border-radius: 10px; background: #fff;}
         .img-label { font-size: 12px; margin-top: 6px; font-weight: 500;}
         .img-del-btn { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; background: #FF4D4F; color: white; border-radius: 50%; font-size: 14px; display: flex; justify-content: center; align-items: center; z-index: 10; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+        
+        /* 裁剪新增样式 */
+        .crop-btn { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); background: var(--theme-dark); color: white; font-size: 11px; padding: 4px 10px; border-radius: 12px; z-index: 10; font-weight: bold; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+        .cropper-layout { display: flex; flex-direction: column; align-items: center; width: 100%; background: transparent; border: 1px dashed rgba(0,0,0,0.1); border-radius: 16px; padding: 15px 10px; margin-bottom: 20px; }
+        .cropper-title { color: var(--text-main); font-size: 13px; font-weight: bold; }
+        .cropper-container { position: relative; display: inline-block; user-select: none; touch-action: none; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
+        .cropper-container img { display: block; max-width: 100%; max-height: 45vh; width: auto; height: auto; pointer-events: none; }
+        .mask { position: absolute; background: rgba(255,255,255,0.65); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); pointer-events: none; z-index: 5;}
+        #maskTop { top: 0; left: 0; right: 0; } #maskBottom { bottom: 0; left: 0; right: 0; }
+        #maskLeft { top: 0; bottom: 0; left: 0; } #maskRight { top: 0; bottom: 0; right: 0; }
+        .crop-box { position: absolute; border: 2px solid var(--primary); box-shadow: 0 0 0 1px rgba(0,0,0,0.1); z-index: 10; cursor: move; }
+        .crop-box::before, .crop-box::after { content: ''; position: absolute; pointer-events: none; }
+        .crop-box::before { top: 33.33%; bottom: 33.33%; left: 0; right: 0; border-top: 1px dashed rgba(255,141,161,0.5); border-bottom: 1px dashed rgba(255,141,161,0.5); }
+        .crop-box::after { left: 33.33%; right: 33.33%; top: 0; bottom: 0; border-left: 1px dashed rgba(255,141,161,0.5); border-right: 1px dashed rgba(255,141,161,0.5); }
+        .c-edge { position: absolute; z-index: 15; }
+        .c-edge.top { top: -15px; left: 0; right: 0; height: 30px; cursor: ns-resize; } .c-edge.bottom { bottom: -15px; left: 0; right: 0; height: 30px; cursor: ns-resize; }
+        .c-edge.left { left: -15px; top: 0; bottom: 0; width: 30px; cursor: ew-resize; } .c-edge.right { right: -15px; top: 0; bottom: 0; width: 30px; cursor: ew-resize; }
+        .c-corner { position: absolute; width: 24px; height: 24px; border: 4px solid var(--primary); z-index: 20; pointer-events: none; }
+        .c-corner.tl { top: -3px; left: -3px; border-right: none; border-bottom: none; } .c-corner.tr { top: -3px; right: -3px; border-left: none; border-bottom: none; }
+        .c-corner.bl { bottom: -3px; left: -3px; border-right: none; border-top: none; } .c-corner.br { bottom: -3px; right: -3px; border-left: none; border-top: none; }
 
         .btn-group { display: flex; gap: 12px; margin-top: 10px; margin-bottom: 20px;}
         .btn-group button { flex: 1; padding: 16px; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; cursor: pointer;}
@@ -173,13 +173,12 @@
         .settings-content { flex: 1; min-width: 0; padding: 15px 20px; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; box-sizing: border-box; }
 
         .settings-section { margin-bottom: 30px;}
-        
         .settings-title { font-size: 17px; font-weight: bold; margin-bottom: 15px; margin-top: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-bottom: 2px solid var(--input-bg); padding-bottom: 8px;}
         .settings-title:first-child { margin-top: 0; }
         
         .settings-add-btn { color: var(--primary); font-size: 13px; font-weight: normal; background: var(--primary-light); padding: 4px 10px; border-radius: 10px; cursor: pointer;}
         .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
-        .edit-tag { background: var(--input-bg); padding: 6px 12px; border-radius: 15px; font-size: 13px; display: flex; align-items: center; gap: 6px;}
+        .edit-tag { background: var(--input-bg); padding: 6px 12px; border-radius: 15px; font-size: 13px; display: flex; align-items: center; gap: 6px; user-select:none;}
         .edit-tag span.del { color: #FF4D4F; font-weight: bold; cursor: pointer; font-size: 16px;}
         .icon-edit-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .icon-edit-row input[type="text"] { padding: 8px; font-size: 14px; border-radius: 8px; border: none; box-sizing: border-box; background: var(--input-bg);}
@@ -187,7 +186,7 @@
         .id-card-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200; justify-content: center; align-items: center; animation: fadeIn 0.2s; padding: 20px;}
         .id-card { background: var(--surface); width: 100%; max-width: 400px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); position: relative;}
         .id-imgs { display: flex; width: 100%; height: 280px; background: #eee; overflow-x: auto; scroll-snap-type: x mandatory;}
-        .id-imgs img { width: 100%; height: 100%; object-fit: contain; flex-shrink: 0; scroll-snap-align: center; background: #fff;}
+        .id-imgs img { width: 100%; height: 100%; object-fit: contain; flex-shrink: 0; scroll-snap-align: center; background: #fff; cursor: pointer;}
         .id-content { padding: 24px; }
         .id-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;}
         .id-title { font-size: 20px; font-weight: bold; line-height: 1.3;}
@@ -201,6 +200,23 @@
         .id-btn.action { background: var(--primary-light); color: var(--primary);}
         .id-btn.delete { background: #FFF0F0; color: #FF4D4F;}
         .id-close { position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 10; font-size: 16px;}
+
+        /* 沉浸式查看模式 */
+        .view-modal { display: none; position: fixed; inset: 0; background: #000; z-index: 250; flex-direction: column; animation: fadeIn 0.2s;}
+        .view-main-area { flex: 1; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; touch-action: none; }
+        .view-main-area img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; }
+        .view-info-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); color: #333; padding: 15px 20px 25px; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); z-index: 5; display: flex; flex-direction: column; gap: 12px;}
+        .view-thumb-row { display: flex; align-items: center; gap: 10px; }
+        .view-thumbs-scroll { flex: 1; overflow-x: auto; display: flex; gap: 10px; padding-bottom: 4px; margin-bottom: -4px;}
+        .v-thumb { width: 45px; height: 45px; border-radius: 8px; overflow: hidden; opacity: 0.5; border: 2px solid transparent; flex-shrink: 0; cursor: pointer; transition: 0.2s; box-sizing: border-box;}
+        .v-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .v-thumb.active { opacity: 1; border-color: var(--primary); }
+        .view-back-btn { width: 45px; height: 45px; flex-shrink: 0; background: var(--theme-dark); color: white; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); line-height: 1.2; box-sizing: border-box;}
+        .view-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;}
+        .view-name { font-size: 16px; font-weight: bold; color: var(--text-main); }
+        .view-id-cat { font-size: 11px; color: #888; margin-bottom: 4px;}
+        .view-remark { font-size: 13px; line-height: 1.5; color: #555; background: var(--input-bg); padding: 10px 14px; border-radius: 12px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; transition: max-height 0.3s; cursor: pointer; }
+        .view-remark.expanded { -webkit-line-clamp: unset; display: block; max-height: 50vh; overflow-y: auto;}
 
         .custom-dialog-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
         .custom-dialog { background: white; width: 90%; max-width: 320px; border-radius: 16px; padding: 20px; text-align: center; max-height: 80vh; overflow-y: auto;}
@@ -258,7 +274,7 @@
 	<!-- 状态标签 (全部、待发货等)  -->
 	<div class="status-tags" id="statusTagsContainer"></div>
 
-    <!-- 拼团独立筛选条 -->
+    <!-- 拼团与分组独立筛选条 -->
     <div class="group-filters" id="groupFiltersContainer" style="display:none;"></div> 
 
     <div id="cabinetsContainer"></div>
@@ -267,7 +283,7 @@
 
     <!-- 录入抽屉 -->
     <div class="drawer-overlay" id="addDrawer" onclick="handleDrawerClick(event)">
-        <div class="drawer">
+        <div class="drawer" id="drawerContent">
             <div class="drawer-handler"></div>
             <input type="hidden" id="editingItemId" value=""> 
             
@@ -293,7 +309,26 @@
                 <input type="text" id="itemName" placeholder="输入物品名称..." style="font-size: 18px; font-weight: bold; background: transparent; padding: 0 0 10px 0; border-bottom: 2px solid var(--input-bg); border-radius: 0; height: auto;">
             </div>
 
+            <!-- 图片上传区 -->
             <div class="form-group img-wrap-container" id="uploadArea"></div>
+
+            <!-- 裁切区 -->
+            <div id="cropperLayout" class="cropper-layout" style="display:none;">
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom: 15px;">
+                    <div class="cropper-title" style="margin-bottom:0;">裁剪封面图</div>
+                    <button class="btn-primary" style="padding: 4px 12px; border-radius: 6px; font-size:12px;" onclick="closeCropper(event)">确定裁剪</button>
+                </div>
+                <div id="cropperWrapper" class="cropper-container">
+                    <img id="cropperImg" src="">
+                    <div class="mask" id="maskTop"></div><div class="mask" id="maskBottom"></div><div class="mask" id="maskLeft"></div><div class="mask" id="maskRight"></div>
+                    <div class="crop-box" id="cropBox">
+                        <div class="c-corner tl"></div><div class="c-corner tr"></div><div class="c-corner bl"></div><div class="c-corner br"></div>
+                        <div class="c-edge top" data-action="n"></div><div class="c-edge bottom" data-action="s"></div>
+                        <div class="c-edge left" data-action="w"></div><div class="c-edge right" data-action="e"></div>
+                    </div>
+                </div>
+                <div style="font-size: 11px; color: #999; margin-top: 15px;">拖动红框调整需要的区域 (半透区会被忽略)</div>
+            </div>
 
             <div class="form-group row">
                 <div>
@@ -310,14 +345,12 @@
                 </div>
             </div>
 
-            <!-- 拉取尾款已付提示文本 -->
             <div class="form-group row" id="paidDepositHintGroup" style="display: none; margin-top: -10px; margin-bottom: 16px;">
                 <div>
                     <span id="paidDepositHintText" style="color: #4CAF50; font-size: 13px; font-weight: 600;"></span>
                 </div>
             </div>
 
-            <!-- 预计待补金额 -->
             <div class="form-group row" id="estBalanceGroup" style="display: none;">
                 <div>
                     <label class="form-label" style="color: var(--est-color);">预计尾款补款 <span style="font-size:10px;font-weight:normal;color:#aaa;">(预计不计入)</span></label>
@@ -347,7 +380,6 @@
                 <select id="groupbuyId" onchange="applyGroupDefaults()" style="background:var(--primary-light); color:var(--theme-dark); font-weight:bold;"></select>
             </div>
 
-            <!-- 购买日期 与 预计出货 -->
             <div class="form-group row" style="align-items: flex-end;">
                 <div style="flex: 1; min-width: 0; max-width: 50%;">
                     <label class="form-label">购买日期</label>
@@ -375,7 +407,6 @@
                 <div style="flex: 1; min-width: 0; max-width: 50%;"></div>
             </div>
 
-            <!-- 在排：撤排期限 -->
             <div class="form-group row" id="queueDeadlineGroup" style="display:none; align-items: flex-end;">
                 <div style="flex: 1; min-width: 0; max-width: 50%;">
                     <label class="form-label" style="color:#FF4D4F; display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; width: 100%;">
@@ -431,7 +462,10 @@
 					<option value="unpaid_grouping">👥 待成团-未付款</option>
 					<option value="need_balance">💰 待补款-待补邮</option>
                     <option value="not_arrived">📦 待发货</option>
+                    <option value="shipped">🚚 待收货</option>
                     <option value="arrived">✅ 已收货</option>
+                    <option value="withdrawn">⛔ 已撤排 (不计入)</option>
+                    <option value="failed">❌ 未成团 (不计入)</option>
                     <option value="dead_like">🪦 似了</option>
                     <option value="dead">💀 死了</option>
                     <option value="exploded">💥 自爆了</option>
@@ -476,8 +510,6 @@
                     <div><label class="form-label" style="font-size:12px;">默认预计补邮/打包费</label><input type="number" id="gbDefEstBalance" placeholder="选填" style="height:36px;font-size:13px;"></div>
                 </div>
             </div>
-
-            
             
             <div class="btn-group" style="margin-top: 10px;">
                 <button class="btn-cancel" onclick="closeGbEdit()">关闭</button>
@@ -499,6 +531,7 @@
                     <div class="settings-nav-item" id="nav_sec-category" onclick="scrollToSec('sec-category')">编辑</div>
                     <div class="settings-nav-item" id="nav_sec-data" onclick="scrollToSec('sec-data')">备份</div>
                     <div class="settings-nav-item" id="nav_sec-cloud" onclick="scrollToSec('sec-cloud')">云同步</div>
+                    <div class="settings-nav-item" id="nav_sec-dlc" onclick="window.location.href='DLC 1.html'" style="color:var(--primary); font-weight:bold;">尺寸对比✨</div>
                 </div>
                 <div class="settings-content" id="settingsContent" onscroll="onSettingsScroll()">
                     
@@ -579,7 +612,7 @@
                         </div>
 
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showGroupFilters" onchange="updateAppearance('showGroupFilters', this.checked)">显示拼团筛选横栏</label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showGroupFilters" onchange="updateAppearance('showGroupFilters', this.checked)">显示分组筛选横栏</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_showFullDateText" onchange="updateAppearance('showFullDateText', this.checked)">完整显示日期文本</label></div>
@@ -588,7 +621,17 @@
   						  <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_wrapDateText" onchange="updateAppearance('wrapDateText', this.checked)">换行显示日期文本</label></div>
 						</div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_fullDefaultNotArrived" onchange="updateAppearance('fullDefaultNotArrived', this.checked)"> <span id="text_fullDefaultNotArrived">全款物品状态默认为【待发货】</span></label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideDeadItems" onchange="updateAppearance('hideDeadItems', this.checked)">全局隐藏已撤排和未成团物品</label></div>
+                        </div>
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div style="flex:1;">
+                                <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; margin-bottom:5px;">全款录入时的默认状态</label>
+                                <select id="set_fullDefaultStatus" onchange="updateAppearance('fullDefaultStatus', this.value)" style="height:36px;font-size:13px;">
+                                    <option value="not_arrived">待发货</option>
+                                    <option value="shipped">待收货</option>
+                                    <option value="arrived">已收货</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideItemPriceValue" onchange="updateAppearance('hideItemPriceValue', this.checked)">遮挡独立总价</label></div>
@@ -603,16 +646,20 @@
                         <div class="settings-title" style="margin-top:20px;">角标颜色自定义</div>
                         <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待发货</label><input type="color" style="width:40px;" id="set_badge_not_arrived" onchange="updateBadgeColor('not_arrived', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待收货</label><input type="color" style="width:40px;" id="set_badge_shipped" onchange="updateBadgeColor('shipped', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待补款</label><input type="color" style="width:40px;" id="set_badge_balance" onchange="updateBadgeColor('balance', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待成团</label><input type="color" style="width:40px;" id="set_badge_unpaid_grouping" onchange="updateBadgeColor('unpaid_grouping', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">待开售</label><input type="color" style="width:40px;" id="set_badge_crowd" onchange="updateBadgeColor('crowd', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">临近</label><input type="color" style="width:40px;" id="set_badge_near" onchange="updateBadgeColor('near', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">已收货</label><input type="color" style="width:40px;" id="set_badge_arrived" onchange="updateBadgeColor('arrived', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">已撤排</label><input type="color" style="width:40px;" id="set_badge_withdrawn" onchange="updateBadgeColor('withdrawn', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">未成团</label><input type="color" style="width:40px;" id="set_badge_failed" onchange="updateBadgeColor('failed', this.value)"></div>
                             
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">似了</label><input type="color" style="width:40px;" id="set_badge_dead_like" onchange="updateBadgeColor('dead_like', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">死了</label><input type="color" style="width:40px;" id="set_badge_dead" onchange="updateBadgeColor('dead', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">自爆了</label><input type="color" style="width:40px;" id="set_badge_exploded" onchange="updateBadgeColor('exploded', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">跑路了</label><input type="color" style="width:40px;" id="set_badge_run_away" onchange="updateBadgeColor('run_away', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; grid-column:span 2;"><label class="form-label" style="margin:0;">DLC(尺寸)按钮</label><input type="color" style="width:40px;" id="set_badge_dlc" onchange="updateBadgeColor('dlc', this.value)"></div>
                         </div>
 
                         <div class="settings-title" style="margin-top:20px;">分类内排序方式</div>
@@ -645,8 +692,11 @@
                     <div class="settings-section" id="sec-category">
                         <div class="settings-title" style="font-size:12px; color:#999; border:none; padding:0; margin-bottom:5px; font-weight:normal;">　　  　 💡长按标签可进行编辑</div>
                         
-                        <div class="settings-title">拼团管理 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('groupbuys')">排序</span><span class="settings-add-btn" onclick="openGbEdit()">+ 新增</span></div></div>
+                        <div class="settings-title">拼团配置 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('groupFilters')">排序</span><span class="settings-add-btn" onclick="openGbEdit()">+ 新增</span></div></div>
                         <div class="tag-list" id="set_groupbuys" style="margin-bottom:15px;"></div>
+
+                        <div class="settings-title">购买来源 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="addListObj('sources')">+ 新增</span></div></div>
+                        <div class="tag-list" id="set_sources" style="margin-bottom:15px;"></div>
 
                         <div class="settings-title">快捷语句 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('quickRemarks')">排序</span><span class="settings-add-btn" onclick="addListObj('quickRemarks')">+ 新增</span></div></div><div class="tag-list" id="set_quickRemarks" style="margin-bottom:15px;"></div>
                         <div class="settings-title">主分类 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('mainCat')">排序</span><span class="settings-add-btn" onclick="addListObj('categories.main')">+ 新增</span></div></div><div class="tag-list" id="set_mainCat" style="margin-bottom:15px;"></div>
@@ -659,7 +709,7 @@
                             </div>
                         </div>
                         <div class="tag-list" id="set_subCat" style="margin-bottom:15px;"></div>
-                        <div class="settings-title">购买来源 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('sources')">排序</span><span class="settings-add-btn" onclick="addListObj('sources')">+ 新增</span></div></div><div class="tag-list" id="set_sources" style="margin-bottom:15px;"></div>
+                        
                         <div class="settings-title">自定义颜文字 <div style="display:flex;gap:8px;"><span class="settings-add-btn" onclick="openSortDrawer('kaomojis')">排序</span><span class="settings-add-btn" onclick="addListObj('kaomojis')">+ 新增</span></div></div><div class="tag-list" id="set_kaomojis"></div>
                     </div>
 
@@ -729,7 +779,10 @@
             <div class="id-content">
                 <div class="id-title-row">
                     <div class="id-title" id="idName">物品名称</div>
-                    <div class="id-status" id="idStatusBadge">状态</div>
+                    <div style="display:flex; align-items:center;">
+                        <span id="idDlcLinkContainer"></span>
+                        <div class="id-status" id="idStatusBadge">状态</div>
+                    </div>
                 </div>
                 <div class="id-meta">
                     <div>本体: <span id="idBasePrice">¥0</span></div>
@@ -744,6 +797,29 @@
                 <div class="id-remark" id="idRemarkBox"></div>
                 <div class="id-actions" id="idActionGroup"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- 沉浸式查看模式 -->
+    <div class="view-modal" id="viewModal">
+        <div class="view-main-area" id="viewMainArea">
+            <img id="viewMainImg" src="">
+        </div>
+        
+        <div class="view-info-panel">
+            <div class="view-thumb-row">
+                <div class="view-thumbs-scroll" id="viewThumbsStrip"></div>
+                <!-- 完美对齐的返回按钮 -->
+                <div class="view-back-btn" onclick="closeImageViewer()">
+                    <div>返回</div><div>◀</div>
+                </div>
+            </div>
+            
+            <div class="view-title-row">
+                <div class="view-name" id="viewName">名称</div>
+            </div>
+            <div class="view-id-cat" id="viewIdCat">分类: 默认 - 默认</div>
+            <div class="view-remark" id="viewRemark" onclick="this.classList.toggle('expanded')"></div>
         </div>
     </div>
 
@@ -798,7 +874,7 @@
         if (!appConfig.title) appConfig.title = "娃柜";
         if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
         if (!appConfig.appearance) {
-            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, itemPriceColor: '#FF8DA1', hideItemPriceValue: true, showFullDateText: true, cardLine1: 'name', cardLine2: 'price', cardLine3: 'date', stickyBehavior: 'all', fullDefaultNotArrived: true, showGroupFilters: true, estPriceColor: '#5B9AFF' };
+            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, itemPriceColor: '#FF8DA1', hideItemPriceValue: true, showFullDateText: true, cardLine1: 'name', cardLine2: 'price', cardLine3: 'date', stickyBehavior: 'all', fullDefaultStatus: 'not_arrived', showGroupFilters: true, estPriceColor: '#5B9AFF', hideDeadItems: false };
         } else {
             if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
             if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
@@ -810,25 +886,24 @@
             if (appConfig.appearance.showFullDateText === undefined) appConfig.appearance.showFullDateText = true;
             if (appConfig.appearance.wrapDateText === undefined) appConfig.appearance.wrapDateText = false;
             if (!appConfig.appearance.stickyBehavior) appConfig.appearance.stickyBehavior = 'all';
-            if (appConfig.appearance.fullDefaultNotArrived === undefined) appConfig.appearance.fullDefaultNotArrived = true;
             if (appConfig.appearance.showGroupFilters === undefined) appConfig.appearance.showGroupFilters = true;
             if (!appConfig.appearance.estPriceColor) appConfig.appearance.estPriceColor = '#5B9AFF';
+            if (appConfig.appearance.hideDeadItems === undefined) appConfig.appearance.hideDeadItems = false;
+            
+            // 兼容迁移 fullDefaultNotArrived 到 fullDefaultStatus
+            if (appConfig.appearance.fullDefaultStatus === undefined) {
+                appConfig.appearance.fullDefaultStatus = appConfig.appearance.fullDefaultNotArrived === false ? 'arrived' : 'not_arrived';
+            }
             
             // 兼容迁移旧的位置设定
             if (!appConfig.appearance.cardLine1) {
-                let sName = appConfig.appearance.showName !== false;
-                let sDate = appConfig.appearance.showDate === true;
-                let sPrice = appConfig.appearance.showItemPrice === true;
-                let swap = appConfig.appearance.swapNameDate === true;
-                let l1 = sName ? 'name' : 'none'; let l2 = sPrice ? 'price' : 'none'; let l3 = sDate ? 'date' : 'none';
-                if (swap) { let t = l1; l1 = l3; l3 = t; }
-                appConfig.appearance.cardLine1 = l1; appConfig.appearance.cardLine2 = l2; appConfig.appearance.cardLine3 = l3;
+                appConfig.appearance.cardLine1 = 'name'; appConfig.appearance.cardLine2 = 'price'; appConfig.appearance.cardLine3 = 'date';
             }
         }
 
         const defBadgeColors = {
-            not_arrived: '#FFB347', balance: '#5B9AFF', unpaid_grouping: '#9C27B0', crowd: '#607D8B', near: '#FF4D4F', arrived: '#4CAF50',
-            dead_like: '#A8A8A8', dead: '#8C8C8C', exploded: '#FF4500', run_away: '#606060'
+            not_arrived: '#FFB347', shipped: '#2196F3', balance: '#5B9AFF', unpaid_grouping: '#9C27B0', crowd: '#607D8B', near: '#FF4D4F', arrived: '#4CAF50',
+            dead_like: '#A8A8A8', dead: '#8C8C8C', exploded: '#FF4500', run_away: '#606060', withdrawn: '#A8A8A8', failed: '#8C8C8C', dlc: '#5B9AFF'
         };
         if (!appConfig.appearance.badgeColors) {
             appConfig.appearance.badgeColors = JSON.parse(JSON.stringify(defBadgeColors));
@@ -838,6 +913,8 @@
         
         if (!appConfig.cloud) appConfig.cloud = { token: '', gistId: '' };
         if (!appConfig.statusHidden) appConfig.statusHidden = {};
+        if (!appConfig.groupFiltersOrder) appConfig.groupFiltersOrder = [];
+        if (!appConfig.groupFiltersHidden) appConfig.groupFiltersHidden = {};
         
         document.documentElement.style.setProperty('--theme-dark', appConfig.appearance.themeDark);
         document.documentElement.style.setProperty('--est-color', appConfig.appearance.estPriceColor);
@@ -857,7 +934,6 @@
         if (!appConfig.topIcons.calendar) appConfig.topIcons.calendar = { type: 'text', val: '📅' };
         if (!appConfig.topIconsOrder) appConfig.topIconsOrder = ['search', 'notice', 'calendar', 'settings', 'eye'];
 
-        // 更新的分类默认结构
         const defaultData = { 
             items: [], 
             categories: { 
@@ -873,7 +949,6 @@
         if (!appData.quickRemarks) appData.quickRemarks = [...defaultData.quickRemarks];
         if (!appData.groupbuys) appData.groupbuys = [];
 
-        // 迁移大分类联动小分类数据结构
         if (!appData.categories.subMap) {
             appData.categories.subMap = {};
             appData.categories.main.forEach(m => {
@@ -883,24 +958,15 @@
             });
         }
 
-        // 数据迁移
-        let migrated = false;
-        appData.items.forEach(item => {
-            if (item.status === 'unpaid' || item.status === 'grouping') { item.status = 'unpaid_grouping'; migrated = true; }
-            if (item.status === 'need_post' || item.status === 're_shoot') { item.status = 'need_balance'; migrated = true; }
-            if (item.status === 'crowdfunding' && item.status !== 'crowdfunding') migrated = true; 
-        });
-        if (migrated) localStorage.setItem('myCabinetDataV7', JSON.stringify(appData));
-
-        const STATUS_MAP = { none: '无', crowdfunding: '待开售', unpaid_grouping: '待成团', need_balance: '待补款', not_arrived: '待发货', arrived: '已收货', dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了' };
+        const STATUS_MAP = { none: '无', crowdfunding: '待开售', unpaid_grouping: '待成团', need_balance: '待补款', not_arrived: '待发货', shipped: '待收货', arrived: '已收货', withdrawn: '已撤排', failed: '未成团', dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了' };
         
         const STATUS_TAG_NAMES = {
-            all: '全部', near: '临近', not_arrived: '待发货', need_balance: '待补款', unpaid_grouping: '待成团', 
-            crowdfunding: '待开售', arrived: '已收货', important: '注意',
+            all: '全部', near: '临近', not_arrived: '待发货', shipped: '待收货', need_balance: '待补款', unpaid_grouping: '待成团', 
+            crowdfunding: '待开售', arrived: '已收货', important: '注意', withdrawn: '已撤排', failed: '未成团',
             dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了'
         };
 
-        const allTags = ['all', 'near', 'not_arrived', 'need_balance', 'unpaid_grouping', 'crowdfunding', 'arrived', 'important', 'dead_like', 'dead', 'exploded', 'run_away'];
+        const allTags = ['all', 'near', 'not_arrived', 'shipped', 'need_balance', 'unpaid_grouping', 'crowdfunding', 'arrived', 'important', 'withdrawn', 'failed', 'dead_like', 'dead', 'exploded', 'run_away'];
         if (!appConfig.statusOrder) {
             appConfig.statusOrder = [...allTags];
         } else {
@@ -910,8 +976,8 @@
                 appConfig.statusOrder.splice(nearIdx, 1);
                 allIdx = appConfig.statusOrder.indexOf('all');
                 appConfig.statusOrder.splice(allIdx + 1, 0, 'near');
-                localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
             }
+            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
         }
 
         let globalHidden = true;
@@ -925,12 +991,18 @@
         let mainCatFold = {}; 
         let subCatFold = {}; 
         let currentFilter = 'all';
-        let currentGroupFilter = 'all'; // 拼团单独筛选变量
+        let currentGroupFilter = 'all'; 
         let noticeTimer = null;
         let currentSortType = 'items';
         let currentSortIndices = [];
 
+        // 裁剪专属变量
+        let coverCrop = { top: 0, bottom: 1, left: 0, right: 1 };
+        let currentCropTarget = -1;
+
         document.getElementById('appTitleText').innerText = appConfig.title;
+
+        function isIgnoredStatus(status) { return status === 'withdrawn' || status === 'failed'; }
 
         // 辅助函数
         function hexToRgba(hex, opacity) {
@@ -995,7 +1067,7 @@
         }
 
         let getStatusColor = (s) => {
-            const m = { not_arrived:'not_arrived', need_balance:'balance', unpaid_grouping:'unpaid_grouping', crowdfunding:'crowd', arrived:'arrived', dead_like:'dead_like', dead:'dead', exploded:'exploded', run_away:'run_away' };
+            const m = { not_arrived:'not_arrived', shipped:'shipped', need_balance:'balance', unpaid_grouping:'unpaid_grouping', crowdfunding:'crowd', arrived:'arrived', withdrawn:'withdrawn', failed:'failed', dead_like:'dead_like', dead:'dead', exploded:'exploded', run_away:'run_away' };
             return `var(--badge-${m[s]||'unpaid_grouping'})`;
         };
 
@@ -1012,8 +1084,9 @@
                 else if(path === 'kaomojis') oldVal = appData.kaomojis[idx];
                 else if(path === 'quickRemarks') oldVal = appData.quickRemarks[idx];
             } else if (type === 'sub') { oldVal = appData.categories.subMap[mainCat][idx]; }
+            else if (type === 'groupbuy') { oldVal = appData.groupbuys.find(g => g.id == idx).name; }
             
-            showDialog("重命名", true, "输入新名称 (同步更新已有物品)", "确认", (val) => {
+            showDialog("重命名", true, "输入新名称", "确认", (val) => {
                 if(val && val.trim() && val.trim() !== oldVal) {
                     let newVal = val.trim();
                     if (type === 'list' && path === 'categories.main' && appData.categories.main.includes(newVal)) return showDialog("该主分类已存在！", false, "", "知道了", null);
@@ -1026,14 +1099,17 @@
                             delete appData.categories.subMap[oldVal];
                             appData.items.forEach(i => { if(i.mainCat === oldVal) i.mainCat = newVal; });
                         }
-                        else if(path === 'sources') { appData.sources[idx] = newVal; appData.items.forEach(i => { if(i.source === oldVal) i.source = newVal; }); }
+                        else if(path === 'sources') { appData.sources[idx] = newVal; appData.items.forEach(i => { if(i.source === oldVal) i.source = newVal; }); syncGroupFiltersOrder(); }
                         else if(path === 'kaomojis') appData.kaomojis[idx] = newVal;
                         else if(path === 'quickRemarks') appData.quickRemarks[idx] = newVal;
                     } else if (type === 'sub') {
                         appData.categories.subMap[mainCat][idx] = newVal;
                         appData.items.forEach(i => { if(i.mainCat === mainCat && i.subCat === oldVal) i.subCat = newVal; });
+                    } else if (type === 'groupbuy') {
+                        let gb = appData.groupbuys.find(g => g.id == idx);
+                        if(gb) gb.name = newVal;
                     }
-                    saveData(); renderSettings(); if(type==='sub') renderSettingsSubCat(); renderFormOptions(); renderUI();
+                    saveData(); renderSettings(); if(type==='sub') renderSettingsSubCat(); renderFormOptions(); renderUI(); if(type === 'groupbuy' || path === 'sources') renderGroupFilters();
                 }
             });
             document.getElementById('dialogInput').value = oldVal;
@@ -1041,14 +1117,7 @@
 
         const renderListWithPress = (id, arr, path) => { 
             document.getElementById(id).innerHTML = arr.map((item, idx) => 
-                `<div class="edit-tag" style="user-select:none; -webkit-touch-callout:none;"
-                    onmousedown="startPress('list', '${path}', ${idx}, null)" 
-                    onmouseup="cancelPress()" 
-                    onmouseleave="cancelPress()"
-                    ontouchstart="startPress('list', '${path}', ${idx}, null)"
-                    ontouchend="cancelPress()"
-                    ontouchmove="cancelPress()"
-                >${item} <span class="del" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); delListObj('${path}', ${idx})">×</span></div>`
+                `<div class="edit-tag" onmousedown="startPress('list', '${path}', ${idx}, null)" onmouseup="cancelPress()" onmouseleave="cancelPress()" ontouchstart="startPress('list', '${path}', ${idx}, null)" ontouchend="cancelPress()" ontouchmove="cancelPress()" >${item} <span class="del" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); delListObj('${path}', ${idx})">×</span></div>`
             ).join(''); 
         };
 
@@ -1090,7 +1159,7 @@
         
         function renderGroupbuys() {
             document.getElementById('set_groupbuys').innerHTML = appData.groupbuys.map((gb) => 
-                `<div class="edit-tag" style="cursor:pointer;" onclick="openGbEdit(${gb.id})">${gb.name} <span class="del" onclick="event.stopPropagation(); delGb(${gb.id})">×</span></div>`
+                `<div class="edit-tag" onmousedown="startPress('groupbuy', null, ${gb.id}, null)" onmouseup="cancelPress()" onmouseleave="cancelPress()" ontouchstart="startPress('groupbuy', null, ${gb.id}, null)" ontouchend="cancelPress()" ontouchmove="cancelPress()" style="cursor:pointer;" onclick="if(pressTimer===null) openGbEdit(${gb.id})">${gb.name} <span class="del" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); delGb(${gb.id})">×</span></div>`
             ).join('');
         }
         function openGbEdit(id) {
@@ -1106,7 +1175,6 @@
             document.getElementById('gbPostRule').value = gb ? (gb.postRule || '') : '';
             document.getElementById('gbOther').value = gb ? (gb.other || '') : '';
             
-            // 新增自动带入选项
             document.getElementById('gbDefDeadline').value = gb ? (gb.defDeadline || '') : '';
             document.getElementById('gbDefEstBalance').value = gb ? (gb.defEstBalance || '') : '';
 
@@ -1129,14 +1197,16 @@
                     gb.defEstBalance = document.getElementById('gbDefEstBalance').value.trim();
                 }
             } else {
+                let newId = Date.now();
                 appData.groupbuys.push({
-                    id: Date.now(), name: name, platform: document.getElementById('gbPlatform').value.trim(), groupNum: document.getElementById('gbNum').value.trim(), 
+                    id: newId, name: name, platform: document.getElementById('gbPlatform').value.trim(), groupNum: document.getElementById('gbNum').value.trim(), 
                     deadline: document.getElementById('gbDeadline').value.trim(), stockpile: document.getElementById('gbStockpile').value.trim(),
                     dispatch: document.getElementById('gbDispatch').value.trim(), postRule: document.getElementById('gbPostRule').value.trim(),
                     other: document.getElementById('gbOther').value.trim(),
                     defDeadline: document.getElementById('gbDefDeadline').value.trim(),
                     defEstBalance: document.getElementById('gbDefEstBalance').value.trim()
                 });
+                syncGroupFiltersOrder();
             }
             saveData(); renderGroupbuys(); renderFormOptions(); renderGroupFilters(); closeGbEdit();
         }
@@ -1144,34 +1214,51 @@
             showDialog("确定删除此拼团配置吗？", false, "", "删除", () => {
                 appData.groupbuys = appData.groupbuys.filter(g => g.id != id);
                 appData.items.forEach(i => { if(i.groupbuyId == id) i.groupbuyId = null; });
+                syncGroupFiltersOrder();
                 saveData(); renderGroupbuys(); renderFormOptions(); renderGroupFilters();
             });
             document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
         }
 
-        // 监听拼团下拉框，自动填入默认值
+        // 统一的分组排序同步
+        function syncGroupFiltersOrder() {
+            let currentKeys = [];
+            let gbs = appData.groupbuys.map(g => 'gb_' + g.id);
+            let srcs = appData.sources.map(s => 'src_' + s);
+            
+            // 构建默认顺序: 团 -> none -> 来源
+            let defaultOrder = [...gbs, 'none', ...srcs];
+            
+            // 提取出已经存在于本地设置的并且合法的 key
+            let newOrder = appConfig.groupFiltersOrder.filter(k => defaultOrder.includes(k));
+            
+            // 把新增的按默认顺序插入到后面
+            defaultOrder.forEach(k => {
+                if (!newOrder.includes(k)) {
+                    newOrder.push(k);
+                }
+            });
+            
+            appConfig.groupFiltersOrder = newOrder;
+            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+        }
+
         function applyGroupDefaults() {
             const gbId = document.getElementById('groupbuyId').value;
             if(!gbId) return;
             const gb = appData.groupbuys.find(g => g.id == gbId);
             if(!gb) return;
 
-            // 仅在当前没填内容时才自动填入
             const estBalInput = document.getElementById('priceEstBalance');
-            if(gb.defEstBalance && !estBalInput.value) {
-                estBalInput.value = gb.defEstBalance;
-            }
+            if(gb.defEstBalance && !estBalInput.value) { estBalInput.value = gb.defEstBalance; }
 
             const qdInput = document.getElementById('queueDeadline');
             const qdSel = document.getElementById('queueDeadlineSuffix');
             if(gb.defDeadline && !qdInput.value) {
                 if (gb.defDeadline.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                    qdInput.type = 'date';
-                    qdInput.value = gb.defDeadline;
-                    qdSel.value = 'date';
+                    qdInput.type = 'date'; qdInput.value = gb.defDeadline; qdSel.value = 'date';
                 } else {
-                    qdInput.type = 'text';
-                    qdInput.value = gb.defDeadline;
+                    qdInput.type = 'text'; qdInput.value = gb.defDeadline;
                     let isQuick = Array.from(qdSel.options).some(opt => opt.value === gb.defDeadline && gb.defDeadline !== 'date' && gb.defDeadline !== 'custom');
                     qdSel.value = isQuick ? gb.defDeadline : 'custom';
                 }
@@ -1204,25 +1291,28 @@
             document.getElementById('set_wrapDateText').checked = appConfig.appearance.wrapDateText;
             document.getElementById('set_itemPriceColor').value = appConfig.appearance.itemPriceColor;
             
-            // 拼团与在排金额颜色新设置
             document.getElementById('set_showGroupFilters').checked = appConfig.appearance.showGroupFilters;
             document.getElementById('set_estPriceColor').value = appConfig.appearance.estPriceColor;
+            document.getElementById('set_hideDeadItems').checked = appConfig.appearance.hideDeadItems;
 
-            let isFullNotArr = appConfig.appearance.fullDefaultNotArrived;
-            document.getElementById('set_fullDefaultNotArrived').checked = isFullNotArr;
-            document.getElementById('text_fullDefaultNotArrived').innerText = isFullNotArr ? '全款物品状态默认为【待发货】' : '全款物品状态默认为【已收货】';
+            document.getElementById('set_fullDefaultStatus').value = appConfig.appearance.fullDefaultStatus;
 
             document.getElementById('set_badge_not_arrived').value = appConfig.appearance.badgeColors.not_arrived;
+            document.getElementById('set_badge_shipped').value = appConfig.appearance.badgeColors.shipped;
             document.getElementById('set_badge_balance').value = appConfig.appearance.badgeColors.balance;
             document.getElementById('set_badge_unpaid_grouping').value = appConfig.appearance.badgeColors.unpaid_grouping;
             document.getElementById('set_badge_crowd').value = appConfig.appearance.badgeColors.crowd;
             document.getElementById('set_badge_near').value = appConfig.appearance.badgeColors.near;
             document.getElementById('set_badge_arrived').value = appConfig.appearance.badgeColors.arrived;
             
+            document.getElementById('set_badge_withdrawn').value = appConfig.appearance.badgeColors.withdrawn;
+            document.getElementById('set_badge_failed').value = appConfig.appearance.badgeColors.failed;
+            
             document.getElementById('set_badge_dead_like').value = appConfig.appearance.badgeColors.dead_like;
             document.getElementById('set_badge_dead').value = appConfig.appearance.badgeColors.dead;
             document.getElementById('set_badge_exploded').value = appConfig.appearance.badgeColors.exploded;
             document.getElementById('set_badge_run_away').value = appConfig.appearance.badgeColors.run_away;
+            document.getElementById('set_badge_dlc').value = appConfig.appearance.badgeColors.dlc;
 
             document.getElementById('cfg_gh_token').value = appConfig.cloud.token || '';
             document.getElementById('cfg_gh_gist_id').value = appConfig.cloud.gistId || '';
@@ -1233,7 +1323,7 @@
             renderListWithPress('set_quickRemarks', appData.quickRemarks, 'quickRemarks');
             
             document.getElementById('set_subCat_mainSelect').innerHTML = appData.categories.main.map(c => `<option value="${c}">${c}</option>`).join('');
-            renderSettingsSubCat(); renderGroupbuys();
+            renderSettingsSubCat(); renderGroupbuys(); syncGroupFiltersOrder();
         }
         
         function updateAppearance(key, value) { 
@@ -1242,7 +1332,6 @@
             if(key === 'themeDark') document.documentElement.style.setProperty('--theme-dark', value);
             if(key === 'estPriceColor') document.documentElement.style.setProperty('--est-color', value);
             if(key === 'stickyBehavior') { document.body.classList.remove('sticky-all', 'sticky-catOnly', 'sticky-none'); document.body.classList.add('sticky-' + value); }
-            if(key === 'fullDefaultNotArrived') { document.getElementById('text_fullDefaultNotArrived').innerText = value ? '全款物品状态默认为【待发货】' : '全款物品状态默认为【已收货】'; }
             if(key === 'showGroupFilters') renderGroupFilters();
             renderUI(); 
         }
@@ -1251,6 +1340,7 @@
             appConfig.appearance.badgeColors[key] = val;
             localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
             document.documentElement.style.setProperty(`--badge-${key}`, val);
+            if(key === 'dlc') { let d = document.getElementById('idDlcLinkContainer'); if(d) d.style.color = val; }
             renderUI();
         }
 
@@ -1263,7 +1353,6 @@
             if(currentId) { document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active')); let nav = document.getElementById('nav_' + currentId); if(nav) nav.classList.add('active'); }
         }
 
-        // 导入导出与云同步 (保持原样)
         function exportData() { const dataStr = JSON.stringify({ appData, appConfig }); const blob = new Blob([dataStr], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `娃柜备份_${new Date().getTime()}.json`; a.click(); }
         function importData(input) {
             if (input.files && input.files[0]) {
@@ -1273,8 +1362,6 @@
                         const data = JSON.parse(e.target.result);
                         if(data.appData) { appData = data.appData; if(!appData.groupbuys) appData.groupbuys = []; }
                         if(data.appConfig) appConfig = data.appConfig;
-                        let migrated = false;
-                        appData.items.forEach(item => { if (item.status === 'unpaid' || item.status === 'grouping') { item.status = 'unpaid_grouping'; migrated = true; } if (item.status === 'need_post' || item.status === 're_shoot') { item.status = 'need_balance'; migrated = true; } });
                         saveData(); showDialog("恢复成功！", false, "", "刷新页面", () => { location.reload(); });
                     } catch(err) { showDialog("数据格式错误", false, "", "知道了", null); }
                 }
@@ -1282,7 +1369,7 @@
             }
         }
         function saveCloudConfig() { appConfig.cloud.token = document.getElementById('cfg_gh_token').value.trim(); appConfig.cloud.gistId = document.getElementById('cfg_gh_gist_id').value.trim(); localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); }
-        function uploadToGitHub(e) { /* 省略云同步代码, 与原版一致以节省篇幅... */
+        function uploadToGitHub(e) { 
             const token = document.getElementById('cfg_gh_token').value.trim();
             if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null); return; }
             const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
@@ -1321,16 +1408,18 @@
                         if (appData.categories.main.includes(v)) return showDialog("主分类已存在！", false, "", "知道了", null);
                         appData.categories.main.push(v); if(!appData.categories.subMap[v]) appData.categories.subMap[v] = [];
                     }
-                    if(path === 'sources') appData.sources.push(v);  if(path === 'kaomojis') appData.kaomojis.push(v); if(path === 'quickRemarks') appData.quickRemarks.push(v); 
-                    saveData(); renderSettings(); renderFormOptions(); renderQuickRemarks(); 
+                    if(path === 'sources') { appData.sources.push(v); syncGroupFiltersOrder(); }
+                    if(path === 'kaomojis') appData.kaomojis.push(v); if(path === 'quickRemarks') appData.quickRemarks.push(v); 
+                    saveData(); renderSettings(); renderFormOptions(); renderQuickRemarks(); if(path === 'sources') renderGroupFilters();
                 } 
             }); 
         }
         function delListObj(path, idx) { 
             showDialog("警告", false, "", "确定删除", () => { 
                 if(path === 'categories.main') { let mName = appData.categories.main[idx]; appData.categories.main.splice(idx, 1); delete appData.categories.subMap[mName]; appData.items.forEach(i => { if(i.mainCat === mName) { i.mainCat = ''; i.subCat = ''; } }); }
-                if(path === 'sources') appData.sources.splice(idx, 1); if(path === 'kaomojis') appData.kaomojis.splice(idx, 1); if(path === 'quickRemarks') appData.quickRemarks.splice(idx, 1); 
-                saveData(); renderSettings(); renderFormOptions(); renderQuickRemarks(); 
+                if(path === 'sources') { appData.sources.splice(idx, 1); syncGroupFiltersOrder(); }
+                if(path === 'kaomojis') appData.kaomojis.splice(idx, 1); if(path === 'quickRemarks') appData.quickRemarks.splice(idx, 1); 
+                saveData(); renderSettings(); renderFormOptions(); renderQuickRemarks(); if(path === 'sources') renderGroupFilters();
             }); 
             document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F'; 
         }
@@ -1358,7 +1447,7 @@
             let mainCat = document.getElementById('set_subCat_mainSelect').value; if(!mainCat) { document.getElementById('set_subCat').innerHTML = ''; return; }
             let subs = appData.categories.subMap[mainCat] || [];
             document.getElementById('set_subCat').innerHTML = subs.map((item, idx) => 
-                `<div class="edit-tag" style="user-select:none; -webkit-touch-callout:none;" onmousedown="startPress('sub', null, ${idx}, '${mainCat}')" onmouseup="cancelPress()" onmouseleave="cancelPress()" ontouchstart="startPress('sub', null, ${idx}, '${mainCat}')" ontouchend="cancelPress()" ontouchmove="cancelPress()">${item} <span class="del" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); delSubCat(${idx})">×</span></div>`
+                `<div class="edit-tag" onmousedown="startPress('sub', null, ${idx}, '${mainCat}')" onmouseup="cancelPress()" onmouseleave="cancelPress()" ontouchstart="startPress('sub', null, ${idx}, '${mainCat}')" ontouchend="cancelPress()" ontouchmove="cancelPress()">${item} <span class="del" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); delSubCat(${idx})">×</span></div>`
             ).join('');
         }
 
@@ -1394,13 +1483,21 @@
             document.getElementById('statusTagsContainer').innerHTML = tagHtml;
         }
 
+        // ================= 图片上传与裁剪逻辑 =================
         let imgArray = []; 
         function renderUploaders() {
             const container = document.getElementById('uploadArea'); container.innerHTML = '';
-            imgArray.forEach((b64, idx) => { container.innerHTML += `<div class="img-uploader"><div class="img-del-btn" onclick="deleteImg(${idx}, event)">×</div><img src="${b64}"></div>`; });
+            imgArray.forEach((b64, idx) => { 
+                let cropBtn = idx === 0 ? `<div class="crop-btn" onclick="openCropperFor(${idx}, event)">✂️封面</div>` : '';
+                container.innerHTML += `<div class="img-uploader"><div class="img-del-btn" onclick="deleteImg(${idx}, event)">×</div><img src="${b64}">${cropBtn}</div>`; 
+            });
             container.innerHTML += `<div class="img-uploader"><input type="file" accept="image/*" onchange="processImg(this)"><span style="font-size:32px;">${imgArray.length === 0 ? '📷' : '➕'}</span><span class="img-label">${imgArray.length === 0 ? '主图' : '副图'}</span></div>`;
         }
-        function deleteImg(idx, e) { e.stopPropagation(); imgArray.splice(idx, 1); renderUploaders(); }
+        function deleteImg(idx, e) { 
+            e.stopPropagation(); imgArray.splice(idx, 1); 
+            if(currentCropTarget === idx) closeCropper();
+            renderUploaders(); 
+        }
         function processImg(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader(); reader.readAsDataURL(input.files[0]);
@@ -1410,9 +1507,77 @@
                         const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
                         let w = img.width, h = img.height; if (w > 800) { h *= 800 / w; w = 800; }
                         cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
-                        imgArray.push(cvs.toDataURL('image/jpeg', 0.8)); renderUploaders();
+                        imgArray.push(cvs.toDataURL('image/jpeg', 0.8)); 
+                        if(imgArray.length === 1) coverCrop = { top: 0, bottom: 1, left: 0, right: 1 }; // 初始化第一张图裁切
+                        renderUploaders(); 
+                        input.value = '';
                     }
                 }
+            }
+        }
+
+        const cropperWrap = document.getElementById('cropperWrapper'); const cropBox = document.getElementById('cropBox');
+        function openCropperFor(idx, e) {
+            e.stopPropagation(); if(!imgArray[idx]) return; currentCropTarget = idx;
+            document.getElementById('cropperLayout').style.display = 'flex';
+            let imgEl = document.getElementById('cropperImg'); imgEl.src = imgArray[idx];
+            imgEl.onload = () => { updateCropUI(); };
+        }
+        function closeCropper(e) {
+            if(e) e.preventDefault();
+            document.getElementById('cropperLayout').style.display = 'none';
+            currentCropTarget = -1;
+        }
+        function updateCropUI() {
+            if(currentCropTarget < 0) return; let activeCrop = coverCrop;
+            if(activeCrop.top < 0) activeCrop.top = 0; if(activeCrop.bottom > 1) activeCrop.bottom = 1; if(activeCrop.left < 0) activeCrop.left = 0; if(activeCrop.right > 1) activeCrop.right = 1;
+            if(activeCrop.top >= activeCrop.bottom - 0.05) activeCrop.top = activeCrop.bottom - 0.05; if(activeCrop.left >= activeCrop.right - 0.05) activeCrop.left = activeCrop.right - 0.05;
+
+            let t = activeCrop.top * 100, b = activeCrop.bottom * 100, l = activeCrop.left * 100, r = activeCrop.right * 100;
+            cropBox.style.top = t + '%'; cropBox.style.bottom = (100 - b) + '%'; cropBox.style.left = l + '%'; cropBox.style.right = (100 - r) + '%';
+            document.getElementById('maskTop').style.height = t + '%'; document.getElementById('maskBottom').style.top = b + '%';
+            let mLeft = document.getElementById('maskLeft'); mLeft.style.top = t + '%'; mLeft.style.bottom = (100 - b) + '%'; mLeft.style.width = l + '%';
+            let mRight = document.getElementById('maskRight'); mRight.style.top = t + '%'; mRight.style.bottom = (100 - b) + '%'; mRight.style.left = r + '%';
+        }
+
+        let dragState = null; function getTouchPos(e) { return { x: e.touches ? e.touches[0].clientX : e.clientX, y: e.touches ? e.touches[0].clientY : e.clientY }; }
+        function onCropStart(e) {
+            let target = e.target; let action = target.getAttribute('data-action') || (target === cropBox ? 'move' : null);
+            if (!action || currentCropTarget < 0) return; e.preventDefault(); 
+            let drawerEl = document.querySelector('.drawer'); if(drawerEl) drawerEl.style.overflowY = 'hidden'; 
+            let rect = cropperWrap.getBoundingClientRect(); let activeCrop = coverCrop;
+            dragState = { type: action, startPos: getTouchPos(e), origCrop: { ...activeCrop }, w: rect.width, h: rect.height };
+        }
+        function onCropMove(e) {
+            if (!dragState) return; e.preventDefault();
+            let pos = getTouchPos(e); let dx = (pos.x - dragState.startPos.x) / dragState.w; let dy = (pos.y - dragState.startPos.y) / dragState.h;
+            let orig = dragState.origCrop; let activeCrop = coverCrop;
+
+            if (dragState.type === 'move') {
+                let w = orig.right - orig.left, h = orig.bottom - orig.top; let newT = orig.top + dy, newL = orig.left + dx;
+                if(newT < 0) newT = 0; if(newT + h > 1) newT = 1 - h; if(newL < 0) newL = 0; if(newL + w > 1) newL = 1 - w;
+                activeCrop.top = newT; activeCrop.bottom = newT + h; activeCrop.left = newL; activeCrop.right = newL + w;
+            } else {
+                if (dragState.type === 'n') activeCrop.top = orig.top + dy; if (dragState.type === 's') activeCrop.bottom = orig.bottom + dy;
+                if (dragState.type === 'w') activeCrop.left = orig.left + dx; if (dragState.type === 'e') activeCrop.right = orig.right + dx;
+            }
+            updateCropUI();
+        }
+        function onCropEnd() { dragState = null; let drawerEl = document.querySelector('.drawer'); if(drawerEl) drawerEl.style.overflowY = 'auto'; }
+
+        cropBox.addEventListener('touchstart', onCropStart, {passive:false}); cropBox.addEventListener('mousedown', onCropStart);
+        window.addEventListener('touchmove', onCropMove, {passive:false}); window.addEventListener('touchend', onCropEnd); window.addEventListener('mousemove', onCropMove); window.addEventListener('mouseup', onCropEnd);
+
+        function generateThumb(b64, crop, callback) {
+            if(!b64) return callback(''); 
+            if(crop.top === 0 && crop.bottom === 1 && crop.left === 0 && crop.right === 1) return callback('');
+            let img = new Image(); img.src = b64;
+            img.onload = () => { 
+                let cvs = document.createElement('canvas'); let ctx = cvs.getContext('2d'); 
+                let cW = img.width * (crop.right - crop.left); let cH = img.height * (crop.bottom - crop.top); 
+                cvs.width = cW; cvs.height = cH; 
+                ctx.drawImage(img, img.width * crop.left, img.height * crop.top, cW, cH, 0, 0, cW, cH); 
+                callback(cvs.toDataURL('image/jpeg', 0.6)); 
             }
         }
 
@@ -1424,7 +1589,7 @@
             if (type === 'queue') { if (t === 0 && b === 0 && s === 0) statusSelect.value = 'crowdfunding'; else statusSelect.value = 'unpaid_grouping'; } 
             else if (type === 'deposit') statusSelect.value = 'need_balance';
             else if (type === 'pay_balance') statusSelect.value = 'not_arrived';
-            else if (type === 'full') statusSelect.value = appConfig.appearance.fullDefaultNotArrived ? 'not_arrived' : 'arrived';
+            else if (type === 'full') statusSelect.value = appConfig.appearance.fullDefaultStatus || 'not_arrived';
         }
 
         let activeInput = null;
@@ -1464,17 +1629,11 @@
             const type = document.querySelector('input[name="entryType"]:checked').value;
             const isEdit = document.getElementById('editingItemId').value !== '';
             
-            // 智能修改本体输入框的文本与颜色
             const labelBase = document.getElementById('labelPriceBase');
             if (type === 'queue') {
-                labelBase.innerText = '预计定金'; 
-                labelBase.style.color = 'var(--est-color)'; 
-                document.getElementById('labelPriceShip').style.color = 'var(--est-color)'; 
-                document.getElementById('labelPriceTotal').style.color = 'var(--est-color)'; 
+                labelBase.innerText = '预计定金'; labelBase.style.color = 'var(--est-color)'; document.getElementById('labelPriceShip').style.color = 'var(--est-color)'; document.getElementById('labelPriceTotal').style.color = 'var(--est-color)'; 
             } else {
-                if (type === 'deposit') labelBase.innerText = '已付定金';
-                else if (type === 'pay_balance') labelBase.innerText = '已付尾款';
-                else labelBase.innerText = '本体';
+                if (type === 'deposit') labelBase.innerText = '已付定金'; else if (type === 'pay_balance') labelBase.innerText = '已付尾款'; else labelBase.innerText = '本体';
                 labelBase.style.color = ''; document.getElementById('labelPriceShip').style.color = ''; document.getElementById('labelPriceTotal').style.color = ''; 
             }
 
@@ -1519,7 +1678,8 @@
                 
                 document.getElementById('itemRemark').value = item.remark || '';
                 document.getElementById('isImportant').checked = !!item.isImportant; document.getElementById('importantArea').style.display = item.isImportant ? 'block' : 'none'; document.getElementById('importantRemark').value = item.importantRemark || '';
-                imgArray = item.images ? [...item.images] : []; renderUploaders(); autoCalc('base'); 
+                imgArray = item.images ? [...item.images] : []; coverCrop = item.coverCrop ? {...item.coverCrop} : { top: 0, bottom: 1, left: 0, right: 1 };
+                renderUploaders(); autoCalc('base'); 
             } 
         }
         
@@ -1539,7 +1699,8 @@
 
                 let paidTotal = item.totalPrice * item.qty;
                 document.getElementById('paidDepositHintText').innerText = `已付定金 ${paidTotal} 元（计入定金总计）`; document.getElementById('paidDepositHintGroup').style.display = 'flex';
-                imgArray = item.images ? [...item.images] : []; renderUploaders();
+                imgArray = item.images ? [...item.images] : []; coverCrop = item.coverCrop ? {...item.coverCrop} : { top: 0, bottom: 1, left: 0, right: 1 };
+                renderUploaders();
             } else {
                 document.getElementById('paidDepositHintGroup').style.display = 'none';
                 document.getElementById('priceEstBaseBalance').value = ''; document.getElementById('priceEstBalance').value = ''; document.getElementById('itemRemark').value = '';
@@ -1562,7 +1723,8 @@
             doSaveItem();
         }
 
-        function doSaveItem() {
+        async function doSaveItem() {
+            let btn = document.getElementById('btnSave'); let oldText = btn.innerText; btn.innerText = "正在保存...";
             const editId = document.getElementById('editingItemId').value; 
             const type = document.querySelector('input[name="entryType"]:checked').value; 
             const name = document.getElementById('itemName').value.trim(); 
@@ -1586,6 +1748,12 @@
             const estBaseBalance = parseFloat(document.getElementById('priceEstBaseBalance').value) || 0;
             const estBalance = parseFloat(document.getElementById('priceEstBalance').value) || 0; 
 
+            // 生成封面缩略图
+            let coverThumbStr = '';
+            if (imgArray[0]) {
+                coverThumbStr = await new Promise(resolve => generateThumb(imgArray[0], coverCrop, resolve));
+            }
+
             if (editId) {
                 const idx = appData.items.findIndex(i => i.id == editId);
                 if (appData.items[idx].estDate !== estDate) { appData.items[idx].noticeDismissed = false; appData.items[idx].noticeRead = false; }
@@ -1604,6 +1772,7 @@
 
                 appData.items[idx] = { ...targetItem, name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
                 appData.items[idx].images = [...imgArray]; 
+                appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr;
                 appData.items[idx].estBaseBalance = (type === 'full') ? 0 : estBaseBalance;
                 appData.items[idx].estBalance = (type === 'full') ? 0 : estBalance;
                 appData.items[idx].finalBalanceDate = (type === 'deposit') ? finalBalanceDate : '';
@@ -1618,21 +1787,21 @@
                     appData.items[idx].basePrice = appData.items[idx].depositBasePrice + bPrice; appData.items[idx].shipping = appData.items[idx].depositShipping + sPrice; appData.items[idx].totalPrice = appData.items[idx].basePrice + appData.items[idx].shipping;
                     appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
                     appData.items[idx].entryType = type; if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
-                    appData.items[idx].estBaseBalance = 0; appData.items[idx].estBalance = 0; appData.items[idx].images = [...imgArray]; appData.items[idx].finalBalanceDate = ''; appData.items[idx].queueDeadline = '';
+                    appData.items[idx].estBaseBalance = 0; appData.items[idx].estBalance = 0; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].finalBalanceDate = ''; appData.items[idx].queueDeadline = '';
                 } else if (type === 'deposit' && document.getElementById('pullQueueSelect').value) {
                     const id = document.getElementById('pullQueueSelect').value; const idx = appData.items.findIndex(i => i.id == id);
                     appData.items[idx].totalPrice = tPrice; appData.items[idx].basePrice = bPrice; appData.items[idx].shipping = sPrice;
                     appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
-                    appData.items[idx].entryType = type; appData.items[idx].estBaseBalance = estBaseBalance; appData.items[idx].estBalance = estBalance; appData.items[idx].finalBalanceDate = finalBalanceDate; appData.items[idx].images = [...imgArray]; appData.items[idx].queueDeadline = '';
+                    appData.items[idx].entryType = type; appData.items[idx].estBaseBalance = estBaseBalance; appData.items[idx].estBalance = estBalance; appData.items[idx].finalBalanceDate = finalBalanceDate; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].queueDeadline = '';
                 } else {
-                    let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], noticeRead: false, noticeDismissed: false };
+                    let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], coverCrop: {...coverCrop}, coverThumb: coverThumbStr, noticeRead: false, noticeDismissed: false };
                     if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
                     newItem.estBaseBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBaseBalance; newItem.estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
                     newItem.finalBalanceDate = (type === 'deposit') ? finalBalanceDate : ''; newItem.queueDeadline = (type === 'queue') ? queueDeadline : ''; newItem.queueDeadlineSuffix = (type === 'queue') ? queueDeadlineSuffix : '';
                     appData.items.push(newItem);
                 }
             }
-            saveData(); closeDrawer(); renderGroupFilters(); renderUI(); checkNotices(); if(editId) { closeIdCard(); openIdCard(editId); } 
+            saveData(); btn.innerText = oldText; closeDrawer(); closeCropper(); renderGroupFilters(); renderUI(); checkNotices(); if(editId) { closeIdCard(); openIdCard(editId); } 
         }
 
         function toggleTagVisible(tag, el) {
@@ -1640,6 +1809,13 @@
             localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
             el.innerText = appConfig.statusHidden[tag] ? '🚫' : '👁️';
             renderStatusTags(); renderUI();
+        }
+
+        function toggleGroupFilterVisible(key, el) {
+            appConfig.groupFiltersHidden[key] = !appConfig.groupFiltersHidden[key];
+            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            el.innerText = appConfig.groupFiltersHidden[key] ? '🚫' : '👁️';
+            renderGroupFilters(); renderUI();
         }
 
         // 拖拽排序逻辑与侧边栏控制
@@ -1654,12 +1830,13 @@
                     let today = new Date().getTime();
                     filteredItems = appData.items.filter(item => {
                         let isImp = !!(item.isImportant && item.importantRemark);
-                        let isNear = false; if (item.status !== 'arrived' && item.estDate) { if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true; }
-                        if (currentFilter === 'not_arrived') return item.status === 'not_arrived'; if (currentFilter === 'need_balance') return item.status === 'need_balance';
+                        let isNear = false; if (!isIgnoredStatus(item.status) && item.status !== 'arrived' && item.estDate) { if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true; }
+                        if (currentFilter === 'not_arrived') return item.status === 'not_arrived'; if (currentFilter === 'shipped') return item.status === 'shipped'; if (currentFilter === 'need_balance') return item.status === 'need_balance';
                         if (currentFilter === 'unpaid_grouping') return item.status === 'unpaid_grouping'; if (currentFilter === 'crowdfunding') return item.status === 'crowdfunding';
                         if (currentFilter === 'arrived') return item.status === 'arrived'; if (currentFilter === 'dead_like') return item.status === 'dead_like';
                         if (currentFilter === 'dead') return item.status === 'dead'; if (currentFilter === 'exploded') return item.status === 'exploded';
                         if (currentFilter === 'run_away') return item.status === 'run_away'; if (currentFilter === 'important') return isImp;
+                        if (currentFilter === 'withdrawn') return item.status === 'withdrawn'; if (currentFilter === 'failed') return item.status === 'failed';
                         if (currentFilter === 'near') return isNear; return true;
                     });
                 }
@@ -1676,7 +1853,8 @@
                     sidebarHtml += `<div class="settings-nav-item ${idx===0?'active':''}" id="nav_${groupId}" onclick="scrollToSortGroup('${groupId}', this)">${gName.split(' - ')[1]}</div>`;
                     listHtml += `<div id="${groupId}" class="sort-group-title" style="padding:15px 5px 10px; font-weight:bold; font-size:13px; color:var(--primary);">${gName}</div>`;
                     groups[gName].forEach(item => {
-                        let img = (item.images && item.images.length>0) ? `<img src="${item.images[0]}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:12px;flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:#eee;margin-right:12px;font-size:10px;display:flex;align-items:center;justify-content:center;color:#999;flex-shrink:0;">无图</div>`;
+                        let imgSrc = (item.images && item.images.length > 0) ? (item.coverThumb || item.images[0]) : '';
+                        let img = imgSrc ? `<img src="${imgSrc}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:12px;flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:#eee;margin-right:12px;font-size:10px;display:flex;align-items:center;justify-content:center;color:#999;flex-shrink:0;">无图</div>`;
                         let tagStr = STATUS_MAP[item.status] || '无';
                         listHtml += `<div class="sort-item" data-id="${item.id}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:var(--input-bg); border-radius:12px; margin-bottom:10px; user-select:none;">
                             <div style="display:flex; align-items:center; flex:1; overflow:hidden;">${img}<div style="display:flex; flex-direction:column; overflow:hidden; flex:1;"><div style="font-weight:bold; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</div><div style="font-size:11px; color:#888; margin-top:2px;">${tagStr}</div></div></div>
@@ -1700,22 +1878,34 @@
                 if(type === 'topIcons') { arr = appConfig.topIconsOrder; title = '顶部图标排序'; }
                 if(type === 'mainCat') { arr = appData.categories.main; title = '主分类排序'; }
                 if(type === 'subCat') { let mainCat = document.getElementById('set_subCat_mainSelect').value; arr = appData.categories.subMap[mainCat] || []; title = '小分类排序'; }
-                if(type === 'sources') { arr = appData.sources; title = '来源排序'; }
                 if(type === 'kaomojis') { arr = appData.kaomojis; title = '颜文字排序'; }
                 if(type === 'quickRemarks') { arr = appData.quickRemarks; title = '快捷语句排序'; }
-                if(type === 'groupbuys') { arr = appData.groupbuys; title = '拼团排序'; }
+                if(type === 'groupFilters') { arr = appConfig.groupFiltersOrder; title = '拼团与来源排序管理'; }
                 
                 document.getElementById('sortDrawerTitle').innerText = title;
                 
                 listHtml = arr.map(item => {
-                    let display = item; let eyeIcon = ''; let dataVal = typeof item === 'object' ? item.id : item.replace(/"/g, '&quot;');
-                    if(type === 'groupbuys') display = item.name;
-                    if(type === 'statusTags') {
+                    let display = item; let eyeIcon = ''; let dataVal = typeof item === 'object' ? item.id : (typeof item === 'string' ? item.replace(/"/g, '&quot;') : item);
+                    let isSpecial = false;
+
+                    if(type === 'groupFilters') {
+                        let isHidden = appConfig.groupFiltersHidden[item]; let eyeStr = isHidden ? '🚫' : '👁️';
+                        eyeIcon = `<div onclick="toggleGroupFilterVisible('${item}', this); event.stopPropagation();" style="padding:5px 15px; font-size:16px; cursor:pointer;" title="切换显示">${eyeStr}</div>`;
+                        if(item === 'none') { display = '(系统) 无分组'; }
+                        else if(item.startsWith('gb_')) {
+                            let gbId = item.split('_')[1]; let gb = appData.groupbuys.find(g => g.id == gbId); display = gb ? `(团) ${gb.name}` : item;
+                        } else if(item.startsWith('src_')) {
+                            display = `(来源) ${item.split('_')[1]}`; isSpecial = true;
+                        }
+                    } else if(type === 'statusTags') {
                         display = STATUS_TAG_NAMES[item]; let isHidden = appConfig.statusHidden[item]; let eyeStr = isHidden ? '🚫' : '👁️';
                         eyeIcon = `<div onclick="toggleTagVisible('${item}', this); event.stopPropagation();" style="padding:5px 15px; font-size:16px; cursor:pointer;" title="切换显示">${eyeStr}</div>`;
-                    }
-                    if(type === 'topIcons') { let m = {search:'搜索', notice:'通知', calendar:'日历', settings:'设置', eye:'金额'}; display = m[item] || item; }
-                    return `<div class="sort-item" data-val="${dataVal}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:var(--input-bg); border-radius:12px; margin-bottom:10px; user-select:none;">
+                    } else if(type === 'topIcons') { let m = {search:'搜索', notice:'通知', calendar:'日历', settings:'设置', eye:'金额'}; display = m[item] || item; }
+                    
+                    let bgCol = isSpecial ? 'var(--primary-light)' : 'var(--input-bg)';
+                    let txtCol = isSpecial ? 'var(--primary)' : 'var(--text-main)';
+
+                    return `<div class="sort-item" data-val="${dataVal}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:${bgCol}; color:${txtCol}; border-radius:12px; margin-bottom:10px; user-select:none;">
                         <div style="font-weight:bold; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${display}</div>${eyeIcon}
                         <div class="drag-handle" style="padding:5px 10px; font-size:18px; color:#999; cursor:grab; margin-right:-10px;">☰</div>
                     </div>`;
@@ -1763,16 +1953,15 @@
                 if(currentSortType === 'topIcons') appConfig.topIconsOrder = newOrderVals;
                 if(currentSortType === 'mainCat') appData.categories.main = newOrderVals;
                 if(currentSortType === 'subCat') { let mainCat = document.getElementById('set_subCat_mainSelect').value; appData.categories.subMap[mainCat] = newOrderVals; }
-                if(currentSortType === 'sources') appData.sources = newOrderVals;
                 if(currentSortType === 'kaomojis') appData.kaomojis = newOrderVals;
                 if(currentSortType === 'quickRemarks') appData.quickRemarks = newOrderVals;
-                if(currentSortType === 'groupbuys') { appData.groupbuys = newOrderVals.map(id => appData.groupbuys.find(g => g.id == id)); renderGroupbuys(); renderGroupFilters(); }
+                if(currentSortType === 'groupFilters') { appConfig.groupFiltersOrder = newOrderVals; renderGroupFilters(); }
             }
             
             localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); saveData(); closeSortDrawer();
             if(currentSortType === 'statusTags') renderStatusTags(); if(currentSortType === 'topIcons') renderTopIcons(); if(currentSortType === 'quickRemarks') renderQuickRemarks();
             renderUI();
-            if(currentSortType !== 'items' && currentSortType !== 'statusTags' && currentSortType !== 'topIcons' && currentSortType !== 'groupbuys') renderSettings();
+            if(currentSortType !== 'items' && currentSortType !== 'statusTags' && currentSortType !== 'topIcons' && currentSortType !== 'groupFilters') renderSettings();
             renderFormOptions();
         }
 
@@ -1793,29 +1982,47 @@
         function collapseExpand(key, e) { e.stopPropagation(); expandState[key] = false; renderUI(); }
         function setStatusFilter(f) { currentFilter = f; document.querySelectorAll('.s-tag').forEach(el => el.classList.remove('active')); document.getElementById('filter_' + f).classList.add('active'); renderUI(); }
 
-        // ================= 拼团独立筛选逻辑 =================
+        // ================= 拼团与来源独立筛选逻辑 =================
         function renderGroupFilters() {
-            if (!appConfig.appearance.showGroupFilters || !appData.groupbuys || appData.groupbuys.length === 0) {
+            if (!appConfig.appearance.showGroupFilters || appConfig.groupFiltersOrder.length === 0) {
                 document.getElementById('groupFiltersContainer').style.display = 'none'; return;
             }
             
-            // 先计算每个团的物品数量
-            let groupCounts = { 'all': 0 };
-            appData.groupbuys.forEach(gb => groupCounts[gb.id] = 0);
+            let groupCounts = { 'all': 0, 'none': 0 };
+            appConfig.groupFiltersOrder.forEach(k => groupCounts[k] = 0);
+            
             appData.items.forEach(item => {
+                if (isIgnoredStatus(item.status)) return;
                 groupCounts['all']++;
-                if (item.groupbuyId && groupCounts[item.groupbuyId] !== undefined) groupCounts[item.groupbuyId]++;
+                let matched = false;
+                if (item.groupbuyId) { 
+                    if(groupCounts['gb_' + item.groupbuyId] !== undefined) { groupCounts['gb_' + item.groupbuyId]++; matched = true; }
+                }
+                if (item.source && item.source !== '无') { 
+                    if(groupCounts['src_' + item.source] !== undefined) { groupCounts['src_' + item.source]++; matched = true; }
+                }
+                if (!matched && groupCounts['none'] !== undefined) groupCounts['none']++;
             });
 
+            if (currentGroupFilter !== 'all' && groupCounts[currentGroupFilter] === 0) {
+                currentGroupFilter = 'all'; 
+            }
+
             document.getElementById('groupFiltersContainer').style.display = 'flex';
-            let html = `<div class="g-tag ${currentGroupFilter === 'all' ? 'active' : ''}" onclick="setGroupFilter('all')">分组 (${groupCounts['all']})</div>`;
+            let html = `<div class="g-tag ${currentGroupFilter === 'all' ? 'active' : ''}" onclick="setGroupFilter('all')">全部 (${groupCounts['all']})</div>`;
             
-            appData.groupbuys.forEach(gb => {
-                let cnt = groupCounts[gb.id] || 0;
-                if(cnt > 0) {
-                    let activeStr = currentGroupFilter == gb.id ? 'active' : '';
-                    html += `<div class="g-tag ${activeStr}" onclick="setGroupFilter('${gb.id}')">${gb.name} (${cnt})</div>`;
-                }
+            appConfig.groupFiltersOrder.forEach(k => {
+                if(appConfig.groupFiltersHidden[k]) return;
+                let cnt = groupCounts[k] || 0;
+                if(cnt === 0) return; 
+
+                let activeStr = currentGroupFilter == k ? 'active' : '';
+                let nameDisplay = ''; let isSource = false;
+                if(k === 'none') { nameDisplay = '无分组'; }
+                else if(k.startsWith('gb_')) { let gb = appData.groupbuys.find(g => g.id == k.split('_')[1]); nameDisplay = gb ? gb.name : k; }
+                else if(k.startsWith('src_')) { nameDisplay = k.split('_')[1]; isSource = true; }
+                
+                html += `<div class="g-tag ${isSource ? 'source-tag' : ''} ${activeStr}" onclick="setGroupFilter('${k}')">${nameDisplay} (${cnt})</div>`;
             });
             document.getElementById('groupFiltersContainer').innerHTML = html;
         }
@@ -1830,6 +2037,7 @@
         function checkNotices() {
             let count = 0; let now = new Date().getTime();
             appData.items.forEach(item => {
+                if (isIgnoredStatus(item.status)) return;
                 if (item.status !== 'arrived' && item.estDate && !item.noticeRead && !item.noticeDismissed) {
                     let eDate = new Date(item.estDate + "T23:59:59").getTime(); if ((eDate - now) / 86400000 <= 15) count++;
                 }
@@ -1841,6 +2049,7 @@
         function openNotices() {
             let html = ''; let now = new Date().getTime();
             appData.items.forEach(item => {
+                if (isIgnoredStatus(item.status)) return;
                 if (item.status !== 'arrived' && item.estDate && !item.noticeDismissed) {
                     let eDate = new Date(item.estDate + "T23:59:59").getTime(); let diffDay = (eDate - now) / 86400000;
                     if (diffDay <= 15) {
@@ -1848,7 +2057,8 @@
                         if(item.status === 'unpaid_grouping') { needBalanceText = `<span style="color:var(--badge-unpaid_grouping); font-size:11px; margin-left:6px; border:1px solid var(--badge-unpaid_grouping); padding:1px 4px; border-radius:4px;">需补款</span>`; dateLabel = '预计成团补款'; } 
                         else if(item.status === 'need_balance') { needBalanceText = `<span style="color:var(--badge-balance); font-size:11px; margin-left:6px; border:1px solid var(--badge-balance); padding:1px 4px; border-radius:4px;">需补尾款</span>`; dateLabel = '预计补尾款'; }
                         
-                        let imgContent = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}" style="width:55px; height:55px; border-radius:8px; object-fit:cover; flex-shrink:0;">` : `<div style="width:55px; height:55px; border-radius:8px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; color:#999; font-weight:bold; overflow:hidden; padding:2px; text-align:center;">无图</div>`;
+                        let imgSrc = (item.images && item.images.length > 0) ? (item.coverThumb || item.images[0]) : '';
+                        let imgContent = imgSrc ? `<img src="${imgSrc}" style="width:55px; height:55px; border-radius:8px; object-fit:cover; flex-shrink:0;">` : `<div style="width:55px; height:55px; border-radius:8px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; color:#999; font-weight:bold; overflow:hidden; padding:2px; text-align:center;">无图</div>`;
                         let readStyle = item.noticeRead ? `color:#ccc;` : `color:#4CAF50;`; let readIcon = item.noticeRead ? `🔕` : `🔔`; let readTitle = item.noticeRead ? `已知晓` : `标记已知晓`;
 
                         html += `<div class="notice-card" onclick="closeNoticeDialog(); openIdCard(${item.id})">
@@ -1901,6 +2111,7 @@
             let monthEstSum = 0; let monthEstBalanceSum = 0; let monthQtySum = 0; let dayData = {}; let monthItems = [];
 
             appData.items.forEach(item => {
+                if (isIgnoredStatus(item.status)) return;
                 let tPrice = item.entryType === 'queue' ? 0 : item.totalPrice * item.qty; let inThisMonth = false;
                 if(item.status !== 'arrived' && item.estDate) {
                     let d = new Date(item.estDate);
@@ -1937,7 +2148,8 @@
             
             let monthListHtml = '';
             monthItems.forEach(i => {
-                let img = (i.images && i.images.length>0) ? `<img src="${i.images[0]}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;background:#fff;margin-right:10px;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#999;border:1px solid #eee;">无图</div>`;
+                let imgSrc = (i.images && i.images.length > 0) ? (i.coverThumb || i.images[0]) : '';
+                let img = imgSrc ? `<img src="${imgSrc}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;background:#fff;margin-right:10px;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#999;border:1px solid #eee;">无图</div>`;
                 let tagColor = getStatusColor(i.status); let tag = `<span style="color:${tagColor}; font-size:11px; font-weight:bold; background:${tagColor}20; padding:2px 6px; border-radius:4px;">${STATUS_MAP[i.status]||'未知'}</span>`;
                 let itemEstTotal = (parseFloat(i.estBalance || 0) + parseFloat(i.estBaseBalance || 0)) * i.qty; let estBalTxt = (i.status!=='arrived' && itemEstTotal > 0) ? `<span style="color:var(--badge-near); margin-left:5px;">(预计待补:¥${itemEstTotal})</span>` : ''; let itemPaid = i.entryType === 'queue' ? 0 : i.totalPrice * i.qty;
                 monthListHtml += `<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;" onclick="closeCalendar(); openIdCard(${i.id})">
@@ -1955,6 +2167,7 @@
 
             let estList = []; let arrList = []; let estSum = 0; let arrSum = 0;
             appData.items.forEach(item => {
+                if (isIgnoredStatus(item.status)) return;
                 let tPrice = item.entryType === 'queue' ? 0 : item.totalPrice * item.qty;
                 if(item.status !== 'arrived' && item.estDate) { let dt = new Date(item.estDate); if(dt.getFullYear()===y && dt.getMonth()===m && dt.getDate()===d) { estList.push(item); estSum += tPrice; } }
                 if(item.status === 'arrived') { let aDateStr = item.arrivedDate || item.estDate || item.buyDate; if(aDateStr) { let dt = new Date(aDateStr); if(dt.getFullYear()===y && dt.getMonth()===m && dt.getDate()===d) { arrList.push(item); arrSum += tPrice; } } }
@@ -1975,7 +2188,7 @@
 
             let today = new Date();
             if (`${y}-${m}-${d}` === `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`) {
-                let nowTime = today.getTime(); let futureItems = appData.items.filter(i => i.status !== 'arrived' && i.estDate && new Date(i.estDate + "T23:59:59").getTime() > nowTime);
+                let nowTime = today.getTime(); let futureItems = appData.items.filter(i => !isIgnoredStatus(i.status) && i.status !== 'arrived' && i.estDate && new Date(i.estDate + "T23:59:59").getTime() > nowTime);
                 futureItems.sort((a,b) => new Date(a.estDate) - new Date(b.estDate));
                 if(futureItems.length > 0) {
                     html += `<div style="font-size:13px; color:var(--primary); font-weight:bold; margin:15px 0 5px 0;">🌟 接下来</div>`;
@@ -1998,8 +2211,8 @@
         function renderUI() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             let sumT = 0, sumB = 0, sumS = 0, sumQty = 0; 
-            let cntNotArrived = 0, cntNeedBalance = 0, cntUnpaidGrouping = 0, cntImportant = 0, cntNear = 0, cntCrowdfunding = 0, cntArrived = 0;
-            let cntDeadLike = 0, cntDead = 0, cntExploded = 0, cntRunAway = 0;
+            let cntNotArrived = 0, cntShipped = 0, cntNeedBalance = 0, cntUnpaidGrouping = 0, cntImportant = 0, cntNear = 0, cntCrowdfunding = 0, cntArrived = 0;
+            let cntDeadLike = 0, cntDead = 0, cntExploded = 0, cntRunAway = 0, cntWithdrawn = 0, cntFailed = 0;
             let today = new Date().getTime();
 
             let cols = Math.floor((window.innerWidth - 40) / 95) || 3; if(cols < 3) cols = 3;
@@ -2019,19 +2232,33 @@
             });
 
             sortedItems.forEach(item => {
-                // 拦截非选中拼团的物品，完全排除
-                if (currentGroupFilter !== 'all' && item.groupbuyId != currentGroupFilter) return;
+                let isIgnored = isIgnoredStatus(item.status);
+                if (isIgnored && appConfig.appearance.hideDeadItems) return;
+
+                if (currentGroupFilter !== 'all') {
+                    let match = false;
+                    if (currentGroupFilter === 'none') {
+                        match = !item.groupbuyId && (!item.source || item.source === '无');
+                    } else if (currentGroupFilter.startsWith('gb_')) {
+                        match = item.groupbuyId == currentGroupFilter.split('_')[1];
+                    } else if (currentGroupFilter.startsWith('src_')) {
+                        match = item.source === currentGroupFilter.split('_')[1];
+                    }
+                    if (!match) return;
+                }
 
                 let isNear = false;
-                if (item.status !== 'arrived' && item.estDate) { if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true; }
+                if (!isIgnored && item.status !== 'arrived' && item.estDate) { if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true; }
                 let isImp = !!(item.isImportant && item.importantRemark);
 
-                if (item.status === 'not_arrived') cntNotArrived++; if (item.status === 'need_balance') cntNeedBalance++; if (item.status === 'unpaid_grouping') cntUnpaidGrouping++;
+                if (item.status === 'not_arrived') cntNotArrived++; if (item.status === 'shipped') cntShipped++; if (item.status === 'need_balance') cntNeedBalance++; if (item.status === 'unpaid_grouping') cntUnpaidGrouping++;
                 if (item.status === 'crowdfunding') cntCrowdfunding++; if (item.status === 'arrived') cntArrived++; if (item.status === 'dead_like') cntDeadLike++;
                 if (item.status === 'dead') cntDead++; if (item.status === 'exploded') cntExploded++; if (item.status === 'run_away') cntRunAway++;
+                if (item.status === 'withdrawn') cntWithdrawn++; if (item.status === 'failed') cntFailed++;
                 if (isImp) cntImportant++; if (isNear) cntNear++;
 
                 if (currentFilter === 'not_arrived' && item.status !== 'not_arrived') return;
+                if (currentFilter === 'shipped' && item.status !== 'shipped') return;
                 if (currentFilter === 'need_balance' && item.status !== 'need_balance') return;
                 if (currentFilter === 'unpaid_grouping' && item.status !== 'unpaid_grouping') return;
                 if (currentFilter === 'crowdfunding' && item.status !== 'crowdfunding') return;
@@ -2040,6 +2267,8 @@
                 if (currentFilter === 'dead' && item.status !== 'dead') return;
                 if (currentFilter === 'exploded' && item.status !== 'exploded') return;
                 if (currentFilter === 'run_away' && item.status !== 'run_away') return;
+                if (currentFilter === 'withdrawn' && item.status !== 'withdrawn') return;
+                if (currentFilter === 'failed' && item.status !== 'failed') return;
                 if (currentFilter === 'important' && !isImp) return;
                 if (currentFilter === 'near' && !isNear) return;
 
@@ -2049,21 +2278,25 @@
                 let itemB = item.entryType === 'queue' ? 0 : item.basePrice * item.qty;
                 let itemS = item.entryType === 'queue' ? 0 : item.shipping;
                 
-                sumT += itemT; sumB += itemB; sumS += itemS; sumQty += item.qty;
+                if (!isIgnored) {
+                    sumT += itemT; sumB += itemB; sumS += itemS; sumQty += item.qty;
+                }
 
                 let mCat = item.mainCat || '未分类'; let sCat = item.subCat || '无分类';
                 if(!mainGroups[mCat]) { mainGroups[mCat] = { sum: 0, subs: {} }; if(catHiddenState[mCat] === undefined) catHiddenState[mCat] = true; }
                 if(!mainGroups[mCat].subs[sCat]) mainGroups[mCat].subs[sCat] = [];
                 
-                mainGroups[mCat].subs[sCat].push(item); mainGroups[mCat].sum += itemT;
+                mainGroups[mCat].subs[sCat].push(item);
+                if (!isIgnored) mainGroups[mCat].sum += itemT;
             });
 
             const setCnt = (id, val) => { let el = document.getElementById(id); if(el) el.innerText = val > 0 ? val : ''; };
-            setCnt('cnt_not_arrived', cntNotArrived); setCnt('cnt_need_balance', cntNeedBalance); setCnt('cnt_unpaid_grouping', cntUnpaidGrouping);
+            setCnt('cnt_not_arrived', cntNotArrived); setCnt('cnt_shipped', cntShipped); setCnt('cnt_need_balance', cntNeedBalance); setCnt('cnt_unpaid_grouping', cntUnpaidGrouping);
             setCnt('cnt_crowdfunding', cntCrowdfunding); setCnt('cnt_arrived', cntArrived); setCnt('cnt_important', cntImportant); setCnt('cnt_near', cntNear);
+            setCnt('cnt_withdrawn', cntWithdrawn); setCnt('cnt_failed', cntFailed);
             setCnt('cnt_dead_like', cntDeadLike); setCnt('cnt_dead', cntDead); setCnt('cnt_exploded', cntExploded); setCnt('cnt_run_away', cntRunAway);
 
-            const mapCnt = { not_arrived: cntNotArrived, need_balance: cntNeedBalance, unpaid_grouping: cntUnpaidGrouping, crowdfunding: cntCrowdfunding, arrived: cntArrived, important: cntImportant, near: cntNear, dead_like: cntDeadLike, dead: cntDead, exploded: cntExploded, run_away: cntRunAway };
+            const mapCnt = { not_arrived: cntNotArrived, shipped: cntShipped, need_balance: cntNeedBalance, unpaid_grouping: cntUnpaidGrouping, crowdfunding: cntCrowdfunding, arrived: cntArrived, important: cntImportant, near: cntNear, withdrawn: cntWithdrawn, failed: cntFailed, dead_like: cntDeadLike, dead: cntDead, exploded: cntExploded, run_away: cntRunAway };
             appConfig.statusOrder.forEach(key => { let el = document.getElementById('filter_' + key); if(el) { if (key !== 'all' && mapCnt[key] === 0) el.style.display = 'none'; else el.style.display = ''; } });
 
             document.getElementById('totalPriceDisplay').innerHTML = globalHidden ? getFace() : sumT.toFixed(2);
@@ -2086,7 +2319,7 @@
                         if(sList.length === 0) continue;
                         let subKey = mName + '_' + sName; if(catHiddenState[subKey] === undefined) catHiddenState[subKey] = true;
                         
-                        let subSum = 0; sList.forEach(i => subSum += (i.entryType === 'queue' ? 0 : i.totalPrice * i.qty));
+                        let subSum = 0; sList.forEach(i => { if(!isIgnoredStatus(i.status)) subSum += (i.entryType === 'queue' ? 0 : i.totalPrice * i.qty); });
                         let subCatPriceDisplay = catHiddenState[subKey] ? getFace() : `¥${subSum.toFixed(2)}`;
                         let state = subCatFold[subKey] || 0; 
                         let icon = '▼'; if(state === 1) icon = '▽'; else if(state === 2) icon = '▶';
@@ -2105,16 +2338,20 @@
                             displayList.forEach((item, index) => {
                                 let badge = '', bg = '#000';
                                 if (item.status === 'not_arrived') { badge = STATUS_MAP.not_arrived; bg = 'var(--badge-not_arrived)'; }
+                                if (item.status === 'shipped') { badge = STATUS_MAP.shipped; bg = 'var(--badge-shipped)'; }
                                 if (item.status === 'need_balance') { badge = STATUS_MAP.need_balance; bg = 'var(--badge-balance)'; }
                                 if (item.status === 'unpaid_grouping') { badge = STATUS_MAP.unpaid_grouping; bg = 'var(--badge-unpaid_grouping)'; }
                                 if (item.status === 'crowdfunding') { badge = STATUS_MAP.crowdfunding; bg = 'var(--badge-crowd)'; }
+                                if (item.status === 'withdrawn') { badge = STATUS_MAP.withdrawn; bg = 'var(--badge-withdrawn)'; }
+                                if (item.status === 'failed') { badge = STATUS_MAP.failed; bg = 'var(--badge-failed)'; }
                                 if (item.status === 'dead_like') { badge = STATUS_MAP.dead_like; bg = 'var(--badge-dead_like)'; }
                                 if (item.status === 'dead') { badge = STATUS_MAP.dead; bg = 'var(--badge-dead)'; }
                                 if (item.status === 'exploded') { badge = STATUS_MAP.exploded; bg = 'var(--badge-exploded)'; }
                                 if (item.status === 'run_away') { badge = STATUS_MAP.run_away; bg = 'var(--badge-run_away)'; }
 
+                                let isIgnored = isIgnoredStatus(item.status);
                                 let badgeHtml = badge ? `<div class="badge" style="background:${bg}">${badge}</div>` : '';
-                                let isNear = false; if (item.status !== 'arrived' && item.estDate) { if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true; }
+                                let isNear = false; if (!isIgnored && item.status !== 'arrived' && item.estDate) { if ((new Date(item.estDate + "T23:59:59").getTime() - today) / 86400000 <= 15) isNear = true; }
                                 let badgeNearHtml = isNear ? `<div class="badge-near">⏰临近</div>` : '';
                                 let importantHtml = (item.isImportant && item.importantRemark) ? `<div class="important-overlay" style="bottom:${appConfig.appearance.noticePos}%; background:${bgWithOp}; color:${appConfig.appearance.noticeTextColor};">${item.importantRemark}</div>` : '';
                                 
@@ -2134,7 +2371,6 @@
                                 let finalHidden = globalHidden ? baseHidden : false;
                                 let priceStr = finalHidden ? getFace() : `¥${itemTotal.toFixed(2)}`;
                                 
-                                // 根据是否在排决定价格颜色
                                 let priceColor = appConfig.appearance.itemPriceColor;
                                 if (item.entryType === 'queue') {
                                     priceColor = appConfig.appearance.estPriceColor || '#5B9AFF';
@@ -2150,14 +2386,17 @@
                                 const mapComp = { name: compName, price: compPrice, date: compDate, none: {htmlIn:'', htmlOut:''} };
                                 let pos1Html = (mapComp[appConfig.appearance.cardLine1] || mapComp['none']).htmlIn; let pos2Html = (mapComp[appConfig.appearance.cardLine2] || mapComp['none']).htmlOut; let pos3Html = (mapComp[appConfig.appearance.cardLine3] || mapComp['none']).htmlOut;
 
-                                let imgHtml = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}">` : `<div class="no-img-text">${item.name}</div>`;
+                                let imgSrc = (item.images && item.images.length > 0) ? (item.coverThumb || item.images[0]) : '';
+                                let imgHtml = imgSrc ? `<img src="${imgSrc}">` : `<div class="no-img-text">${item.name}</div>`;
                                 let isLastAndMore = hasMore && !isExpanded && (index === limit - 1);
 
+                                let ignoredCls = isIgnored ? 'ignored-item' : '';
+
                                 if (isLastAndMore) {
-                                    let extraCount = sList.length - limit + 1; let blurImg = (item.images && item.images.length > 0) ? `<img src="${item.images[0]}" style="filter: blur(4px) brightness(0.6);">` : `<div style="width:100%;height:100%;background:#333;"></div>`;
-                                    html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0;" onclick="toggleExpand('${subKey}', event)"><div class="item-card more-card">${badgeHtml}${blurImg}<div class="more-text">+${extraCount}</div></div></div>`;
+                                    let extraCount = sList.length - limit + 1; let blurImg = imgSrc ? `<img src="${imgSrc}" style="filter: blur(4px) brightness(0.6);">` : `<div style="width:100%;height:100%;background:#333;"></div>`;
+                                    html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0;" onclick="toggleExpand('${subKey}', event)"><div class="item-card more-card ${ignoredCls}">${badgeHtml}${blurImg}<div class="more-text">+${extraCount}</div></div></div>`;
                                 } else {
-                                    html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0; position:relative;" onclick="openIdCard(${item.id})"><div class="item-card">${badgeHtml}${badgeNearHtml}${imgHtml}${importantHtml}${pos1Html}</div>${pos2Html}${pos3Html}</div>`;
+                                    html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0; position:relative;" onclick="openIdCard(${item.id})"><div class="item-card ${ignoredCls}">${badgeHtml}${badgeNearHtml}${imgHtml}${importantHtml}${pos1Html}</div>${pos2Html}${pos3Html}</div>`;
                                 }
                             });
                             if (isExpanded && hasMore) { html += `<div style="display:flex; flex-direction:column; cursor:pointer; min-width:0;" onclick="collapseExpand('${subKey}', event)"><div class="item-card more-card" style="background: var(--input-bg);"><div class="more-text" style="color:var(--text-muted); font-size:16px;">收起 ▲</div></div></div>`; }
@@ -2176,32 +2415,39 @@
         function openIdCard(id) {
             currentViewId = id; const item = appData.items.find(i => i.id == id);
             
-            if(item.images && item.images.length > 0) { document.getElementById('idImgContainer').innerHTML = item.images.map(src => `<img src="${src}">`).join(''); document.getElementById('idImgContainer').style.display = 'flex'; } 
-            else { document.getElementById('idImgContainer').style.display = 'none'; }
+            if(item.images && item.images.length > 0) { 
+                document.getElementById('idImgContainer').innerHTML = item.images.map((src, idx) => `<img src="${src}" onclick="openImageViewer(${item.id}, ${idx})">`).join(''); 
+                document.getElementById('idImgContainer').style.display = 'flex'; 
+            } else { document.getElementById('idImgContainer').style.display = 'none'; }
             
             document.getElementById('idName').innerText = item.name; 
             
-            // 颜色判断
+            let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
+            let dlcItem = dlcData.find(d => d.linkedItemId == item.id || d.name === item.name);
+            let dlcBtnHtml = '';
+            if (dlcItem) {
+                let btnColor = appConfig.appearance.badgeColors.dlc || '#5B9AFF';
+                dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC 1.html'">📐尺寸</div>`;
+            }
+            document.getElementById('idDlcLinkContainer').innerHTML = dlcBtnHtml;
+            
             let pColor = '';
             if (item.entryType === 'queue') {
                 pColor = `color:var(--est-color); font-weight:bold;`;
             }
 
-            // 本体展示
             let baseDisplay = `¥${item.basePrice || 0}`;
             if (item.depositBasePrice !== undefined && item.balanceBasePrice !== undefined) {
                 baseDisplay = `¥${item.depositBasePrice} + ${item.balanceBasePrice}`;
             }
             document.getElementById('idBasePrice').innerHTML = `<span style="${pColor}">${baseDisplay}</span>`;
             
-            // 附加展示
             let shipDisplay = `¥${item.shipping || 0}`;
             if (item.depositShipping !== undefined && item.balanceShipping !== undefined) {
                 shipDisplay = `¥${item.depositShipping} + ${item.balanceShipping}`;
             }
             document.getElementById('idShip').innerHTML = `<span style="${pColor}">${shipDisplay}</span>`;
             
-            // 拼团来源特化显示
             let sourceDisplay = item.source;
             let groupbuyInfoHtml = '';
 
@@ -2259,14 +2505,16 @@
             rb.style.display = (groupbuyInfoHtml || remarkContent) ? 'block' : 'none';
 
             const badge = document.getElementById('idStatusBadge'); badge.className = 'id-status';
-            const badgeMap = { arrived: 'arrived', not_arrived: 'not_arrived', need_balance: 'balance', unpaid_grouping: 'unpaid_grouping', crowdfunding: 'crowd', dead_like: 'dead_like', dead: 'dead', exploded: 'exploded', run_away: 'run_away' };
+            const badgeMap = { arrived: 'arrived', not_arrived: 'not_arrived', shipped: 'shipped', need_balance: 'balance', unpaid_grouping: 'unpaid_grouping', crowdfunding: 'crowd', withdrawn: 'withdrawn', failed: 'failed', dead_like: 'dead_like', dead: 'dead', exploded: 'exploded', run_away: 'run_away' };
             let cKey = badgeMap[item.status];
             if(cKey) { badge.innerText = STATUS_MAP[item.status]; badge.style.background = `var(--badge-${cKey})`; badge.style.color = '#fff'; } 
             else { badge.innerText = '无'; badge.style.background = '#E0E0E0'; badge.style.color = '#666'; }
 
             let btnHtml = '';
-            if(item.status === 'not_arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('arrived')">📦 签收</button>`;
-            else if(item.status === 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('not_arrived')" style="background:#f0f0f0;color:#666;">回退</button>`;
+            if(item.status === 'not_arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('shipped')">🚚 已发货</button>`;
+            else if(item.status === 'shipped') btnHtml = `<button class="id-btn action" onclick="changeStatus('arrived')">📦 签收</button>`;
+            else if(item.status === 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('not_arrived')"
+            style="background:#f0f0f0;color:#666;">回退</button>`;
             
             let shortcutBtn = '';
             if (item.entryType === 'queue') { shortcutBtn = `<button class="id-btn action" style="background:#E6F7FF; color:#1890FF;" onclick="shortcutAction(${item.id}, 'deposit')">✅ 已成团</button>`; } 
@@ -2275,6 +2523,79 @@
             document.getElementById('idActionGroup').innerHTML = `<button class="id-btn edit" onclick="startEdit()">✎ 编辑</button>${shortcutBtn}${btnHtml}<button class="id-btn delete" onclick="confirmDelete()">🗑 删除</button>`;
             document.getElementById('idCardOverlay').style.display = 'flex';
         }
+
+        // ================= 沉浸式查看器逻辑 =================
+        let viewImgs = [];
+        let vScale = 1, vTx = 0, vTy = 0; 
+        let startDist = 0, initialScale = 1, initTx = 0, initTy = 0, pStartX = 0, pStartY = 0; 
+        let lastTapTime = 0;
+        let vImgArea = document.getElementById('viewMainArea'); 
+        let vImg = document.getElementById('viewMainImg');
+
+        function openImageViewer(id, startIdx) {
+            const item = appData.items.find(i => i.id == id); if(!item || !item.images || item.images.length === 0) return;
+            viewImgs = item.images;
+            
+            document.getElementById('viewName').innerText = item.name || '未命名'; 
+            let mCat = item.mainCat || '未分类'; let sCat = item.subCat || '无';
+            document.getElementById('viewIdCat').innerText = `分类: ${mCat} - ${sCat}`;
+            
+            let remarkHtml = item.remark ? item.remark.replace(/\n/g, '<br>') : '<div style="text-align:center; color:#999; font-size:12px; margin-top:5px;">暂无简介。</div>';
+            document.getElementById('viewRemark').innerHTML = remarkHtml; document.getElementById('viewRemark').classList.remove('expanded');
+
+            let thumbsHtml = ''; viewImgs.forEach((src, idx) => { thumbsHtml += `<div class="v-thumb" id="vThumb_${idx}" onclick="switchViewImg(${idx})"><img src="${src}"></div>`; });
+            document.getElementById('viewThumbsStrip').innerHTML = thumbsHtml;
+            
+            switchViewImg(startIdx); document.getElementById('viewModal').style.display = 'flex';
+        }
+        
+        function switchViewImg(idx) {
+            if(idx < 0 || idx >= viewImgs.length) return;
+            vImg.src = viewImgs[idx];
+            vScale = 1; vTx = 0; vTy = 0; vImg.style.transition = 'none'; vImg.style.transform = `translate3d(0, 0, 0) scale(1)`;
+            document.querySelectorAll('.v-thumb').forEach(el => el.classList.remove('active'));
+            let targetThumb = document.getElementById('vThumb_' + idx);
+            if(targetThumb) { targetThumb.classList.add('active'); targetThumb.scrollIntoView({behavior: "smooth", inline: "center", block: "nearest"}); }
+        }
+        function closeImageViewer() { document.getElementById('viewModal').style.display = 'none'; }
+
+        vImgArea.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                initialScale = vScale;
+            } else if (e.touches.length === 1) {
+                pStartX = e.touches[0].pageX; pStartY = e.touches[0].pageY; initTx = vTx; initTy = vTy;
+            }
+            vImg.style.transition = 'none'; 
+        }, {passive: false});
+
+        vImgArea.addEventListener('touchmove', e => {
+            e.preventDefault(); 
+            if (e.touches.length === 2) {
+                let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                vScale = initialScale * (dist / startDist);
+                vScale = Math.max(1, Math.min(vScale, 5));
+                vImg.style.transform = `translate3d(${vTx}px, ${vTy}px, 0) scale(${vScale})`;
+            } else if (e.touches.length === 1 && vScale > 1) {
+                vTx = initTx + (e.touches[0].pageX - pStartX); vTy = initTy + (e.touches[0].pageY - pStartY);
+                vImg.style.transform = `translate3d(${vTx}px, ${vTy}px, 0) scale(${vScale})`;
+            }
+        }, {passive: false});
+
+        vImgArea.addEventListener('touchend', e => {
+            if (e.touches.length < 2) {
+                if (vScale <= 1) { vTx = 0; vTy = 0; vImg.style.transition = 'transform 0.2s'; vImg.style.transform = `translate3d(0, 0, 0) scale(1)`; }
+            }
+            if (e.touches.length === 0) {
+                let now = Date.now();
+                if (now - lastTapTime < 300 && now - lastTapTime > 0) {
+                    vImg.style.transition = 'transform 0.2s';
+                    if (vScale > 1) { vScale = 1; vTx = 0; vTy = 0; } else { vScale = 2; vTx = 0; vTy = 0; }
+                    vImg.style.transform = `translate3d(${vTx}px, ${vTy}px, 0) scale(${vScale})`;
+                    lastTapTime = 0;
+                } else { lastTapTime = now; }
+            }
+        });
 
         function shortcutAction(id, targetType) {
             closeIdCard(); openDrawer(); 
@@ -2286,8 +2607,21 @@
         }
 
         function closeIdCard() { document.getElementById('idCardOverlay').style.display = 'none'; }
-        function changeStatus(newStatus) { let item = appData.items.find(i => i.id == currentViewId); item.status = newStatus; if(newStatus === 'arrived') item.arrivedDate = new Date().toLocaleDateString('en-CA'); saveData(); renderUI(); checkNotices(); openIdCard(currentViewId); }
-        function confirmDelete() { showDialog("警告", false, "", "确认删除", () => { appData.items = appData.items.filter(i => i.id != currentViewId); saveData(); renderGroupFilters(); renderUI(); checkNotices(); closeIdCard(); }); document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F'; }
+        
+        function changeStatus(newStatus) { 
+            let item = appData.items.find(i => i.id == currentViewId); 
+            item.status = newStatus; 
+            if(newStatus === 'arrived') item.arrivedDate = new Date().toLocaleDateString('en-CA'); 
+            saveData(); renderUI(); checkNotices(); openIdCard(currentViewId); 
+        }
+        
+        function confirmDelete() { 
+            showDialog("警告", false, "", "确认删除", () => { 
+                appData.items = appData.items.filter(i => i.id != currentViewId); 
+                saveData(); renderGroupFilters(); renderUI(); checkNotices(); closeIdCard(); 
+            }); 
+            document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F'; 
+        }
 
         function startEdit() {
             closeIdCard(); const item = appData.items.find(i => i.id == currentViewId);
@@ -2319,7 +2653,12 @@
             let rBtn = document.querySelector(`input[name="entryType"][value="${eType}"]`); if(rBtn) rBtn.checked = true;
             
             toggleEntryType(); document.getElementById('itemStatus').value = item.status; 
-            imgArray = item.images ? [...item.images] : []; renderUploaders(); renderQuickRemarks(); document.getElementById('btnSave').innerText = '保存修改'; document.getElementById('addDrawer').style.display = 'flex';
+            
+            // 恢复图片和裁剪数据
+            imgArray = item.images ? [...item.images] : []; 
+            coverCrop = item.coverCrop ? {...item.coverCrop} : { top: 0, bottom: 1, left: 0, right: 1 };
+            
+            renderUploaders(); renderQuickRemarks(); document.getElementById('btnSave').innerText = '保存修改'; document.getElementById('addDrawer').style.display = 'flex';
         }
 
         function openDrawer() { 
@@ -2337,13 +2676,20 @@
             
             document.getElementById('priceEstBaseBalance').value = ''; document.getElementById('priceEstBalance').value = ''; document.getElementById('paidDepositHintGroup').style.display = 'none';
             let currentSource = document.getElementById('itemSource').value; document.getElementById('groupbuySelectGroup').style.display = (currentSource === '拼团') ? 'block' : 'none'; document.getElementById('groupbuyId').value = '';
-            activeInput = 'base'; imgArray = []; renderUploaders(); renderQuickRemarks(); document.getElementById('addDrawer').style.display = 'flex'; 
+            
+            activeInput = 'base'; 
+            imgArray = []; 
+            coverCrop = { top: 0, bottom: 1, left: 0, right: 1 };
+            
+            renderUploaders(); renderQuickRemarks(); document.getElementById('addDrawer').style.display = 'flex'; 
         }
-        function closeDrawer() { document.getElementById('addDrawer').style.display = 'none'; }
+        
+        function closeDrawer() { document.getElementById('addDrawer').style.display = 'none'; closeCropper(); }
         function saveData() { localStorage.setItem('myCabinetDataV7', JSON.stringify(appData)); }
 
+        // 初始化
         window.addEventListener('resize', () => { renderUI(); });
-        renderTopIcons(); renderFormOptions(); renderStatusTags(); renderGroupFilters(); renderUI(); checkNotices();
+        syncGroupFiltersOrder(); renderTopIcons(); renderFormOptions(); renderStatusTags(); renderGroupFilters(); renderUI(); checkNotices();
     </script>
 </body>
 </html>
