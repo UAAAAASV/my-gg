@@ -1353,7 +1353,18 @@
             if(currentId) { document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active')); let nav = document.getElementById('nav_' + currentId); if(nav) nav.classList.add('active'); }
         }
 
-        function exportData() { const dataStr = JSON.stringify({ appData, appConfig }); const blob = new Blob([dataStr], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `娃柜备份_${new Date().getTime()}.json`; a.click(); }
+        function exportData() { 
+            // 读取 DLC 数据
+            let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
+            // 将 dlcData 一起打包
+            const dataStr = JSON.stringify({ appData, appConfig, dlcData }); 
+            const blob = new Blob([dataStr], {type: "application/json"}); 
+            const url = URL.createObjectURL(blob); 
+            const a = document.createElement('a'); 
+            a.href = url; 
+            a.download = `娃柜备份_${new Date().getTime()}.json`; 
+            a.click(); 
+        }
         function importData(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -1362,8 +1373,14 @@
                         const data = JSON.parse(e.target.result);
                         if(data.appData) { appData = data.appData; if(!appData.groupbuys) appData.groupbuys = []; }
                         if(data.appConfig) appConfig = data.appConfig;
-                        saveData(); showDialog("恢复成功！", false, "", "刷新页面", () => { location.reload(); });
-                    } catch(err) { showDialog("数据格式错误", false, "", "知道了", null); }
+                        // 如果备份文件里有 DLC 数据，就写入浏览器的 DLC 缓存中
+                        if(data.dlcData) localStorage.setItem('myCabinetDLC_Size', JSON.stringify(data.dlcData));
+                        
+                        saveData(); 
+                        showDialog("恢复成功！", false, "", "刷新页面", () => { location.reload(); });
+                    } catch(err) { 
+                        showDialog("数据格式错误", false, "", "知道了", null); 
+                    }
                 }
                 reader.readAsText(input.files[0]);
             }
@@ -1375,12 +1392,18 @@
             const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
             let safeConfig = JSON.parse(JSON.stringify(appConfig)); if(safeConfig.cloud) safeConfig.cloud.token = ''; 
+            
+            // 抓取 DLC 数据打包
+            let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
+            
             const url = gistId ? `https://api.github.com/gists/${gistId}` : `https://api.github.com/gists`;
             const method = gistId ? 'PATCH' : 'POST';
-            const dataStr = JSON.stringify({ appData, appConfig: safeConfig });
+            // 加入 dlcData
+            const dataStr = JSON.stringify({ appData, appConfig: safeConfig, dlcData });
+            
             fetch(url, { method: method, headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` }, body: JSON.stringify({ description: "我的娃柜备份", public: false, files: { "myCabinet.json": { content: dataStr } } }) })
             .then(async res => { if (!res.ok) throw new Error("API_ERROR"); return res.json(); })
-            .then(data => { if(data.id) { document.getElementById('cfg_gh_gist_id').value = data.id; saveCloudConfig(); showDialog("成功上传到 GitHub 云端！", false, "", "太棒了", null); } })
+           .then(data => { if(data.id) { document.getElementById('cfg_gh_gist_id').value = data.id; saveCloudConfig(); showDialog("成功上传到 GitHub 云端！", false, "", "太棒了", null); } })
             .catch(err => { showDialog("上传失败：" + err.message, false, "", "知道了", null); }).finally(() => { btn.innerText = oldText; });
         }
         function downloadFromGitHub(e) {
@@ -1396,8 +1419,12 @@
                 const parsed = JSON.parse(contentStr);
                 if(parsed.appData) { appData = parsed.appData; if(!appData.groupbuys) appData.groupbuys = []; }
                 if(parsed.appConfig) { let localToken = appConfig.cloud.token; let localGistId = appConfig.cloud.gistId; appConfig = parsed.appConfig; if(!appConfig.cloud) appConfig.cloud = {}; appConfig.cloud.token = localToken; appConfig.cloud.gistId = localGistId; }
+        
+                // 解析云端数据，如果有 DLC 数据则恢复
+                if(parsed.dlcData) localStorage.setItem('myCabinetDLC_Size', JSON.stringify(parsed.dlcData));
+                
                 saveData(); showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
-            }).catch(err => { showDialog("下载失败：" + err.message, false, "", "知道了", null); }).finally(() => { btn.innerText = oldText; });
+            }).catch(err => { showDialog("下载失败：" + err.message, false, "", "知道了", null); }).finally(() => {         btn.innerText = oldText; });
         }
 
         function addListObj(path) { 
