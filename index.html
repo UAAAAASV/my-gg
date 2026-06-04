@@ -193,7 +193,7 @@
         .id-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; white-space: nowrap; margin-left: 10px; color:#fff;}
         .id-meta { font-size: 13px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee;}
         .id-meta span { color: var(--text-main); font-weight: 500;}
-        .id-remark { font-size: 13px; background: var(--input-bg); padding: 12px; border-radius: 8px; color: #555; margin-bottom: 20px; line-height: 1.5;}
+        .id-remark { font-size: 13px; background: var(--input-bg); padding: 12px; border-radius: 8px; color: #555; margin-bottom: 20px; line-height: 1.5; max-height: 150px; overflow-y: auto;}
         .id-actions { display: flex; gap: 10px; }
         .id-btn { flex: 1; padding: 12px 0; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;}
         .id-btn.edit { background: var(--input-bg); color: var(--text-main);}
@@ -1386,46 +1386,50 @@
             }
         }
         function saveCloudConfig() { appConfig.cloud.token = document.getElementById('cfg_gh_token').value.trim(); appConfig.cloud.gistId = document.getElementById('cfg_gh_gist_id').value.trim(); localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); }
-        function uploadToGitHub(e) { 
-            const token = document.getElementById('cfg_gh_token').value.trim();
-            if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null); return; }
-            const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
-            const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
-            let safeConfig = JSON.parse(JSON.stringify(appConfig)); if(safeConfig.cloud) safeConfig.cloud.token = ''; 
-            
-            // 抓取 DLC 数据打包
-            let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
-            
-            const url = gistId ? `https://api.github.com/gists/${gistId}` : `https://api.github.com/gists`;
-            const method = gistId ? 'PATCH' : 'POST';
-            // 加入 dlcData
-            const dataStr = JSON.stringify({ appData, appConfig: safeConfig, dlcData });
-            
-            fetch(url, { method: method, headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` }, body: JSON.stringify({ description: "我的娃柜备份", public: false, files: { "myCabinet.json": { content: dataStr } } }) })
-            .then(async res => { if (!res.ok) throw new Error("API_ERROR"); return res.json(); })
-           .then(data => { if(data.id) { document.getElementById('cfg_gh_gist_id').value = data.id; saveCloudConfig(); showDialog("成功上传到 GitHub 云端！", false, "", "太棒了", null); } })
-            .catch(err => { showDialog("上传失败：" + err.message, false, "", "知道了", null); }).finally(() => { btn.innerText = oldText; });
-        }
-        function downloadFromGitHub(e) {
-            const token = document.getElementById('cfg_gh_token').value.trim(); const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
-            if(!token || !gistId) { showDialog("请先填写 Token 和 Gist ID", false, "", "知道了", null); return; }
-            const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
-            fetch(`https://api.github.com/gists/${gistId}`, { method: 'GET', headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` } })
-            .then(async res => { if (!res.ok) throw new Error("网络请求异常"); return res.json(); })
-            .then(async data => {
-                const file = data.files && data.files["myCabinet.json"]; if (!file) throw new Error("云端没有找到存档数据");
-                let contentStr = file.content;
-                if (file.truncated) { btn.innerText = "⏳ 拉取大文件..."; const rawRes = await fetch(file.raw_url); contentStr = await rawRes.text(); }
-                const parsed = JSON.parse(contentStr);
-                if(parsed.appData) { appData = parsed.appData; if(!appData.groupbuys) appData.groupbuys = []; }
-                if(parsed.appConfig) { let localToken = appConfig.cloud.token; let localGistId = appConfig.cloud.gistId; appConfig = parsed.appConfig; if(!appConfig.cloud) appConfig.cloud = {}; appConfig.cloud.token = localToken; appConfig.cloud.gistId = localGistId; }
+        // 替换原有的 uploadToGitHub 函数
+function uploadToGitHub(e) { 
+    const token = document.getElementById('cfg_gh_token').value.trim();
+    if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null); return; }
+    const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+    const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
+    let safeConfig = JSON.parse(JSON.stringify(appConfig)); if(safeConfig.cloud) safeConfig.cloud.token = ''; 
+    
+    // 安全获取 DLC 数据：只有本地有数据时才覆盖云端
+    let dlcLocal = localStorage.getItem('myCabinetDLC_Size');
+    let payload = { appData, appConfig: safeConfig };
+    if (dlcLocal !== null) payload.dlcData = JSON.parse(dlcLocal);
+
+    const url = gistId ? `https://api.github.com/gists/${gistId}` : `https://api.github.com/gists`;
+    const method = gistId ? 'PATCH' : 'POST';
+    const dataStr = JSON.stringify(payload);
+    
+    fetch(url, { method: method, headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` }, body: JSON.stringify({ description: "我的娃柜备份", public: false, files: { "myCabinet.json": { content: dataStr } } }) })
+    .then(async res => { if (!res.ok) throw new Error("API_ERROR"); return res.json(); })
+    .then(data => { if(data.id) { document.getElementById('cfg_gh_gist_id').value = data.id; saveCloudConfig(); showDialog("成功上传到 GitHub 云端！", false, "", "太棒了", null); } })
+    .catch(err => { showDialog("上传失败，可能是图片过多导致文件过大", false, "", "知道了", null); }).finally(() => { btn.innerText = oldText; });
+}
+
+// 替换原有的 downloadFromGitHub 函数
+function downloadFromGitHub(e) {
+    const token = document.getElementById('cfg_gh_token').value.trim(); const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+    if(!token || !gistId) { showDialog("请先填写 Token 和 Gist ID", false, "", "知道了", null); return; }
+    const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
+    fetch(`https://api.github.com/gists/${gistId}`, { method: 'GET', headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` } })
+    .then(async res => { if (!res.ok) throw new Error("网络请求异常"); return res.json(); })
+    .then(async data => {
+        const file = data.files && data.files["myCabinet.json"]; if (!file) throw new Error("云端没有找到存档数据");
+        let contentStr = file.content;
+        if (file.truncated) { btn.innerText = "⏳ 拉取大文件..."; const rawRes = await fetch(file.raw_url); contentStr = await rawRes.text(); }
+        const parsed = JSON.parse(contentStr);
+        if(parsed.appData) { appData = parsed.appData; if(!appData.groupbuys) appData.groupbuys = []; }
+        if(parsed.appConfig) { let localToken = appConfig.cloud.token; let localGistId = appConfig.cloud.gistId; appConfig = parsed.appConfig; if(!appConfig.cloud) appConfig.cloud = {}; appConfig.cloud.token = localToken; appConfig.cloud.gistId = localGistId; }
+
+        // 安全写入 DLC 数据：只有云端包含尺寸数据时才写入
+        if(parsed.dlcData && parsed.dlcData.length > 0) localStorage.setItem('myCabinetDLC_Size', JSON.stringify(parsed.dlcData));
         
-                // 解析云端数据，如果有 DLC 数据则恢复
-                if(parsed.dlcData) localStorage.setItem('myCabinetDLC_Size', JSON.stringify(parsed.dlcData));
-                
-                saveData(); showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
-            }).catch(err => { showDialog("下载失败：" + err.message, false, "", "知道了", null); }).finally(() => {         btn.innerText = oldText; });
-        }
+        saveData(); showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
+    }).catch(err => { showDialog("下载失败：" + err.message, false, "", "知道了", null); }).finally(() => { btn.innerText = oldText; });
+}
 
         function addListObj(path) { 
             showDialog("添加内容", true, "输入名称", "确认", (val) => { 
@@ -1513,35 +1517,45 @@
         // ================= 图片上传与裁剪逻辑 =================
         let imgArray = []; 
         function renderUploaders() {
-            const container = document.getElementById('uploadArea'); container.innerHTML = '';
-            imgArray.forEach((b64, idx) => { 
-                let cropBtn = idx === 0 ? `<div class="crop-btn" onclick="openCropperFor(${idx}, event)">✂️封面</div>` : '';
-                container.innerHTML += `<div class="img-uploader"><div class="img-del-btn" onclick="deleteImg(${idx}, event)">×</div><img src="${b64}">${cropBtn}</div>`; 
-            });
-            container.innerHTML += `<div class="img-uploader"><input type="file" accept="image/*" onchange="processImg(this)"><span style="font-size:32px;">${imgArray.length === 0 ? '📷' : '➕'}</span><span class="img-label">${imgArray.length === 0 ? '主图' : '副图'}</span></div>`;
-        }
-        function deleteImg(idx, e) { 
-            e.stopPropagation(); imgArray.splice(idx, 1); 
-            if(currentCropTarget === idx) closeCropper();
-            renderUploaders(); 
-        }
-        function processImg(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader(); reader.readAsDataURL(input.files[0]);
-                reader.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
-                        let w = img.width, h = img.height; if (w > 800) { h *= 800 / w; w = 800; }
-                        cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
-                        imgArray.push(cvs.toDataURL('image/jpeg', 0.8)); 
-                        if(imgArray.length === 1) coverCrop = { top: 0, bottom: 1, left: 0, right: 1 }; // 初始化第一张图裁切
-                        renderUploaders(); 
-                        input.value = '';
-                    }
-                }
-            }
-        }
+    const container = document.getElementById('uploadArea'); container.innerHTML = '';
+    // 将添加按钮放到最前面，并加入 multiple 属性支持多选
+    container.innerHTML += `<div class="img-uploader" style="background:var(--primary-light); border-color:var(--primary); color:var(--primary);"><input type="file" accept="image/*" multiple onchange="processImg(this)"><span style="font-size:32px;">➕</span><span class="img-label">添加图片</span></div>`;
+    imgArray.forEach((b64, idx) => { 
+        let cropBtn = idx === 0 ? `<div class="crop-btn" onclick="openCropperFor(${idx}, event)">✂️封面</div>` : '';
+        container.innerHTML += `<div class="img-uploader"><div class="img-del-btn" onclick="deleteImg(${idx}, event)">×</div><img src="${b64}">${cropBtn}</div>`; 
+    });
+}
+
+// 异步处理多张图片，防止乱序
+async function processImg(input) {
+    if (!input.files || input.files.length === 0) return;
+    const btn = document.getElementById('btnSave');
+    const oldText = btn.innerText; btn.innerText = "处理图片中..."; btn.disabled = true;
+
+    for (let file of input.files) {
+        let b64 = await new Promise(resolve => {
+            const reader = new FileReader(); 
+            reader.onload = (e) => {
+                const img = new Image(); 
+                img.onload = () => {
+                    const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
+                    let w = img.width, h = img.height; if (w > 800) { h *= 800 / w; w = 800; }
+                    cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
+                    resolve(cvs.toDataURL('image/jpeg', 0.8));
+                };
+                img.onerror = () => resolve(null);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+        });
+        if(b64) imgArray.push(b64); 
+    }
+    if(imgArray.length > 0 && (!coverCrop || coverCrop.bottom === undefined)) coverCrop = { top: 0, bottom: 1, left: 0, right: 1 };
+    renderUploaders(); 
+    input.value = '';
+    btn.innerText = oldText; btn.disabled = false;
+}
 
         const cropperWrap = document.getElementById('cropperWrapper'); const cropBox = document.getElementById('cropBox');
         function openCropperFor(idx, e) {
@@ -1595,17 +1609,22 @@
         cropBox.addEventListener('touchstart', onCropStart, {passive:false}); cropBox.addEventListener('mousedown', onCropStart);
         window.addEventListener('touchmove', onCropMove, {passive:false}); window.addEventListener('touchend', onCropEnd); window.addEventListener('mousemove', onCropMove); window.addEventListener('mouseup', onCropEnd);
 
+        // 直接用以下代码替换原有的 generateThumb 函数
         function generateThumb(b64, crop, callback) {
-            if(!b64) return callback(''); 
+            if(!b64 || !crop) return callback(''); 
             if(crop.top === 0 && crop.bottom === 1 && crop.left === 0 && crop.right === 1) return callback('');
-            let img = new Image(); img.src = b64;
+            let img = new Image(); 
             img.onload = () => { 
-                let cvs = document.createElement('canvas'); let ctx = cvs.getContext('2d'); 
-                let cW = img.width * (crop.right - crop.left); let cH = img.height * (crop.bottom - crop.top); 
-                cvs.width = cW; cvs.height = cH; 
-                ctx.drawImage(img, img.width * crop.left, img.height * crop.top, cW, cH, 0, 0, cW, cH); 
-                callback(cvs.toDataURL('image/jpeg', 0.6)); 
-            }
+                try {
+                    let cvs = document.createElement('canvas'); let ctx = cvs.getContext('2d'); 
+                    let cW = img.width * (crop.right - crop.left); let cH = img.height * (crop.bottom - crop.top); 
+                    cvs.width = cW; cvs.height = cH; 
+                    ctx.drawImage(img, img.width * crop.left, img.height * crop.top, cW, cH, 0, 0, cW, cH); 
+                    callback(cvs.toDataURL('image/jpeg', 0.6)); 
+                } catch(e) { callback(''); }
+            };
+            img.onerror = () => callback(''); // 新增：防止图片损坏导致卡死
+            img.src = b64;
         }
 
         function checkAutoStatus() {
@@ -2713,6 +2732,15 @@
         
         function closeDrawer() { document.getElementById('addDrawer').style.display = 'none'; closeCropper(); }
         function saveData() { localStorage.setItem('myCabinetDataV7', JSON.stringify(appData)); }
+
+// 接收 URL 参数自动打开对应名片
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const viewId = params.get('viewId');
+    if (viewId && appData.items.some(i => i.id == viewId)) {
+        setTimeout(() => openIdCard(viewId), 300); // 延迟一点等页面渲染完成
+    }
+});
 
         // 初始化
         window.addEventListener('resize', () => { renderUI(); });
