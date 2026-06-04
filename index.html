@@ -531,7 +531,7 @@
                     <div class="settings-nav-item" id="nav_sec-category" onclick="scrollToSec('sec-category')">编辑</div>
                     <div class="settings-nav-item" id="nav_sec-data" onclick="scrollToSec('sec-data')">备份</div>
                     <div class="settings-nav-item" id="nav_sec-cloud" onclick="scrollToSec('sec-cloud')">云同步</div>
-                    <div class="settings-nav-item" id="nav_sec-dlc" onclick="window.location.href='DLC 1.html'" style="color:var(--primary); font-weight:bold;">尺寸对比✨</div>
+                    <div class="settings-nav-item" id="nav_sec-dlc" onclick="window.location.href='DLC01coll.html'" style="color:var(--primary); font-weight:bold;">尺寸对比✨</div>
                 </div>
                 <div class="settings-content" id="settingsContent" onscroll="onSettingsScroll()">
                     
@@ -2427,7 +2427,7 @@
             let dlcBtnHtml = '';
             if (dlcItem) {
                 let btnColor = appConfig.appearance.badgeColors.dlc || '#5B9AFF';
-                dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC 1.html'">📐尺寸</div>`;
+                dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC01coll.html'">📐尺寸</div>`;
             }
             document.getElementById('idDlcLinkContainer').innerHTML = dlcBtnHtml;
             
