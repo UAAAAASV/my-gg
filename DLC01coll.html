@@ -109,7 +109,6 @@
         .compare-modal.landscape-mode { transform: rotate(-90deg); transform-origin: center center; width: 100vh; height: 100vw; top: 50%; left: 50%; margin-top: -50vw; margin-left: -50vh; }
         .blueprint-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; background-color: #F4F7F9; background-image: linear-gradient(rgba(141, 161, 255, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(141, 161, 255, 0.15) 1px, transparent 1px); background-size: 100px 100px, 100px 100px; }
 
-        /* 去掉白底，仅留图标，并加上少许阴影以保证可见度 */
         .compare-setting-btn { position: absolute; top: 20px; right: 20px; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; font-size: 26px; cursor: pointer; z-index: 50; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
         .compare-viewport { flex: 1; overflow: auto; position: relative; }
@@ -158,14 +157,12 @@
         
         .view-info-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); color: #333; padding: 15px 20px 25px; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); z-index: 5; display: flex; flex-direction: column; gap: 12px;}
         
-        /* 缩略图与两个按钮的排版 */
         .view-thumb-row { display: flex; align-items: center; gap: 10px; }
         .view-thumbs-scroll { flex: 1; overflow-x: auto; display: flex; gap: 10px; padding-bottom: 4px; margin-bottom: -4px;}
         .v-thumb { width: 45px; height: 45px; border-radius: 8px; overflow: hidden; opacity: 0.5; border: 2px solid transparent; flex-shrink: 0; cursor: pointer; transition: 0.2s; box-sizing: border-box;}
         .v-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .v-thumb.active { opacity: 1; border-color: var(--primary); }
         
-        /* 跳转与返回按钮均设定为绝对 45x45px 白底/黑底 */
         .view-link-btn { width: 45px; height: 45px; flex-shrink: 0; background: #ffffff; color: #000000; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); line-height: 1.2; box-sizing: border-box;}
         .view-back-btn { width: 45px; height: 45px; flex-shrink: 0; background: var(--theme-dark); color: white; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); line-height: 1.2; box-sizing: border-box;}
 
@@ -219,7 +216,7 @@
 
             <div class="form-group row">
                 <div><input type="text" id="itemName" placeholder="主名称 (必填)..." style="font-size: 16px; font-weight: bold; background: transparent; padding: 0 0 10px 0; border-bottom: 2px solid var(--input-bg); border-radius: 0;"></div>
-                <div><input type="text" id="itemSubName" placeholder="副名称 (选填)..." style="font-size: 14px; background: transparent; padding: 0 0 10px 0; border-bottom: 2px solid var(--input-bg); border-radius: 0; color:#666;"></div>
+                <div><input type="text" id="itemSubName" placeholder="副名称/代号 (选填)..." style="font-size: 14px; background: transparent; padding: 0 0 10px 0; border-bottom: 2px solid var(--input-bg); border-radius: 0; color:#666;"></div>
             </div>
             
             <div class="form-group row">
@@ -268,7 +265,7 @@
 
             <div class="form-group">
                 <label class="form-label">简介/备忘录</label>
-                <textarea id="itemRemark" placeholder="可以记录细节..."></textarea>
+                <textarea id="itemRemark" placeholder="可以记录一下身高等细节..."></textarea>
             </div>
 
             <div class="form-group" style="padding: 15px; background: rgba(255,141,161,0.05); border-radius: 12px; border: 1px dashed var(--primary-light);">
@@ -289,7 +286,7 @@
         </div>
     </div>
 
-    <!-- 极简对比视图 (无白底设置按钮) -->
+    <!-- 极简对比视图 -->
     <div class="compare-modal" id="compareModal">
         <div class="blueprint-bg"></div>
         <div class="compare-setting-btn" onclick="openCompareSettings()">⚙️</div>
@@ -302,14 +299,14 @@
         </div>
     </div>
 
-    <!-- 对比界面的专属设置侧边栏 (带有糖果色按钮) -->
+    <!-- 对比界面的专属设置侧边栏 -->
     <div class="compare-settings-mask" id="csMask" onclick="closeCompareSettings()"></div>
     <div class="compare-settings-panel" id="csPanel">
         <div class="cs-title">对比视图设置 <span style="color:#999; cursor:pointer;" onclick="closeCompareSettings()">✕</span></div>
         
         <div class="cs-scroll-area">
             <div class="cs-group">
-                <div class="cs-label">🔍 整体缩放 (<span id="txtScale">25</span>)</div>
+                <div class="cs-label">🔍 整体缩放比 (<span id="txtScale">25</span>)</div>
                 <input type="range" id="setGridScale" class="cs-slider" min="1" max="150" value="25" oninput="applyCompareSettings()">
             </div>
             <div class="cs-group">
@@ -318,7 +315,7 @@
             </div>
             <div class="cs-group">
                 <label style="font-size:13px; font-weight:bold; display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" id="setShowHeight" checked onchange="applyCompareSettings()"> 显示高度标签
+                    <input type="checkbox" id="setShowHeight" checked onchange="applyCompareSettings()"> 显示物品高度标签
                 </label>
             </div>
             <div class="cs-group">
@@ -343,11 +340,9 @@
         <div class="view-info-panel">
             <div class="view-thumb-row">
                 <div class="view-thumbs-scroll" id="viewThumbsStrip"></div>
-                <!-- 新增跳转关联按钮，仅有关联时显示 -->
                 <div class="view-link-btn" id="viewLinkBtn" style="display:none;" onclick="jumpToLink()">
                     <div>跳转</div><div>关联</div>
                 </div>
-                <!-- 完美对齐的返回按钮 -->
                 <div class="view-back-btn" onclick="closeViewMode()">
                     <div>返回</div><div>◀</div>
                 </div>
@@ -361,8 +356,8 @@
             <div class="view-remark" id="viewRemark" onclick="this.classList.toggle('expanded')"></div>
         </div>
     </div>
-	
-	<!-- 设置抽屉 -->
+
+    <!-- 设置抽屉 -->
     <div class="drawer-overlay" id="dlcSettingsDrawer" onclick="if(event.target===this) closeSettings()">
         <div class="drawer" style="padding:20px 24px; bottom: 0;">
             <div class="drawer-handler"></div>
@@ -407,73 +402,6 @@
             </div>
         </div>
     </div>
-	
-	// ================= 设置与排序控制 =================
-        function openSettings() {
-            document.getElementById('set_sortMethod').value = dlcConfig.sortMethod || 'manual';
-            document.getElementById('dlcSettingsDrawer').style.display = 'flex';
-        }
-        function closeSettings() { document.getElementById('dlcSettingsDrawer').style.display = 'none'; }
-        
-        async function updateSortMethod(val) { 
-            dlcConfig.sortMethod = val; 
-            await LocalDB.set('myCabinetDLC_Config', dlcConfig); 
-            renderGrid(); 
-        }
-
-        function openSortDrawer() {
-            closeSettings();
-            const c = document.getElementById('sortListContainerNormal');
-            let html = '';
-            dlcData.forEach(item => {
-                let thumbSrc = item.coverThumb || item.scaleThumb || (item.images && item.images[0]) || '';
-                let imgHtml = thumbSrc ? `<img src="${thumbSrc}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:12px;">` : '';
-                html += `<div class="sort-item" data-id="${item.id}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:var(--input-bg); border-radius:12px; margin-bottom:10px; user-select:none;">
-                    <div style="display:flex; align-items:center; flex:1; overflow:hidden;">${imgHtml}<div style="font-weight:bold; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name || '未命名'}</div></div>
-                    <div class="drag-handle" style="padding:5px 10px; font-size:18px; color:#999; cursor:grab; margin-right:-10px;">☰</div>
-                </div>`;
-            });
-            c.innerHTML = html;
-            const handles = c.querySelectorAll('.drag-handle');
-            handles.forEach(handle => { 
-                handle.addEventListener('touchstart', handleDragStart, {passive: false}); 
-                handle.addEventListener('touchmove', handleDragMove, {passive: false}); 
-                handle.addEventListener('touchend', handleDragEnd); 
-                handle.addEventListener('mousedown', handleDragStart); 
-            });
-            document.getElementById('sortDrawerOverlay').style.display = 'flex';
-        }
-        function closeSortDrawer() { document.getElementById('sortDrawerOverlay').style.display = 'none'; }
-
-        let draggingElement = null;
-        function handleDragStart(e) { if(e.type === 'touchstart') e.preventDefault(); draggingElement = this.closest('.sort-item'); draggingElement.style.opacity = '0.5'; draggingElement.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)'; }
-        function handleDragMove(e) {
-            if (!draggingElement) return; if(e.type === 'touchmove') e.preventDefault();
-            let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY; const container = document.getElementById('sortListContainerNormal');
-            const items = [...container.querySelectorAll('.sort-item:not([style*="opacity: 0.5"])')];
-            let nextElement = items.find(item => { const rect = item.getBoundingClientRect(); return clientY <= rect.top + rect.height / 2; });
-            if (nextElement !== draggingElement.nextSibling) { container.insertBefore(draggingElement, nextElement); }
-        }
-        function handleDragEnd(e) { if (draggingElement) { draggingElement.style.opacity = '1'; draggingElement.style.boxShadow = 'none'; draggingElement = null; } }
-        document.addEventListener('mousemove', handleDragMove); document.addEventListener('mouseup', handleDragEnd);
-        document.addEventListener('touchmove', handleDragMove, {passive:false}); document.addEventListener('touchend', handleDragEnd);
-
-        async function saveSort() {
-            const c = document.getElementById('sortListContainerNormal');
-            const newOrderIds = [...c.querySelectorAll('.sort-item')].map(el => parseInt(el.getAttribute('data-id')));
-            
-            let newDlcData = [];
-            newOrderIds.forEach(id => {
-                let item = dlcData.find(i => i.id === id);
-                if(item) newDlcData.push(item);
-            });
-            dlcData = newDlcData;
-            dlcConfig.sortMethod = 'manual';
-            await LocalDB.set('myCabinetDLC_Config', dlcConfig);
-            await LocalDB.set('myCabinetDLC_Size', dlcData);
-            
-            closeSortDrawer(); renderGrid();
-        }
 
     <script>
         // ================= IndexedDB 数据库引擎 =================
@@ -531,7 +459,7 @@
         // ================= 数据初始化 =================
         let dlcData = [];
         let mainAppData = { items: [], categories: { main: ['未分类'], subMap: {} } };
-        let dlcConfig = { sortMethod: 'manual' }; // 新增配置
+        let dlcConfig = { sortMethod: 'manual' }; 
         let selectedIds = new Set();
         
         let imgArray = []; 
@@ -551,11 +479,9 @@
         let subCatFold = {}; 
 
         async function initApp() {
-            // 加载配置
             let idbConf = await LocalDB.get('myCabinetDLC_Config');
             if (idbConf) dlcConfig = idbConf;
 
-            // 迁移 DLC 数据
             let idbDlcData = await LocalDB.get('myCabinetDLC_Size');
             if (!idbDlcData && localStorage.getItem('myCabinetDLC_Size')) {
                 idbDlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size'));
@@ -563,14 +489,12 @@
             }
             dlcData = idbDlcData || [];
 
-            // 获取主库数据
             let idbData = await LocalDB.get('myCabinetDataV7');
             if (!idbData && localStorage.getItem('myCabinetDataV7')) {
                 idbData = JSON.parse(localStorage.getItem('myCabinetDataV7'));
             }
             if (idbData) mainAppData = idbData;
 
-            // 解析 URL 参数跳转
             const urlParams = new URLSearchParams(window.location.search);
             const viewId = urlParams.get('viewId');
             if (viewId) {
@@ -589,7 +513,6 @@
             document.getElementById('dialogTitle').innerText = title;
             document.getElementById('dialogText').style.display = 'none';
             
-            // 兼容防错：如果第二个参数是字符串，自动修正参数错位
             if(typeof showInput === 'string') {
                 document.getElementById('dialogText').innerText = showInput;
                 document.getElementById('dialogText').style.display = 'block';
@@ -617,7 +540,6 @@
         function closeDialog() { document.getElementById('customDialog').style.display = 'none'; }
         document.getElementById('dialogConfirmBtn').onclick = () => { closeDialog(); if(dialogCallback) dialogCallback(document.getElementById('dialogInput').value); };
 
-        // 防误触保护
         let initialFormState = '';
         function getFormState() {
             return JSON.stringify({
@@ -666,14 +588,13 @@
             const container = document.getElementById('cabinetsContainer'); 
             let finalHtml = '';
             
-            // 加入排序系统
             let sortedData = [...dlcData];
             sortedData.sort((a, b) => {
                 if (dlcConfig.sortMethod === 'create_asc') return a.id - b.id;
                 if (dlcConfig.sortMethod === 'create_desc') return b.id - a.id;
                 if (dlcConfig.sortMethod === 'name_asc') return (a.name||'').localeCompare(b.name||'', 'zh-CN');
                 if (dlcConfig.sortMethod === 'name_desc') return (b.name||'').localeCompare(a.name||'', 'zh-CN');
-                return 0; // manual
+                return 0; 
             });
             
             const mainGroups = {}; 
@@ -760,7 +681,6 @@
             let thumbsHtml = ''; viewImgs.forEach((src, idx) => { thumbsHtml += `<div class="v-thumb" id="vThumb_${idx}" onclick="switchViewImg(${idx})"><img src="${src}"></div>`; });
             document.getElementById('viewThumbsStrip').innerHTML = thumbsHtml;
             
-            // 关联跳转按钮显示逻辑
             let linkBtn = document.getElementById('viewLinkBtn');
             if (item.linkedItemId) { linkBtn.style.display = 'flex'; linkBtn.setAttribute('data-link', item.linkedItemId); } 
             else { linkBtn.style.display = 'none'; }
@@ -881,7 +801,6 @@
                             const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
                             let w = img.width, h = img.height; if (w > 1200) { h *= 1200 / w; w = 1200; }
                             cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
-                            // 数据库加持，重新升回高清 0.85
                             imgArray.push(cvs.toDataURL('image/jpeg', 0.85)); 
                             if(imgArray.length === 1) coverCrop = { top: 0, bottom: 1, left: 0, right: 1 }; 
                             
@@ -902,7 +821,6 @@
             }
         }
 
-        // 更多图片的拖拽功能
         let extraDragState = { idx: -1, el: null, targetIdx: -1 };
         function extraDragStart(e, idx) {
             if(e.target.className.includes('btn') || e.target.tagName==='INPUT') return;
@@ -953,7 +871,6 @@
             extraContainer.innerHTML = extrasHtml; extraContainer.style.display = extrasHtml ? 'flex' : 'none';
         }
 
-        // 裁剪框交互逻辑
         const cropperWrap = document.getElementById('cropperWrapper'); const cropBox = document.getElementById('cropBox');
         function updateCropUI() {
             if(currentCropTarget < 0) return; let activeCrop = currentCropTarget === 0 ? scaleCrop : coverCrop;
@@ -1132,6 +1049,73 @@
                 </div>`;
             });
             stage.innerHTML = html;
+        }
+
+        // ================= 设置与排序控制 =================
+        function openSettings() {
+            document.getElementById('set_sortMethod').value = dlcConfig.sortMethod || 'manual';
+            document.getElementById('dlcSettingsDrawer').style.display = 'flex';
+        }
+        function closeSettings() { document.getElementById('dlcSettingsDrawer').style.display = 'none'; }
+        
+        async function updateSortMethod(val) { 
+            dlcConfig.sortMethod = val; 
+            await LocalDB.set('myCabinetDLC_Config', dlcConfig); 
+            renderGrid(); 
+        }
+
+        function openSortDrawer() {
+            closeSettings();
+            const c = document.getElementById('sortListContainerNormal');
+            let html = '';
+            dlcData.forEach(item => {
+                let thumbSrc = item.coverThumb || item.scaleThumb || (item.images && item.images[0]) || '';
+                let imgHtml = thumbSrc ? `<img src="${thumbSrc}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:12px;">` : '';
+                html += `<div class="sort-item" data-id="${item.id}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:var(--input-bg); border-radius:12px; margin-bottom:10px; user-select:none;">
+                    <div style="display:flex; align-items:center; flex:1; overflow:hidden;">${imgHtml}<div style="font-weight:bold; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name || '未命名'}</div></div>
+                    <div class="drag-handle" style="padding:5px 10px; font-size:18px; color:#999; cursor:grab; margin-right:-10px;">☰</div>
+                </div>`;
+            });
+            c.innerHTML = html;
+            const handles = c.querySelectorAll('.drag-handle');
+            handles.forEach(handle => { 
+                handle.addEventListener('touchstart', handleDragStart, {passive: false}); 
+                handle.addEventListener('touchmove', handleDragMove, {passive: false}); 
+                handle.addEventListener('touchend', handleDragEnd); 
+                handle.addEventListener('mousedown', handleDragStart); 
+            });
+            document.getElementById('sortDrawerOverlay').style.display = 'flex';
+        }
+        function closeSortDrawer() { document.getElementById('sortDrawerOverlay').style.display = 'none'; }
+
+        let draggingElement = null;
+        function handleDragStart(e) { if(e.type === 'touchstart') e.preventDefault(); draggingElement = this.closest('.sort-item'); draggingElement.style.opacity = '0.5'; draggingElement.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)'; }
+        function handleDragMove(e) {
+            if (!draggingElement) return; if(e.type === 'touchmove') e.preventDefault();
+            let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY; const container = document.getElementById('sortListContainerNormal');
+            const items = [...container.querySelectorAll('.sort-item:not([style*="opacity: 0.5"])')];
+            let nextElement = items.find(item => { const rect = item.getBoundingClientRect(); return clientY <= rect.top + rect.height / 2; });
+            if (nextElement !== draggingElement.nextSibling) { container.insertBefore(draggingElement, nextElement); }
+        }
+        function handleDragEnd(e) { if (draggingElement) { draggingElement.style.opacity = '1'; draggingElement.style.boxShadow = 'none'; draggingElement = null; } }
+        document.addEventListener('mousemove', handleDragMove); document.addEventListener('mouseup', handleDragEnd);
+        document.addEventListener('touchmove', handleDragMove, {passive:false}); document.addEventListener('touchend', handleDragEnd);
+
+        async function saveSort() {
+            const c = document.getElementById('sortListContainerNormal');
+            const newOrderIds = [...c.querySelectorAll('.sort-item')].map(el => parseInt(el.getAttribute('data-id')));
+            
+            let newDlcData = [];
+            newOrderIds.forEach(id => {
+                let item = dlcData.find(i => i.id === id);
+                if(item) newDlcData.push(item);
+            });
+            dlcData = newDlcData;
+            dlcConfig.sortMethod = 'manual';
+            await LocalDB.set('myCabinetDLC_Config', dlcConfig);
+            await LocalDB.set('myCabinetDLC_Size', dlcData);
+            
+            closeSortDrawer(); renderGrid();
         }
 
         // ================= 对比设置内的拖拽排序逻辑 =================
