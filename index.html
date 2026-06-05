@@ -193,7 +193,7 @@
         .id-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; white-space: nowrap; margin-left: 10px; color:#fff;}
         .id-meta { font-size: 13px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee;}
         .id-meta span { color: var(--text-main); font-weight: 500;}
-        .id-remark { font-size: 13px; background: var(--input-bg); padding: 12px; border-radius: 8px; color: #555; margin-bottom: 20px; line-height: 1.5; max-height: 150px; overflow-y: auto;}
+        .id-remark { font-size: 13px; background: var(--input-bg); padding: 12px; border-radius: 8px; color: #555; margin-bottom: 20px; line-height: 1.5; max-height: 250px; overflow-y: auto;}
         .id-actions { display: flex; gap: 10px; }
         .id-btn { flex: 1; padding: 12px 0; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;}
         .id-btn.edit { background: var(--input-bg); color: var(--text-main);}
@@ -829,7 +829,7 @@
             <h3 id="dialogTitle">提示</h3>
             <input type="text" id="dialogInput" style="display:none;">
             <div class="btn-row">
-                <button class="btn-cancel" onclick="closeDialog()">取消</button>
+                <button class="btn-cancel" onclick="closeDialog()" id="dialogCancelBtn">取消</button>
                 <button class="btn-confirm" id="dialogConfirmBtn">确认</button>
             </div>
         </div>
@@ -1039,11 +1039,12 @@
 
         // 弹窗
         let dialogCallback = null;
-        function showDialog(title, showInput, placeholder, confirmText, callback) {
+        function showDialog(title, showInput, placeholder, confirmText, callback, isAlert = false) {
             document.getElementById('dialogTitle').innerText = title;
             const input = document.getElementById('dialogInput');
             if(showInput) { input.style.display = 'block'; input.value = ''; input.placeholder = placeholder || ''; } else input.style.display = 'none';
             document.getElementById('dialogConfirmBtn').innerText = confirmText || '确认';
+            document.getElementById('dialogCancelBtn').style.display = isAlert ? 'none' : 'block';
             document.getElementById('dialogConfirmBtn').style.background = 'var(--theme-dark)';
             dialogCallback = callback;
             document.getElementById('customDialog').style.display = 'flex';
@@ -1089,8 +1090,8 @@
             showDialog("重命名", true, "输入新名称", "确认", (val) => {
                 if(val && val.trim() && val.trim() !== oldVal) {
                     let newVal = val.trim();
-                    if (type === 'list' && path === 'categories.main' && appData.categories.main.includes(newVal)) return showDialog("该主分类已存在！", false, "", "知道了", null);
-                    if (type === 'sub' && appData.categories.subMap[mainCat].includes(newVal)) return showDialog("该小分类已存在！", false, "", "知道了", null);
+                    if (type === 'list' && path === 'categories.main' && appData.categories.main.includes(newVal)) return showDialog("该主分类已存在！", false, "", "知道了", null, true);
+                    if (type === 'sub' && appData.categories.subMap[mainCat].includes(newVal)) return showDialog("该小分类已存在！", false, "", "知道了", null, true);
 
                     if (type === 'list') {
                         if(path === 'categories.main') {
@@ -1185,7 +1186,7 @@
         function saveGbEdit() {
             let id = document.getElementById('gbEditId').value;
             let name = document.getElementById('gbName').value.trim();
-            if (!name) return showDialog("团名称不能为空", false, "", "知道了", null);
+            if (!name) return showDialog("团名称不能为空", false, "", "知道了", null, true);
             if (id) {
                 let gb = appData.groupbuys.find(g => g.id == id);
                 if (gb) {
@@ -1374,69 +1375,65 @@
                         if(data.appData) { appData = data.appData; if(!appData.groupbuys) appData.groupbuys = []; }
                         if(data.appConfig) appConfig = data.appConfig;
                         // 如果备份文件里有 DLC 数据，就写入浏览器的 DLC 缓存中
-                        if(data.dlcData) localStorage.setItem('myCabinetDLC_Size', JSON.stringify(data.dlcData));
+                        if(data.dlcData) { localStorage.setItem('myCabinetDLC_Size', JSON.stringify(data.dlcData)); } else { localStorage.removeItem('myCabinetDLC_Size'); }
                         
                         saveData(); 
                         showDialog("恢复成功！", false, "", "刷新页面", () => { location.reload(); });
                     } catch(err) { 
-                        showDialog("数据格式错误", false, "", "知道了", null); 
+                        showDialog("数据格式错误", false, "", "知道了", null, true); 
                     }
                 }
                 reader.readAsText(input.files[0]);
             }
         }
         function saveCloudConfig() { appConfig.cloud.token = document.getElementById('cfg_gh_token').value.trim(); appConfig.cloud.gistId = document.getElementById('cfg_gh_gist_id').value.trim(); localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); }
-        // 替换原有的 uploadToGitHub 函数
-function uploadToGitHub(e) { 
-    const token = document.getElementById('cfg_gh_token').value.trim();
-    if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null); return; }
-    const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
-    const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
-    let safeConfig = JSON.parse(JSON.stringify(appConfig)); if(safeConfig.cloud) safeConfig.cloud.token = ''; 
-    
-    // 安全获取 DLC 数据：只有本地有数据时才覆盖云端
-    let dlcLocal = localStorage.getItem('myCabinetDLC_Size');
-    let payload = { appData, appConfig: safeConfig };
-    if (dlcLocal !== null) payload.dlcData = JSON.parse(dlcLocal);
-
-    const url = gistId ? `https://api.github.com/gists/${gistId}` : `https://api.github.com/gists`;
-    const method = gistId ? 'PATCH' : 'POST';
-    const dataStr = JSON.stringify(payload);
-    
-    fetch(url, { method: method, headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` }, body: JSON.stringify({ description: "我的娃柜备份", public: false, files: { "myCabinet.json": { content: dataStr } } }) })
-    .then(async res => { if (!res.ok) throw new Error("API_ERROR"); return res.json(); })
-    .then(data => { if(data.id) { document.getElementById('cfg_gh_gist_id').value = data.id; saveCloudConfig(); showDialog("成功上传到 GitHub 云端！", false, "", "太棒了", null); } })
-    .catch(err => { showDialog("上传失败，可能是图片过多导致文件过大", false, "", "知道了", null); }).finally(() => { btn.innerText = oldText; });
-}
-
-// 替换原有的 downloadFromGitHub 函数
-function downloadFromGitHub(e) {
-    const token = document.getElementById('cfg_gh_token').value.trim(); const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
-    if(!token || !gistId) { showDialog("请先填写 Token 和 Gist ID", false, "", "知道了", null); return; }
-    const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
-    fetch(`https://api.github.com/gists/${gistId}`, { method: 'GET', headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` } })
-    .then(async res => { if (!res.ok) throw new Error("网络请求异常"); return res.json(); })
-    .then(async data => {
-        const file = data.files && data.files["myCabinet.json"]; if (!file) throw new Error("云端没有找到存档数据");
-        let contentStr = file.content;
-        if (file.truncated) { btn.innerText = "⏳ 拉取大文件..."; const rawRes = await fetch(file.raw_url); contentStr = await rawRes.text(); }
-        const parsed = JSON.parse(contentStr);
-        if(parsed.appData) { appData = parsed.appData; if(!appData.groupbuys) appData.groupbuys = []; }
-        if(parsed.appConfig) { let localToken = appConfig.cloud.token; let localGistId = appConfig.cloud.gistId; appConfig = parsed.appConfig; if(!appConfig.cloud) appConfig.cloud = {}; appConfig.cloud.token = localToken; appConfig.cloud.gistId = localGistId; }
-
-        // 安全写入 DLC 数据：只有云端包含尺寸数据时才写入
-        if(parsed.dlcData && parsed.dlcData.length > 0) localStorage.setItem('myCabinetDLC_Size', JSON.stringify(parsed.dlcData));
+        function uploadToGitHub(e) { 
+            const token = document.getElementById('cfg_gh_token').value.trim();
+            if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null, true); return; }
+            const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+            const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
+            let safeConfig = JSON.parse(JSON.stringify(appConfig)); if(safeConfig.cloud) safeConfig.cloud.token = ''; 
+            
+            // 抓取 DLC 数据打包
+            let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
+            
+            const url = gistId ? `https://api.github.com/gists/${gistId}` : `https://api.github.com/gists`;
+            const method = gistId ? 'PATCH' : 'POST';
+            // 加入 dlcData
+            const dataStr = JSON.stringify({ appData, appConfig: safeConfig, dlcData });
+            
+            fetch(url, { method: method, headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` }, body: JSON.stringify({ description: "我的娃柜备份", public: false, files: { "myCabinet.json": { content: dataStr } } }) })
+            .then(async res => { if (!res.ok) throw new Error("API_ERROR"); return res.json(); })
+           .then(data => { if(data.id) { document.getElementById('cfg_gh_gist_id').value = data.id; saveCloudConfig(); showDialog("成功上传到 GitHub 云端！", false, "", "太棒了", null); } })
+            .catch(err => { showDialog("上传失败：" + err.message, false, "", "知道了", null, true); }).finally(() => { btn.innerText = oldText; });
+        }
+        function downloadFromGitHub(e) {
+            const token = document.getElementById('cfg_gh_token').value.trim(); const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
+            if(!token || !gistId) { showDialog("请先填写 Token 和 Gist ID", false, "", "知道了", null, true); return; }
+            const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
+            fetch(`https://api.github.com/gists/${gistId}`, { method: 'GET', headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` } })
+            .then(async res => { if (!res.ok) throw new Error("网络请求异常"); return res.json(); })
+            .then(async data => {
+                const file = data.files && data.files["myCabinet.json"]; if (!file) throw new Error("云端没有找到存档数据");
+                let contentStr = file.content;
+                if (file.truncated) { btn.innerText = "⏳ 拉取大文件..."; const rawRes = await fetch(file.raw_url); contentStr = await rawRes.text(); }
+                const parsed = JSON.parse(contentStr);
+                if(parsed.appData) { appData = parsed.appData; if(!appData.groupbuys) appData.groupbuys = []; }
+                if(parsed.appConfig) { let localToken = appConfig.cloud.token; let localGistId = appConfig.cloud.gistId; appConfig = parsed.appConfig; if(!appConfig.cloud) appConfig.cloud = {}; appConfig.cloud.token = localToken; appConfig.cloud.gistId = localGistId; }
         
-        saveData(); showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
-    }).catch(err => { showDialog("下载失败：" + err.message, false, "", "知道了", null); }).finally(() => { btn.innerText = oldText; });
-}
+                // 解析云端数据，如果有 DLC 数据则恢复
+                if(parsed.dlcData) { localStorage.setItem('myCabinetDLC_Size', JSON.stringify(parsed.dlcData)); } else { localStorage.removeItem('myCabinetDLC_Size'); }
+                
+                saveData(); showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
+            }).catch(err => { showDialog("下载失败：" + err.message, false, "", "知道了", null, true); }).finally(() => {         btn.innerText = oldText; });
+        }
 
         function addListObj(path) { 
             showDialog("添加内容", true, "输入名称", "确认", (val) => { 
                 if(val && val.trim()) { 
                     let v = val.trim();
                     if(path === 'categories.main') {
-                        if (appData.categories.main.includes(v)) return showDialog("主分类已存在！", false, "", "知道了", null);
+                        if (appData.categories.main.includes(v)) return showDialog("主分类已存在！", false, "", "知道了", null, true);
                         appData.categories.main.push(v); if(!appData.categories.subMap[v]) appData.categories.subMap[v] = [];
                     }
                     if(path === 'sources') { appData.sources.push(v); syncGroupFiltersOrder(); }
@@ -1456,10 +1453,10 @@ function downloadFromGitHub(e) {
         }
 
         function addSubCat() {
-            let mainCat = document.getElementById('set_subCat_mainSelect').value; if(!mainCat) { showDialog("提示", false, "", "知道了", null); return; }
+            let mainCat = document.getElementById('set_subCat_mainSelect').value; if(!mainCat) { showDialog("提示", false, "", "知道了", null, true); return; }
             showDialog("添加小分类", true, "输入小分类名称", "确认", (val) => { 
                 if(val && val.trim()) { 
-                    let v = val.trim(); if(appData.categories.subMap[mainCat] && appData.categories.subMap[mainCat].includes(v)) return showDialog("小分类已存在！", false, "", "知道了", null);
+                    let v = val.trim(); if(appData.categories.subMap[mainCat] && appData.categories.subMap[mainCat].includes(v)) return showDialog("小分类已存在！", false, "", "知道了", null, true);
                     if(!appData.categories.subMap[mainCat]) appData.categories.subMap[mainCat] = [];
                     appData.categories.subMap[mainCat].push(v); saveData(); renderSettingsSubCat(); renderFormOptions(); 
                 } 
@@ -1516,46 +1513,80 @@ function downloadFromGitHub(e) {
 
         // ================= 图片上传与裁剪逻辑 =================
         let imgArray = []; 
+        let imgDragState = { idx: -1, el: null, targetIdx: -1 };
+        function imgDragStart(e, idx) {
+            if(e.target.className.includes('btn') || e.target.tagName==='INPUT') return;
+            imgDragState.idx = idx; imgDragState.el = e.currentTarget;
+            imgDragState.el.style.opacity = '0.5'; imgDragState.el.style.transform = 'scale(0.95)';
+        }
+        function imgDragMove(e) {
+            if(imgDragState.idx === -1) return;
+            let touch = e.touches ? e.touches[0] : e;
+            let els = document.querySelectorAll('.img-uploader[data-idx]');
+            imgDragState.targetIdx = -1;
+            els.forEach(el => {
+                if(el === imgDragState.el) return;
+                let rect = el.getBoundingClientRect();
+                if(touch.clientX >= rect.left && touch.clientX <= rect.right && touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                    el.style.outline = '2px solid var(--primary)';
+                    imgDragState.targetIdx = parseInt(el.getAttribute('data-idx'));
+                } else { el.style.outline = 'none'; }
+            });
+        }
+        function imgDragEnd(e) {
+            if(imgDragState.idx === -1) return;
+            document.querySelectorAll('.img-uploader').forEach(el => { el.style.outline = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; });
+            if(imgDragState.targetIdx !== -1 && imgDragState.targetIdx !== imgDragState.idx) {
+                let temp = imgArray[imgDragState.idx];
+                imgArray.splice(imgDragState.idx, 1);
+                imgArray.splice(imgDragState.targetIdx, 0, temp);
+                renderUploaders();
+            }
+            imgDragState = { idx: -1, el: null, targetIdx: -1 };
+        }
+
         function renderUploaders() {
-    const container = document.getElementById('uploadArea'); container.innerHTML = '';
-    // 将添加按钮放到最前面，并加入 multiple 属性支持多选
-    container.innerHTML += `<div class="img-uploader" style="background:var(--primary-light); border-color:var(--primary); color:var(--primary);"><input type="file" accept="image/*" multiple onchange="processImg(this)"><span style="font-size:32px;">➕</span><span class="img-label">添加图片</span></div>`;
-    imgArray.forEach((b64, idx) => { 
-        let cropBtn = idx === 0 ? `<div class="crop-btn" onclick="openCropperFor(${idx}, event)">✂️封面</div>` : '';
-        container.innerHTML += `<div class="img-uploader"><div class="img-del-btn" onclick="deleteImg(${idx}, event)">×</div><img src="${b64}">${cropBtn}</div>`; 
-    });
-}
-
-// 异步处理多张图片，防止乱序
-async function processImg(input) {
-    if (!input.files || input.files.length === 0) return;
-    const btn = document.getElementById('btnSave');
-    const oldText = btn.innerText; btn.innerText = "处理图片中..."; btn.disabled = true;
-
-    for (let file of input.files) {
-        let b64 = await new Promise(resolve => {
-            const reader = new FileReader(); 
-            reader.onload = (e) => {
-                const img = new Image(); 
-                img.onload = () => {
-                    const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
-                    let w = img.width, h = img.height; if (w > 800) { h *= 800 / w; w = 800; }
-                    cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
-                    resolve(cvs.toDataURL('image/jpeg', 0.8));
-                };
-                img.onerror = () => resolve(null);
-                img.src = e.target.result;
-            };
-            reader.onerror = () => resolve(null);
-            reader.readAsDataURL(file);
-        });
-        if(b64) imgArray.push(b64); 
-    }
-    if(imgArray.length > 0 && (!coverCrop || coverCrop.bottom === undefined)) coverCrop = { top: 0, bottom: 1, left: 0, right: 1 };
-    renderUploaders(); 
-    input.value = '';
-    btn.innerText = oldText; btn.disabled = false;
-}
+            const container = document.getElementById('uploadArea'); container.innerHTML = '';
+            imgArray.forEach((b64, idx) => { 
+                let cropBtn = idx === 0 ? `<div class="crop-btn" onclick="openCropperFor(${idx}, event)">✂️封面</div>` : '';
+                container.innerHTML += `<div class="img-uploader" data-idx="${idx}" ontouchstart="imgDragStart(event, ${idx})" ontouchmove="imgDragMove(event)" ontouchend="imgDragEnd(event)" onmousedown="imgDragStart(event, ${idx})" onmousemove="imgDragMove(event)" onmouseup="imgDragEnd(event)"><div class="img-del-btn" onclick="deleteImg(${idx}, event)">×</div><img src="${b64}">${cropBtn}</div>`; 
+            });
+            container.innerHTML += `<div class="img-uploader"><input type="file" multiple accept="image/*" onchange="processImg(this)"><span style="font-size:32px;">${imgArray.length === 0 ? '📷' : '➕'}</span><span class="img-label">${imgArray.length === 0 ? '主图' : '副图'}</span></div>`;
+        }
+        
+        function deleteImg(idx, e) { 
+            e.stopPropagation(); 
+            showDialog("移除图片", false, "", "确定移除", () => {
+                imgArray.splice(idx, 1); 
+                if(currentCropTarget === idx) closeCropper();
+                renderUploaders(); 
+            });
+            document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
+        }
+        
+        function processImg(input) {
+            if (input.files && input.files.length > 0) {
+                let files = Array.from(input.files);
+                let loadedCount = 0;
+                files.forEach(file => {
+                    const reader = new FileReader(); reader.readAsDataURL(file);
+                    reader.onload = (e) => {
+                        const img = new Image(); 
+                        img.onload = () => {
+                            const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
+                            let w = img.width, h = img.height; if (w > 800) { h *= 800 / w; w = 800; }
+                            cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
+                            imgArray.push(cvs.toDataURL('image/jpeg', 0.8)); 
+                            if(imgArray.length === 1) coverCrop = { top: 0, bottom: 1, left: 0, right: 1 }; 
+                            loadedCount++;
+                            if(loadedCount === files.length) { renderUploaders(); input.value = ''; }
+                        };
+                        img.onerror = () => { loadedCount++; if(loadedCount === files.length) { renderUploaders(); input.value = ''; } };
+                        img.src = e.target.result;
+                    }
+                });
+            }
+        }
 
         const cropperWrap = document.getElementById('cropperWrapper'); const cropBox = document.getElementById('cropBox');
         function openCropperFor(idx, e) {
@@ -1609,9 +1640,8 @@ async function processImg(input) {
         cropBox.addEventListener('touchstart', onCropStart, {passive:false}); cropBox.addEventListener('mousedown', onCropStart);
         window.addEventListener('touchmove', onCropMove, {passive:false}); window.addEventListener('touchend', onCropEnd); window.addEventListener('mousemove', onCropMove); window.addEventListener('mouseup', onCropEnd);
 
-        // 直接用以下代码替换原有的 generateThumb 函数
         function generateThumb(b64, crop, callback) {
-            if(!b64 || !crop) return callback(''); 
+            if(!b64) return callback(''); 
             if(crop.top === 0 && crop.bottom === 1 && crop.left === 0 && crop.right === 1) return callback('');
             let img = new Image(); 
             img.onload = () => { 
@@ -1623,7 +1653,7 @@ async function processImg(input) {
                     callback(cvs.toDataURL('image/jpeg', 0.6)); 
                 } catch(e) { callback(''); }
             };
-            img.onerror = () => callback(''); // 新增：防止图片损坏导致卡死
+            img.onerror = () => callback('');
             img.src = b64;
         }
 
@@ -1756,7 +1786,7 @@ async function processImg(input) {
 
         function saveItem() {
             const editId = document.getElementById('editingItemId').value; const name = document.getElementById('itemName').value.trim(); 
-            if (!name) return showDialog("提示", false, "", "知道了", null), document.getElementById('dialogTitle').innerText="名字不能为空";
+            if (!name) return showDialog("提示", false, "", "知道了", null, true), document.getElementById('dialogTitle').innerText="名字不能为空";
             if (!editId) {
                 const type = document.querySelector('input[name="entryType"]:checked').value;
                 const pullDeposit = document.getElementById('pullDepositSelect').value; const pullQueue = document.getElementById('pullQueueSelect').value;
@@ -1794,60 +1824,65 @@ async function processImg(input) {
             const estBaseBalance = parseFloat(document.getElementById('priceEstBaseBalance').value) || 0;
             const estBalance = parseFloat(document.getElementById('priceEstBalance').value) || 0; 
 
-            // 生成封面缩略图
-            let coverThumbStr = '';
-            if (imgArray[0]) {
-                coverThumbStr = await new Promise(resolve => generateThumb(imgArray[0], coverCrop, resolve));
-            }
-
-            if (editId) {
-                const idx = appData.items.findIndex(i => i.id == editId);
-                if (appData.items[idx].estDate !== estDate) { appData.items[idx].noticeDismissed = false; appData.items[idx].noticeRead = false; }
-                if(finalStatus === 'arrived' && appData.items[idx].status !== 'arrived') { appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA'); }
-                
-                let targetItem = appData.items[idx];
-                if (type === 'pay_balance') {
-                    if (targetItem.depositBasePrice !== undefined) {
-                        targetItem.balanceBasePrice = bPrice; targetItem.balanceShipping = sPrice;
-                        targetItem.basePrice = targetItem.depositBasePrice + bPrice; targetItem.shipping = targetItem.depositShipping + sPrice; targetItem.totalPrice = targetItem.basePrice + targetItem.shipping;
-                    } else { targetItem.basePrice = bPrice; targetItem.shipping = sPrice; targetItem.totalPrice = tPrice; }
-                } else {
-                    delete targetItem.balanceBasePrice; delete targetItem.balanceShipping;
-                    targetItem.basePrice = bPrice; targetItem.shipping = sPrice; targetItem.totalPrice = tPrice;
+            try {
+                // 生成封面缩略图
+                let coverThumbStr = '';
+                if (imgArray[0]) {
+                    coverThumbStr = await new Promise(resolve => generateThumb(imgArray[0], coverCrop, resolve));
                 }
 
-                appData.items[idx] = { ...targetItem, name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
-                appData.items[idx].images = [...imgArray]; 
-                appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr;
-                appData.items[idx].estBaseBalance = (type === 'full') ? 0 : estBaseBalance;
-                appData.items[idx].estBalance = (type === 'full') ? 0 : estBalance;
-                appData.items[idx].finalBalanceDate = (type === 'deposit') ? finalBalanceDate : '';
-                appData.items[idx].queueDeadline = (type === 'queue') ? queueDeadline : '';
-                appData.items[idx].queueDeadlineSuffix = (type === 'queue') ? queueDeadlineSuffix : '';
+                if (editId) {
+                    const idx = appData.items.findIndex(i => i.id == editId);
+                    if (appData.items[idx].estDate !== estDate) { appData.items[idx].noticeDismissed = false; appData.items[idx].noticeRead = false; }
+                    if(finalStatus === 'arrived' && appData.items[idx].status !== 'arrived') { appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA'); }
+                    
+                    let targetItem = appData.items[idx];
+                    if (type === 'pay_balance') {
+                        if (targetItem.depositBasePrice !== undefined) {
+                            targetItem.balanceBasePrice = bPrice; targetItem.balanceShipping = sPrice;
+                            targetItem.basePrice = targetItem.depositBasePrice + bPrice; targetItem.shipping = targetItem.depositShipping + sPrice; targetItem.totalPrice = targetItem.basePrice + targetItem.shipping;
+                        } else { targetItem.basePrice = bPrice; targetItem.shipping = sPrice; targetItem.totalPrice = tPrice; }
+                    } else {
+                        delete targetItem.balanceBasePrice; delete targetItem.balanceShipping;
+                        targetItem.basePrice = bPrice; targetItem.shipping = sPrice; targetItem.totalPrice = tPrice;
+                    }
 
-            } else {
-                if (type === 'pay_balance' && document.getElementById('pullDepositSelect').value) {
-                    const id = document.getElementById('pullDepositSelect').value; const idx = appData.items.findIndex(i => i.id == id);
-                    appData.items[idx].depositBasePrice = appData.items[idx].basePrice || 0; appData.items[idx].depositShipping = appData.items[idx].shipping || 0;
-                    appData.items[idx].balanceBasePrice = bPrice; appData.items[idx].balanceShipping = sPrice;
-                    appData.items[idx].basePrice = appData.items[idx].depositBasePrice + bPrice; appData.items[idx].shipping = appData.items[idx].depositShipping + sPrice; appData.items[idx].totalPrice = appData.items[idx].basePrice + appData.items[idx].shipping;
-                    appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
-                    appData.items[idx].entryType = type; if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
-                    appData.items[idx].estBaseBalance = 0; appData.items[idx].estBalance = 0; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].finalBalanceDate = ''; appData.items[idx].queueDeadline = '';
-                } else if (type === 'deposit' && document.getElementById('pullQueueSelect').value) {
-                    const id = document.getElementById('pullQueueSelect').value; const idx = appData.items.findIndex(i => i.id == id);
-                    appData.items[idx].totalPrice = tPrice; appData.items[idx].basePrice = bPrice; appData.items[idx].shipping = sPrice;
-                    appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
-                    appData.items[idx].entryType = type; appData.items[idx].estBaseBalance = estBaseBalance; appData.items[idx].estBalance = estBalance; appData.items[idx].finalBalanceDate = finalBalanceDate; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].queueDeadline = '';
+                    appData.items[idx] = { ...targetItem, name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
+                    appData.items[idx].images = [...imgArray]; 
+                    appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr;
+                    appData.items[idx].estBaseBalance = (type === 'full') ? 0 : estBaseBalance;
+                    appData.items[idx].estBalance = (type === 'full') ? 0 : estBalance;
+                    appData.items[idx].finalBalanceDate = (type === 'deposit') ? finalBalanceDate : '';
+                    appData.items[idx].queueDeadline = (type === 'queue') ? queueDeadline : '';
+                    appData.items[idx].queueDeadlineSuffix = (type === 'queue') ? queueDeadlineSuffix : '';
+
                 } else {
-                    let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], coverCrop: {...coverCrop}, coverThumb: coverThumbStr, noticeRead: false, noticeDismissed: false };
-                    if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
-                    newItem.estBaseBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBaseBalance; newItem.estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
-                    newItem.finalBalanceDate = (type === 'deposit') ? finalBalanceDate : ''; newItem.queueDeadline = (type === 'queue') ? queueDeadline : ''; newItem.queueDeadlineSuffix = (type === 'queue') ? queueDeadlineSuffix : '';
-                    appData.items.push(newItem);
+                    if (type === 'pay_balance' && document.getElementById('pullDepositSelect').value) {
+                        const id = document.getElementById('pullDepositSelect').value; const idx = appData.items.findIndex(i => i.id == id);
+                        appData.items[idx].depositBasePrice = appData.items[idx].basePrice || 0; appData.items[idx].depositShipping = appData.items[idx].shipping || 0;
+                        appData.items[idx].balanceBasePrice = bPrice; appData.items[idx].balanceShipping = sPrice;
+                        appData.items[idx].basePrice = appData.items[idx].depositBasePrice + bPrice; appData.items[idx].shipping = appData.items[idx].depositShipping + sPrice; appData.items[idx].totalPrice = appData.items[idx].basePrice + appData.items[idx].shipping;
+                        appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
+                        appData.items[idx].entryType = type; if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
+                        appData.items[idx].estBaseBalance = 0; appData.items[idx].estBalance = 0; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].finalBalanceDate = ''; appData.items[idx].queueDeadline = '';
+                    } else if (type === 'deposit' && document.getElementById('pullQueueSelect').value) {
+                        const id = document.getElementById('pullQueueSelect').value; const idx = appData.items.findIndex(i => i.id == id);
+                        appData.items[idx].totalPrice = tPrice; appData.items[idx].basePrice = bPrice; appData.items[idx].shipping = sPrice;
+                        appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
+                        appData.items[idx].entryType = type; appData.items[idx].estBaseBalance = estBaseBalance; appData.items[idx].estBalance = estBalance; appData.items[idx].finalBalanceDate = finalBalanceDate; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].queueDeadline = '';
+                    } else {
+                        let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], coverCrop: {...coverCrop}, coverThumb: coverThumbStr, noticeRead: false, noticeDismissed: false };
+                        if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
+                        newItem.estBaseBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBaseBalance; newItem.estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
+                        newItem.finalBalanceDate = (type === 'deposit') ? finalBalanceDate : ''; newItem.queueDeadline = (type === 'queue') ? queueDeadline : ''; newItem.queueDeadlineSuffix = (type === 'queue') ? queueDeadlineSuffix : '';
+                        appData.items.push(newItem);
+                    }
                 }
+                saveData(); btn.innerText = oldText; closeDrawer(); closeCropper(); renderGroupFilters(); renderUI(); checkNotices(); if(editId) { closeIdCard(); openIdCard(editId); } 
+            } catch(e) {
+                showDialog("保存失败", false, "", "知道了", null, true);
+                btn.innerText = oldText;
             }
-            saveData(); btn.innerText = oldText; closeDrawer(); closeCropper(); renderGroupFilters(); renderUI(); checkNotices(); if(editId) { closeIdCard(); openIdCard(editId); } 
         }
 
         function toggleTagVisible(tag, el) {
@@ -2473,7 +2508,7 @@ async function processImg(input) {
             let dlcBtnHtml = '';
             if (dlcItem) {
                 let btnColor = appConfig.appearance.badgeColors.dlc || '#5B9AFF';
-                dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC01coll.html'">📐尺寸</div>`;
+                dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC01coll.html?viewId=${dlcItem.id}'">📐尺寸</div>`;
             }
             document.getElementById('idDlcLinkContainer').innerHTML = dlcBtnHtml;
             
@@ -2559,8 +2594,7 @@ async function processImg(input) {
             let btnHtml = '';
             if(item.status === 'not_arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('shipped')">🚚 已发货</button>`;
             else if(item.status === 'shipped') btnHtml = `<button class="id-btn action" onclick="changeStatus('arrived')">📦 签收</button>`;
-            else if(item.status === 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('not_arrived')"
-            style="background:#f0f0f0;color:#666;">回退</button>`;
+            else if(item.status === 'arrived') btnHtml = `<button class="id-btn action" onclick="changeStatus('not_arrived')" style="background:#f0f0f0;color:#666;">回退</button>`;
             
             let shortcutBtn = '';
             if (item.entryType === 'queue') { shortcutBtn = `<button class="id-btn action" style="background:#E6F7FF; color:#1890FF;" onclick="shortcutAction(${item.id}, 'deposit')">✅ 已成团</button>`; } 
@@ -2733,18 +2767,17 @@ async function processImg(input) {
         function closeDrawer() { document.getElementById('addDrawer').style.display = 'none'; closeCropper(); }
         function saveData() { localStorage.setItem('myCabinetDataV7', JSON.stringify(appData)); }
 
-// 接收 URL 参数自动打开对应名片
-window.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    const viewId = params.get('viewId');
-    if (viewId && appData.items.some(i => i.id == viewId)) {
-        setTimeout(() => openIdCard(viewId), 300); // 延迟一点等页面渲染完成
-    }
-});
-
         // 初始化
         window.addEventListener('resize', () => { renderUI(); });
         syncGroupFiltersOrder(); renderTopIcons(); renderFormOptions(); renderStatusTags(); renderGroupFilters(); renderUI(); checkNotices();
+        
+        // 解析 URL 参数跳转
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewId = urlParams.get('viewId');
+        if (viewId) {
+            setTimeout(() => { openIdCard(parseInt(viewId)); }, 300);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     </script>
 </body>
 </html>
