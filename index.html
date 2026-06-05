@@ -314,9 +314,8 @@
 
             <!-- 裁切区 -->
             <div id="cropperLayout" class="cropper-layout" style="display:none;">
-                <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom: 15px;">
-                    <div class="cropper-title" style="margin-bottom:0;">裁剪封面图</div>
-                    <button class="btn-primary" style="padding: 4px 12px; border-radius: 6px; font-size:12px;" onclick="closeCropper(event)">确定裁剪</button>
+                <div style="width:100%; margin-bottom: 15px;">
+                    <div class="cropper-title" style="margin-bottom:0;">调整裁剪区域</div>
                 </div>
                 <div id="cropperWrapper" class="cropper-container">
                     <img id="cropperImg" src="">
@@ -1097,27 +1096,34 @@
         function showDialog(title, showInput, placeholder, confirmText, callback, isAlert = false) {
             document.getElementById('dialogTitle').innerText = title;
             document.getElementById('dialogText').style.display = 'none';
+            
+            // 兼容防错：如果第二个参数是字符串，自动修正参数错位
             if(typeof showInput === 'string') {
                 document.getElementById('dialogText').innerText = showInput;
                 document.getElementById('dialogText').style.display = 'block';
                 document.getElementById('dialogInput').style.display = 'none';
-            } else if(showInput) { 
-                document.getElementById('dialogInput').style.display = 'block'; 
-                document.getElementById('dialogInput').value = ''; 
-                document.getElementById('dialogInput').placeholder = placeholder || ''; 
+                
+                document.getElementById('dialogConfirmBtn').innerText = placeholder || '确认'; 
+                dialogCallback = confirmText; 
+                document.getElementById('dialogCancelBtn').style.display = callback === true ? 'none' : 'block'; 
             } else {
-                document.getElementById('dialogInput').style.display = 'none';
+                if(showInput) { 
+                    document.getElementById('dialogInput').style.display = 'block'; 
+                    document.getElementById('dialogInput').value = ''; 
+                    document.getElementById('dialogInput').placeholder = placeholder || ''; 
+                } else {
+                    document.getElementById('dialogInput').style.display = 'none';
+                }
+                document.getElementById('dialogConfirmBtn').innerText = confirmText || '确认';
+                dialogCallback = callback;
+                document.getElementById('dialogCancelBtn').style.display = isAlert ? 'none' : 'block';
             }
             
-            document.getElementById('dialogConfirmBtn').innerText = confirmText || '确认';
-            document.getElementById('dialogCancelBtn').style.display = isAlert ? 'none' : 'block';
             document.getElementById('dialogConfirmBtn').style.background = 'var(--theme-dark)';
-            dialogCallback = callback;
             document.getElementById('customDialog').style.display = 'flex';
         }
         function closeDialog() { document.getElementById('customDialog').style.display = 'none'; }
         document.getElementById('dialogConfirmBtn').onclick = () => { closeDialog(); if(dialogCallback) dialogCallback(document.getElementById('dialogInput').value); };
-        function editAppTitle() { showDialog("修改名称", true, "输入新名称", "保存", (val) => { if(val) { appConfig.title = val.trim(); saveConfig(); document.getElementById('appTitleText').innerText = appConfig.title; }}); }
 
         function getFace() { 
             const list = appData.kaomojis;
