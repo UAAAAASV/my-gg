@@ -48,11 +48,11 @@
         .compare-bar.active { bottom: 0; }
         .btn-compare { background: var(--theme-dark); color: white; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; }
 
-        .fab { position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px; background: var(--theme-dark); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); z-index: 70; cursor: pointer; transition: 0.3s; }
-        .compare-bar.active ~ .fab { bottom: 100px; }
-        .fab::before, .fab::after { content: ''; position: absolute; background: white; border-radius: 2px;}
-        .fab::before { width: 20px; height: 3px; }
-        .fab::after { width: 3px; height: 20px; }
+        .fab { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; background: var(--theme-dark); border-radius: 30px; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); z-index: 70; cursor: pointer; transition: bottom 0.3s; color: transparent; }
+.fab::before, .fab::after { content: ''; position: absolute; background: white; border-radius: 2px;}
+.fab::before { width: 20px; height: 3px; }
+.fab::after { width: 3px; height: 20px; }
+.compare-bar.active ~ .fab { bottom: 110px; }
 
         /* ================= 抽屉与表单 ================= */
         .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; animation: fadeIn 0.2s; }
@@ -203,7 +203,7 @@
         <button class="btn-compare" onclick="startCompare()">开始对比</button>
     </div>
 
-    <div class="fab" onclick="openDrawer()">➕</div>
+    <div class="fab" onclick="openDrawer()"></div>
 
     <!-- 添加/编辑抽屉 -->
     <div class="drawer-overlay" id="addDrawer" onclick="if(event.target===this) checkAndCloseDrawer()">
@@ -722,9 +722,21 @@
         window.addEventListener('touchmove', onCropMove, {passive:false}); window.addEventListener('touchend', onCropEnd); window.addEventListener('mousemove', onCropMove); window.addEventListener('mouseup', onCropEnd);
 
         function generateThumb(b64, crop, callback) {
-            if(!b64) return callback(''); let img = new Image(); img.src = b64;
-            img.onload = () => { let cvs = document.createElement('canvas'); let ctx = cvs.getContext('2d'); let cW = img.width * (crop.right - crop.left); let cH = img.height * (crop.bottom - crop.top); cvs.width = cW; cvs.height = cH; ctx.drawImage(img, img.width * crop.left, img.height * crop.top, cW, cH, 0, 0, cW, cH); callback(cvs.toDataURL('image/jpeg', 0.6)); }
-        }
+    if(!b64 || !crop) return callback(''); 
+    if(crop.top === 0 && crop.bottom === 1 && crop.left === 0 && crop.right === 1) return callback('');
+    let img = new Image(); 
+    img.onload = () => { 
+        try {
+            let cvs = document.createElement('canvas'); let ctx = cvs.getContext('2d'); 
+            let cW = img.width * (crop.right - crop.left); let cH = img.height * (crop.bottom - crop.top); 
+            cvs.width = cW; cvs.height = cH; 
+            ctx.drawImage(img, img.width * crop.left, img.height * crop.top, cW, cH, 0, 0, cW, cH); 
+            callback(cvs.toDataURL('image/jpeg', 0.6)); 
+        } catch(e) { callback(''); }
+    };
+    img.onerror = () => callback('');
+    img.src = b64;
+}
 
         async function saveItem() {
             const name = document.getElementById('itemName').value.trim(); const cm = parseFloat(document.getElementById('itemHeight').value);
