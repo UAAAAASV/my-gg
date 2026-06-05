@@ -133,7 +133,7 @@
         .segmented-control input[type="radio"]:checked + label { background: var(--surface); color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
         .img-wrap-container { display: flex; flex-wrap: wrap; gap: 12px; padding: 10px 0 20px 0;}
-        .img-uploader { width: 90px; height: 90px; background: var(--input-bg); border-radius: 12px; border: 2px dashed #D0D0D0; display: flex; justify-content: center; align-items: center; flex-direction: column; color: var(--text-muted); position: relative; overflow: visible; flex-shrink: 0;}
+        .img-uploader { width: 90px; height: 90px; background: var(--input-bg); border-radius: 12px; border: 2px dashed #D0D0D0; display: flex; justify-content: center; align-items: center; flex-direction: column; color: var(--text-muted); position: relative; overflow: visible; flex-shrink: 0; cursor: pointer;}
         .img-uploader input { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;}
         .img-uploader img { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 1; border-radius: 10px; background: #fff;}
         .img-label { font-size: 12px; margin-top: 6px; font-weight: 500;}
@@ -827,8 +827,9 @@
     <div class="custom-dialog-mask" id="customDialog">
         <div class="custom-dialog">
             <h3 id="dialogTitle">提示</h3>
+            <div id="dialogText" style="font-size:14px; color:#555; margin-bottom:10px; line-height: 1.5; white-space:pre-wrap;"></div>
             <input type="text" id="dialogInput" style="display:none;">
-            <div class="btn-row">
+            <div class="btn-row" style="margin-top: 20px;">
                 <button class="btn-cancel" onclick="closeDialog()" id="dialogCancelBtn">取消</button>
                 <button class="btn-confirm" id="dialogConfirmBtn">确认</button>
             </div>
@@ -869,142 +870,197 @@
     </div>
 
     <script>
-        // 配置初始化
-        let appConfig = JSON.parse(localStorage.getItem('myCabinetConfigV7')) || {};
-        if (!appConfig.title) appConfig.title = "娃柜";
-        if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
-        if (!appConfig.appearance) {
-            appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, itemPriceColor: '#FF8DA1', hideItemPriceValue: true, showFullDateText: true, cardLine1: 'name', cardLine2: 'price', cardLine3: 'date', stickyBehavior: 'all', fullDefaultStatus: 'not_arrived', showGroupFilters: true, estPriceColor: '#5B9AFF', hideDeadItems: false };
-        } else {
-            if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
-            if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
-            if (appConfig.appearance.calHiddenDefault === undefined) appConfig.appearance.calHiddenDefault = true;
-            if (appConfig.appearance.noticeOpacity === undefined) appConfig.appearance.noticeOpacity = 100;
-            if (!appConfig.appearance.dateFormat) appConfig.appearance.dateFormat = 'full';
-            if (appConfig.appearance.hideItemPriceValue === undefined) appConfig.appearance.hideItemPriceValue = true; 
-            if (!appConfig.appearance.itemPriceColor) appConfig.appearance.itemPriceColor = '#FF8DA1';
-            if (appConfig.appearance.showFullDateText === undefined) appConfig.appearance.showFullDateText = true;
-            if (appConfig.appearance.wrapDateText === undefined) appConfig.appearance.wrapDateText = false;
-            if (!appConfig.appearance.stickyBehavior) appConfig.appearance.stickyBehavior = 'all';
-            if (appConfig.appearance.showGroupFilters === undefined) appConfig.appearance.showGroupFilters = true;
-            if (!appConfig.appearance.estPriceColor) appConfig.appearance.estPriceColor = '#5B9AFF';
-            if (appConfig.appearance.hideDeadItems === undefined) appConfig.appearance.hideDeadItems = false;
-            
-            // 兼容迁移 fullDefaultNotArrived 到 fullDefaultStatus
-            if (appConfig.appearance.fullDefaultStatus === undefined) {
-                appConfig.appearance.fullDefaultStatus = appConfig.appearance.fullDefaultNotArrived === false ? 'arrived' : 'not_arrived';
+        // ================= IndexedDB 数据库引擎 =================
+        const LocalDB = {
+            dbName: 'MyCabinetStorageDB',
+            version: 1,
+            init() {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(this.dbName, this.version);
+                    req.onupgradeneeded = e => {
+                        const db = e.target.result;
+                        if(!db.objectStoreNames.contains('store')) {
+                            db.createObjectStore('store');
+                        }
+                    };
+                    req.onsuccess = e => resolve(e.target.result);
+                    req.onerror = e => reject(e);
+                });
+            },
+            async get(key) {
+                try {
+                    const db = await this.init();
+                    return new Promise((resolve) => {
+                        const tx = db.transaction('store', 'readonly');
+                        const req = tx.objectStore('store').get(key);
+                        req.onsuccess = () => resolve(req.result);
+                        req.onerror = () => resolve(null);
+                    });
+                } catch(e) { return null; }
+            },
+            async set(key, val) {
+                try {
+                    const db = await this.init();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction('store', 'readwrite');
+                        tx.objectStore('store').put(val, key);
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = e => reject(e);
+                    });
+                } catch(e) { console.error("DB Error:", e); throw e; }
+            },
+            async remove(key) {
+                try {
+                    const db = await this.init();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction('store', 'readwrite');
+                        tx.objectStore('store').delete(key);
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = e => reject(e);
+                    });
+                } catch(e) { console.error(e); throw e; }
             }
-            
-            // 兼容迁移旧的位置设定
-            if (!appConfig.appearance.cardLine1) {
-                appConfig.appearance.cardLine1 = 'name'; appConfig.appearance.cardLine2 = 'price'; appConfig.appearance.cardLine3 = 'date';
-            }
-        }
+        };
+
+        // ================= 全局变量区 =================
+        let appConfig = {};
+        let appData = {};
 
         const defBadgeColors = {
             not_arrived: '#FFB347', shipped: '#2196F3', balance: '#5B9AFF', unpaid_grouping: '#9C27B0', crowd: '#607D8B', near: '#FF4D4F', arrived: '#4CAF50',
             dead_like: '#A8A8A8', dead: '#8C8C8C', exploded: '#FF4500', run_away: '#606060', withdrawn: '#A8A8A8', failed: '#8C8C8C', dlc: '#5B9AFF'
         };
-        if (!appConfig.appearance.badgeColors) {
-            appConfig.appearance.badgeColors = JSON.parse(JSON.stringify(defBadgeColors));
-        } else {
-            for (let k in defBadgeColors) { if (!appConfig.appearance.badgeColors[k]) appConfig.appearance.badgeColors[k] = defBadgeColors[k]; }
-        }
-        
-        if (!appConfig.cloud) appConfig.cloud = { token: '', gistId: '' };
-        if (!appConfig.statusHidden) appConfig.statusHidden = {};
-        if (!appConfig.groupFiltersOrder) appConfig.groupFiltersOrder = [];
-        if (!appConfig.groupFiltersHidden) appConfig.groupFiltersHidden = {};
-        
-        document.documentElement.style.setProperty('--theme-dark', appConfig.appearance.themeDark);
-        document.documentElement.style.setProperty('--est-color', appConfig.appearance.estPriceColor);
-        document.body.className = `sticky-${appConfig.appearance.stickyBehavior}`;
-        Object.keys(appConfig.appearance.badgeColors).forEach(k => {
-            document.documentElement.style.setProperty(`--badge-${k}`, appConfig.appearance.badgeColors[k]);
-        });
-        
         const defaultIcons = {
-            search: { type: 'text', val: '🔍' },
-            notice: { type: 'text', val: '🔔' },
-            calendar: { type: 'text', val: '📅' },
-            settings: { type: 'text', val: '⚙️' },
-            eye: { type: 'text', val: '👁️' }
+            search: { type: 'text', val: '🔍' }, notice: { type: 'text', val: '🔔' }, calendar: { type: 'text', val: '📅' }, settings: { type: 'text', val: '⚙️' }, eye: { type: 'text', val: '👁️' }
         };
-        if (!appConfig.topIcons) appConfig.topIcons = JSON.parse(JSON.stringify(defaultIcons));
-        if (!appConfig.topIcons.calendar) appConfig.topIcons.calendar = { type: 'text', val: '📅' };
-        if (!appConfig.topIconsOrder) appConfig.topIconsOrder = ['search', 'notice', 'calendar', 'settings', 'eye'];
-
         const defaultData = { 
             items: [], 
-            categories: { 
-                main: ['人偶', '娃娃', '周边', '手办'], 
-                subMap: { '人偶': ['特6', '8分', '4分', '12分'], '娃娃': ['20cm'], '周边': [], '手办': [] }
-            },
+            categories: { main: ['人偶', '娃娃', '周边', '手办'], subMap: { '人偶': ['特6', '8分', '4分', '12分'], '娃娃': ['20cm'], '周边': [], '手办': [] } },
             sources: ['拼团','淘宝', '拼多多','闲鱼', '微店',  '其他'],
             kaomojis: ['( ´ ▽ ` )', '(o^▽^o)', '(*¯︶¯*)', 'ᕕ( ᐛ )ᕗ', '(´･ᴗ･ ` )', '(≧◡≦)',  '(๑•̀ㅂ•́)و✧', 'ヾ(≧▽≦*)o', 'ε٩(๑> ₃ <)۶з', '(✿◡‿◡)', '╰(*°▽°*)╯'],
-            quickRemarks: ['设置内修改添加'],
-            groupbuys: [] 
+            quickRemarks: ['设置内修改添加'], groupbuys: [] 
         };
-        let appData = JSON.parse(localStorage.getItem('myCabinetDataV7')) || defaultData;
-        if (!appData.quickRemarks) appData.quickRemarks = [...defaultData.quickRemarks];
-        if (!appData.groupbuys) appData.groupbuys = [];
-
-        if (!appData.categories.subMap) {
-            appData.categories.subMap = {};
-            appData.categories.main.forEach(m => {
-                if (m === '人偶' && !appData.categories.sub) appData.categories.subMap[m] = ['特6', '8分', '4分', '12分'];
-                else if (m === '娃娃' && !appData.categories.sub) appData.categories.subMap[m] = ['20cm'];
-                else appData.categories.subMap[m] = appData.categories.sub ? [...appData.categories.sub] : [];
-            });
-        }
 
         const STATUS_MAP = { none: '无', crowdfunding: '待开售', unpaid_grouping: '待成团', need_balance: '待补款', not_arrived: '待发货', shipped: '待收货', arrived: '已收货', withdrawn: '已撤排', failed: '未成团', dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了' };
-        
-        const STATUS_TAG_NAMES = {
-            all: '全部', near: '临近', not_arrived: '待发货', shipped: '待收货', need_balance: '待补款', unpaid_grouping: '待成团', 
-            crowdfunding: '待开售', arrived: '已收货', important: '注意', withdrawn: '已撤排', failed: '未成团',
-            dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了'
-        };
-
+        const STATUS_TAG_NAMES = { all: '全部', near: '临近', not_arrived: '待发货', shipped: '待收货', need_balance: '待补款', unpaid_grouping: '待成团', crowdfunding: '待开售', arrived: '已收货', important: '注意', withdrawn: '已撤排', failed: '未成团', dead_like: '似了', dead: '死了', exploded: '自爆了', run_away: '跑路了' };
         const allTags = ['all', 'near', 'not_arrived', 'shipped', 'need_balance', 'unpaid_grouping', 'crowdfunding', 'arrived', 'important', 'withdrawn', 'failed', 'dead_like', 'dead', 'exploded', 'run_away'];
-        if (!appConfig.statusOrder) {
-            appConfig.statusOrder = [...allTags];
-        } else {
-            allTags.forEach(t => { if (!appConfig.statusOrder.includes(t)) appConfig.statusOrder.push(t); });
-            let allIdx = appConfig.statusOrder.indexOf('all'); let nearIdx = appConfig.statusOrder.indexOf('near');
-            if (allIdx !== -1 && nearIdx !== -1 && nearIdx !== allIdx + 1) {
-                appConfig.statusOrder.splice(nearIdx, 1);
-                allIdx = appConfig.statusOrder.indexOf('all');
-                appConfig.statusOrder.splice(allIdx + 1, 0, 'near');
+
+        let globalHidden = true; let calPriceHiddenEst = true; let calPriceHiddenBal = true; let calQtyHidden = true; let itemPriceClickState = {};
+        let catHiddenState = {}; let expandState = {}; let mainCatFold = {}; let subCatFold = {}; 
+        let currentFilter = 'all'; let currentGroupFilter = 'all'; let noticeTimer = null;
+        let currentSortType = 'items'; let currentSortIndices = [];
+        let coverCrop = { top: 0, bottom: 1, left: 0, right: 1 }; let currentCropTarget = -1;
+
+        // 核心存取封装
+        function saveConfig() { LocalDB.set('myCabinetConfigV7', appConfig); }
+        function saveData() { LocalDB.set('myCabinetDataV7', appData); }
+
+        // ================= 异步启动程序 =================
+        async function initApp() {
+            let idbConfig = await LocalDB.get('myCabinetConfigV7');
+            let idbData = await LocalDB.get('myCabinetDataV7');
+
+            // 1. 无缝迁移旧版 localStorage 数据到 IndexedDB 数据库
+            if (!idbConfig && localStorage.getItem('myCabinetConfigV7')) {
+                idbConfig = JSON.parse(localStorage.getItem('myCabinetConfigV7'));
+                await LocalDB.set('myCabinetConfigV7', idbConfig);
             }
-            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            if (!idbData && localStorage.getItem('myCabinetDataV7')) {
+                idbData = JSON.parse(localStorage.getItem('myCabinetDataV7'));
+                await LocalDB.set('myCabinetDataV7', idbData);
+            }
+
+            appConfig = idbConfig || {};
+            appData = idbData || JSON.parse(JSON.stringify(defaultData));
+
+            // 2. 初始化补全设置逻辑
+            if (!appConfig.title) appConfig.title = "娃柜";
+            if (!appConfig.sortMethod) appConfig.sortMethod = "manual";
+            if (!appConfig.appearance) {
+                appConfig.appearance = { noticeBgColor: '#ff4d4f', noticeTextColor: '#ffffff', noticeOpacity: 100, noticePos: 15, calHiddenDefault: true, nameAlign: 'left', themeDark: '#222222', enableAnim: true, dateFormat: 'full', badgeColors: {}, itemPriceColor: '#FF8DA1', hideItemPriceValue: true, showFullDateText: true, cardLine1: 'name', cardLine2: 'price', cardLine3: 'date', stickyBehavior: 'all', fullDefaultStatus: 'not_arrived', showGroupFilters: true, estPriceColor: '#5B9AFF', hideDeadItems: false };
+            } else {
+                if (!appConfig.appearance.themeDark) appConfig.appearance.themeDark = '#222222';
+                if (appConfig.appearance.enableAnim === undefined) appConfig.appearance.enableAnim = true;
+                if (appConfig.appearance.calHiddenDefault === undefined) appConfig.appearance.calHiddenDefault = true;
+                if (appConfig.appearance.noticeOpacity === undefined) appConfig.appearance.noticeOpacity = 100;
+                if (!appConfig.appearance.dateFormat) appConfig.appearance.dateFormat = 'full';
+                if (appConfig.appearance.hideItemPriceValue === undefined) appConfig.appearance.hideItemPriceValue = true; 
+                if (!appConfig.appearance.itemPriceColor) appConfig.appearance.itemPriceColor = '#FF8DA1';
+                if (appConfig.appearance.showFullDateText === undefined) appConfig.appearance.showFullDateText = true;
+                if (appConfig.appearance.wrapDateText === undefined) appConfig.appearance.wrapDateText = false;
+                if (!appConfig.appearance.stickyBehavior) appConfig.appearance.stickyBehavior = 'all';
+                if (appConfig.appearance.showGroupFilters === undefined) appConfig.appearance.showGroupFilters = true;
+                if (!appConfig.appearance.estPriceColor) appConfig.appearance.estPriceColor = '#5B9AFF';
+                if (appConfig.appearance.hideDeadItems === undefined) appConfig.appearance.hideDeadItems = false;
+                if (appConfig.appearance.fullDefaultStatus === undefined) appConfig.appearance.fullDefaultStatus = appConfig.appearance.fullDefaultNotArrived === false ? 'arrived' : 'not_arrived';
+                if (!appConfig.appearance.cardLine1) { appConfig.appearance.cardLine1 = 'name'; appConfig.appearance.cardLine2 = 'price'; appConfig.appearance.cardLine3 = 'date'; }
+            }
+
+            if (!appConfig.appearance.badgeColors) {
+                appConfig.appearance.badgeColors = JSON.parse(JSON.stringify(defBadgeColors));
+            } else {
+                for (let k in defBadgeColors) { if (!appConfig.appearance.badgeColors[k]) appConfig.appearance.badgeColors[k] = defBadgeColors[k]; }
+            }
+            
+            if (!appConfig.cloud) appConfig.cloud = { token: '', gistId: '' };
+            if (!appConfig.statusHidden) appConfig.statusHidden = {};
+            if (!appConfig.groupFiltersOrder) appConfig.groupFiltersOrder = [];
+            if (!appConfig.groupFiltersHidden) appConfig.groupFiltersHidden = {};
+            
+            document.documentElement.style.setProperty('--theme-dark', appConfig.appearance.themeDark);
+            document.documentElement.style.setProperty('--est-color', appConfig.appearance.estPriceColor);
+            document.body.className = `sticky-${appConfig.appearance.stickyBehavior}`;
+            Object.keys(appConfig.appearance.badgeColors).forEach(k => {
+                document.documentElement.style.setProperty(`--badge-${k}`, appConfig.appearance.badgeColors[k]);
+            });
+
+            if (!appConfig.topIcons) appConfig.topIcons = JSON.parse(JSON.stringify(defaultIcons));
+            if (!appConfig.topIcons.calendar) appConfig.topIcons.calendar = { type: 'text', val: '📅' };
+            if (!appConfig.topIconsOrder) appConfig.topIconsOrder = ['search', 'notice', 'calendar', 'settings', 'eye'];
+
+            if (!appData.quickRemarks) appData.quickRemarks = [...defaultData.quickRemarks];
+            if (!appData.groupbuys) appData.groupbuys = [];
+            if (!appData.categories.subMap) {
+                appData.categories.subMap = {};
+                appData.categories.main.forEach(m => {
+                    if (m === '人偶' && !appData.categories.sub) appData.categories.subMap[m] = ['特6', '8分', '4分', '12分'];
+                    else if (m === '娃娃' && !appData.categories.sub) appData.categories.subMap[m] = ['20cm'];
+                    else appData.categories.subMap[m] = appData.categories.sub ? [...appData.categories.sub] : [];
+                });
+            }
+
+            if (!appConfig.statusOrder) {
+                appConfig.statusOrder = [...allTags];
+            } else {
+                allTags.forEach(t => { if (!appConfig.statusOrder.includes(t)) appConfig.statusOrder.push(t); });
+                let allIdx = appConfig.statusOrder.indexOf('all'); let nearIdx = appConfig.statusOrder.indexOf('near');
+                if (allIdx !== -1 && nearIdx !== -1 && nearIdx !== allIdx + 1) {
+                    appConfig.statusOrder.splice(nearIdx, 1);
+                    allIdx = appConfig.statusOrder.indexOf('all');
+                    appConfig.statusOrder.splice(allIdx + 1, 0, 'near');
+                }
+                saveConfig();
+            }
+            
+            document.getElementById('appTitleText').innerText = appConfig.title;
+
+            window.addEventListener('resize', () => { renderUI(); });
+            syncGroupFiltersOrder(); renderTopIcons(); renderFormOptions(); renderStatusTags(); renderGroupFilters(); renderUI(); checkNotices();
+            
+            // 解析 URL 参数跳转
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewId = urlParams.get('viewId');
+            if (viewId) {
+                setTimeout(() => { openIdCard(parseInt(viewId)); }, 300);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         }
 
-        let globalHidden = true;
-        let calPriceHiddenEst = true;
-        let calPriceHiddenBal = true;
-        let calQtyHidden = true;
-        let itemPriceClickState = {};
-        
-        let catHiddenState = {}; 
-        let expandState = {}; 
-        let mainCatFold = {}; 
-        let subCatFold = {}; 
-        let currentFilter = 'all';
-        let currentGroupFilter = 'all'; 
-        let noticeTimer = null;
-        let currentSortType = 'items';
-        let currentSortIndices = [];
-
-        // 裁剪专属变量
-        let coverCrop = { top: 0, bottom: 1, left: 0, right: 1 };
-        let currentCropTarget = -1;
-
-        document.getElementById('appTitleText').innerText = appConfig.title;
+        // 执行启动
+        initApp();
 
         function isIgnoredStatus(status) { return status === 'withdrawn' || status === 'failed'; }
 
-        // 辅助函数
         function hexToRgba(hex, opacity) {
             hex = hex.replace('#', '');
             if (hex.length === 3) hex = hex.split('').map(x => x+x).join('');
@@ -1037,12 +1093,22 @@
             return res;
         }
 
-        // 弹窗
         let dialogCallback = null;
         function showDialog(title, showInput, placeholder, confirmText, callback, isAlert = false) {
             document.getElementById('dialogTitle').innerText = title;
-            const input = document.getElementById('dialogInput');
-            if(showInput) { input.style.display = 'block'; input.value = ''; input.placeholder = placeholder || ''; } else input.style.display = 'none';
+            document.getElementById('dialogText').style.display = 'none';
+            if(typeof showInput === 'string') {
+                document.getElementById('dialogText').innerText = showInput;
+                document.getElementById('dialogText').style.display = 'block';
+                document.getElementById('dialogInput').style.display = 'none';
+            } else if(showInput) { 
+                document.getElementById('dialogInput').style.display = 'block'; 
+                document.getElementById('dialogInput').value = ''; 
+                document.getElementById('dialogInput').placeholder = placeholder || ''; 
+            } else {
+                document.getElementById('dialogInput').style.display = 'none';
+            }
+            
             document.getElementById('dialogConfirmBtn').innerText = confirmText || '确认';
             document.getElementById('dialogCancelBtn').style.display = isAlert ? 'none' : 'block';
             document.getElementById('dialogConfirmBtn').style.background = 'var(--theme-dark)';
@@ -1051,7 +1117,7 @@
         }
         function closeDialog() { document.getElementById('customDialog').style.display = 'none'; }
         document.getElementById('dialogConfirmBtn').onclick = () => { closeDialog(); if(dialogCallback) dialogCallback(document.getElementById('dialogInput').value); };
-        function editAppTitle() { showDialog("修改名称", true, "输入新名称", "保存", (val) => { if(val) { appConfig.title = val.trim(); localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); document.getElementById('appTitleText').innerText = appConfig.title; }}); }
+        function editAppTitle() { showDialog("修改名称", true, "输入新名称", "保存", (val) => { if(val) { appConfig.title = val.trim(); saveConfig(); document.getElementById('appTitleText').innerText = appConfig.title; }}); }
 
         function getFace() { 
             const list = appData.kaomojis;
@@ -1072,7 +1138,6 @@
             return `var(--badge-${m[s]||'unpaid_grouping'})`;
         };
 
-        // 长按重命名逻辑
         let pressTimer = null;
         function startPress(type, path, idx, mainCat) { pressTimer = window.setTimeout(() => { renameListObj(type, path, idx, mainCat); }, 600); }
         function cancelPress() { if(pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }
@@ -1122,7 +1187,6 @@
             ).join(''); 
         };
 
-        // 图标自定义渲染
         function renderTopIcons() {
             const getHtml = (obj) => obj.type === 'img' ? `<img src="${obj.val}" style="width:24px;height:24px;object-fit:contain;">` : obj.val;
             const iconDefs = {
@@ -1141,7 +1205,7 @@
         function updateTopIcon(key, type, val) {
             if(!val.trim()) { appConfig.topIcons[key] = { type: 'text', val: defaultIcons[key].val }; document.getElementById('cfg_icon_' + key).value = ''; } 
             else { appConfig.topIcons[key] = { type: type, val: val.trim() }; }
-            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); renderTopIcons();
+            saveConfig(); renderTopIcons();
         }
 
         function updateTopIconImg(key, input) {
@@ -1149,7 +1213,7 @@
                 const reader = new FileReader(); reader.readAsDataURL(input.files[0]);
                 reader.onload = (e) => {
                     appConfig.topIcons[key] = { type: 'img', val: e.target.result };
-                    localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); renderTopIcons();
+                    saveConfig(); renderTopIcons();
                     document.getElementById('cfg_icon_' + key).value = '[已选图片]';
                 }
             }
@@ -1221,19 +1285,14 @@
             document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
         }
 
-        // 统一的分组排序同步
         function syncGroupFiltersOrder() {
             let currentKeys = [];
             let gbs = appData.groupbuys.map(g => 'gb_' + g.id);
             let srcs = appData.sources.map(s => 'src_' + s);
             
-            // 构建默认顺序: 团 -> none -> 来源
             let defaultOrder = [...gbs, 'none', ...srcs];
-            
-            // 提取出已经存在于本地设置的并且合法的 key
             let newOrder = appConfig.groupFiltersOrder.filter(k => defaultOrder.includes(k));
             
-            // 把新增的按默认顺序插入到后面
             defaultOrder.forEach(k => {
                 if (!newOrder.includes(k)) {
                     newOrder.push(k);
@@ -1241,7 +1300,7 @@
             });
             
             appConfig.groupFiltersOrder = newOrder;
-            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            saveConfig();
         }
 
         function applyGroupDefaults() {
@@ -1329,7 +1388,7 @@
         
         function updateAppearance(key, value) { 
             appConfig.appearance[key] = value; 
-            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); 
+            saveConfig();
             if(key === 'themeDark') document.documentElement.style.setProperty('--theme-dark', value);
             if(key === 'estPriceColor') document.documentElement.style.setProperty('--est-color', value);
             if(key === 'stickyBehavior') { document.body.classList.remove('sticky-all', 'sticky-catOnly', 'sticky-none'); document.body.classList.add('sticky-' + value); }
@@ -1339,13 +1398,13 @@
 
         function updateBadgeColor(key, val) {
             appConfig.appearance.badgeColors[key] = val;
-            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            saveConfig();
             document.documentElement.style.setProperty(`--badge-${key}`, val);
             if(key === 'dlc') { let d = document.getElementById('idDlcLinkContainer'); if(d) d.style.color = val; }
             renderUI();
         }
 
-        function updateSortMethod(val) { appConfig.sortMethod = val; localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); renderUI(); }
+        function updateSortMethod(val) { appConfig.sortMethod = val; saveConfig(); renderUI(); }
         function scrollToSec(id) { const el = document.getElementById(id); const content = document.getElementById('settingsContent'); if (el && content) content.scrollTo({ top: el.offsetTop - content.offsetTop, behavior: 'smooth' }); }
         function onSettingsScroll() {
             const content = document.getElementById('settingsContent'); const sections = content.querySelectorAll('.settings-section');
@@ -1354,10 +1413,12 @@
             if(currentId) { document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active')); let nav = document.getElementById('nav_' + currentId); if(nav) nav.classList.add('active'); }
         }
 
-        function exportData() { 
-            // 读取 DLC 数据
-            let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
-            // 将 dlcData 一起打包
+        async function exportData() { 
+            let dlcData = await LocalDB.get('myCabinetDLC_Size') || [];
+            if (dlcData.length === 0 && localStorage.getItem('myCabinetDLC_Size')) {
+                dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size'));
+                await LocalDB.set('myCabinetDLC_Size', dlcData);
+            }
             const dataStr = JSON.stringify({ appData, appConfig, dlcData }); 
             const blob = new Blob([dataStr], {type: "application/json"}); 
             const url = URL.createObjectURL(blob); 
@@ -1366,18 +1427,24 @@
             a.download = `娃柜备份_${new Date().getTime()}.json`; 
             a.click(); 
         }
-        function importData(input) {
+        async function importData(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     try {
                         const data = JSON.parse(e.target.result);
                         if(data.appData) { appData = data.appData; if(!appData.groupbuys) appData.groupbuys = []; }
                         if(data.appConfig) appConfig = data.appConfig;
-                        // 如果备份文件里有 DLC 数据，就写入浏览器的 DLC 缓存中
-                        if(data.dlcData) { localStorage.setItem('myCabinetDLC_Size', JSON.stringify(data.dlcData)); } else { localStorage.removeItem('myCabinetDLC_Size'); }
                         
-                        saveData(); 
+                        await LocalDB.set('myCabinetDataV7', appData);
+                        await LocalDB.set('myCabinetConfigV7', appConfig);
+                        
+                        if(data.dlcData) { 
+                            await LocalDB.set('myCabinetDLC_Size', data.dlcData); 
+                        } else { 
+                            await LocalDB.remove('myCabinetDLC_Size'); 
+                        }
+                        
                         showDialog("恢复成功！", false, "", "刷新页面", () => { location.reload(); });
                     } catch(err) { 
                         showDialog("数据格式错误", false, "", "知道了", null, true); 
@@ -1386,20 +1453,22 @@
                 reader.readAsText(input.files[0]);
             }
         }
-        function saveCloudConfig() { appConfig.cloud.token = document.getElementById('cfg_gh_token').value.trim(); appConfig.cloud.gistId = document.getElementById('cfg_gh_gist_id').value.trim(); localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); }
-        function uploadToGitHub(e) { 
+        function saveCloudConfig() { appConfig.cloud.token = document.getElementById('cfg_gh_token').value.trim(); appConfig.cloud.gistId = document.getElementById('cfg_gh_gist_id').value.trim(); saveConfig(); }
+        async function uploadToGitHub(e) { 
             const token = document.getElementById('cfg_gh_token').value.trim();
             if(!token) { showDialog("请先填写 GitHub Token", false, "", "知道了", null, true); return; }
             const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 上传中...";
             let safeConfig = JSON.parse(JSON.stringify(appConfig)); if(safeConfig.cloud) safeConfig.cloud.token = ''; 
             
-            // 抓取 DLC 数据打包
-            let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
+            let dlcData = await LocalDB.get('myCabinetDLC_Size') || [];
+            if (dlcData.length === 0 && localStorage.getItem('myCabinetDLC_Size')) {
+                dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size'));
+                await LocalDB.set('myCabinetDLC_Size', dlcData);
+            }
             
             const url = gistId ? `https://api.github.com/gists/${gistId}` : `https://api.github.com/gists`;
             const method = gistId ? 'PATCH' : 'POST';
-            // 加入 dlcData
             const dataStr = JSON.stringify({ appData, appConfig: safeConfig, dlcData });
             
             fetch(url, { method: method, headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` }, body: JSON.stringify({ description: "我的娃柜备份", public: false, files: { "myCabinet.json": { content: dataStr } } }) })
@@ -1407,7 +1476,7 @@
            .then(data => { if(data.id) { document.getElementById('cfg_gh_gist_id').value = data.id; saveCloudConfig(); showDialog("成功上传到 GitHub 云端！", false, "", "太棒了", null); } })
             .catch(err => { showDialog("上传失败：" + err.message, false, "", "知道了", null, true); }).finally(() => { btn.innerText = oldText; });
         }
-        function downloadFromGitHub(e) {
+        async function downloadFromGitHub(e) {
             const token = document.getElementById('cfg_gh_token').value.trim(); const gistId = document.getElementById('cfg_gh_gist_id').value.trim();
             if(!token || !gistId) { showDialog("请先填写 Token 和 Gist ID", false, "", "知道了", null, true); return; }
             const btn = e.target; const oldText = btn.innerText; btn.innerText = "⏳ 下载中...";
@@ -1421,10 +1490,16 @@
                 if(parsed.appData) { appData = parsed.appData; if(!appData.groupbuys) appData.groupbuys = []; }
                 if(parsed.appConfig) { let localToken = appConfig.cloud.token; let localGistId = appConfig.cloud.gistId; appConfig = parsed.appConfig; if(!appConfig.cloud) appConfig.cloud = {}; appConfig.cloud.token = localToken; appConfig.cloud.gistId = localGistId; }
         
-                // 解析云端数据，如果有 DLC 数据则恢复
-                if(parsed.dlcData) { localStorage.setItem('myCabinetDLC_Size', JSON.stringify(parsed.dlcData)); } else { localStorage.removeItem('myCabinetDLC_Size'); }
+                await LocalDB.set('myCabinetDataV7', appData);
+                await LocalDB.set('myCabinetConfigV7', appConfig);
                 
-                saveData(); showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
+                if(parsed.dlcData) { 
+                    await LocalDB.set('myCabinetDLC_Size', parsed.dlcData); 
+                } else { 
+                    await LocalDB.remove('myCabinetDLC_Size'); 
+                }
+                
+                showDialog("云端数据下载成功！", false, "", "刷新页面", () => { location.reload(); });
             }).catch(err => { showDialog("下载失败：" + err.message, false, "", "知道了", null, true); }).finally(() => {         btn.innerText = oldText; });
         }
 
@@ -1574,9 +1649,9 @@
                         const img = new Image(); 
                         img.onload = () => {
                             const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
-                            let w = img.width, h = img.height; if (w > 800) { h *= 800 / w; w = 800; }
+                            let w = img.width, h = img.height; if (w > 1200) { h *= 1200 / w; w = 1200; }
                             cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
-                            imgArray.push(cvs.toDataURL('image/jpeg', 0.8)); 
+                            imgArray.push(cvs.toDataURL('image/jpeg', 0.85)); 
                             if(imgArray.length === 1) coverCrop = { top: 0, bottom: 1, left: 0, right: 1 }; 
                             loadedCount++;
                             if(loadedCount === files.length) { renderUploaders(); input.value = ''; }
@@ -1880,21 +1955,26 @@
                 }
                 saveData(); btn.innerText = oldText; closeDrawer(); closeCropper(); renderGroupFilters(); renderUI(); checkNotices(); if(editId) { closeIdCard(); openIdCard(editId); } 
             } catch(e) {
-                showDialog("保存失败", false, "", "知道了", null, true);
+                console.error("Save Error:", e);
+                if (e.name === 'QuotaExceededError' || (e.message && e.message.includes('Quota'))) {
+                    showDialog("保存失败 (空间不足)", "虽然系统已升级数据库引擎，但您的设备存储空间似乎不够了！\n请清理浏览器缓存或手机垃圾。", "知道了", null, true);
+                } else {
+                    showDialog("保存失败", "发生意外错误，请重试。", "知道了", null, true);
+                }
                 btn.innerText = oldText;
             }
         }
 
         function toggleTagVisible(tag, el) {
             appConfig.statusHidden[tag] = !appConfig.statusHidden[tag];
-            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            saveConfig();
             el.innerText = appConfig.statusHidden[tag] ? '🚫' : '👁️';
             renderStatusTags(); renderUI();
         }
 
         function toggleGroupFilterVisible(key, el) {
             appConfig.groupFiltersHidden[key] = !appConfig.groupFiltersHidden[key];
-            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig));
+            saveConfig();
             el.innerText = appConfig.groupFiltersHidden[key] ? '🚫' : '👁️';
             renderGroupFilters(); renderUI();
         }
@@ -2039,7 +2119,7 @@
                 if(currentSortType === 'groupFilters') { appConfig.groupFiltersOrder = newOrderVals; renderGroupFilters(); }
             }
             
-            localStorage.setItem('myCabinetConfigV7', JSON.stringify(appConfig)); saveData(); closeSortDrawer();
+            saveConfig(); saveData(); closeSortDrawer();
             if(currentSortType === 'statusTags') renderStatusTags(); if(currentSortType === 'topIcons') renderTopIcons(); if(currentSortType === 'quickRemarks') renderQuickRemarks();
             renderUI();
             if(currentSortType !== 'items' && currentSortType !== 'statusTags' && currentSortType !== 'topIcons' && currentSortType !== 'groupFilters') renderSettings();
@@ -2223,6 +2303,10 @@
             let statsHtml = `
                 <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:6px;"><div style="flex:1; height:1px; background:#DCDCDC;"></div><span style="font-size:12px; font-weight:bold; color:var(--text-muted); letter-spacing:1px;">本月概览</span><div style="flex:1; height:1px; background:#DCDCDC;"></div></div>
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0;"><span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">🛒 本月数量</span><span style="font-weight:bold; cursor:pointer;" onclick="toggleCalPrice('qty')">${qtyDisplay}</span></div>
+
+
+
+
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0;"><span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">💸 花费</span><span style="font-weight:bold; color:var(--badge-not_arrived); cursor:pointer;" onclick="toggleCalPrice('est')">${estPriceDisplay}</span></div>
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0;"><span style="color:var(--text-muted); display:flex; align-items:center; gap:6px;">💰 预计待补</span><span style="font-weight:bold; color:var(--badge-near); cursor:pointer;" onclick="toggleCalPrice('bal')">${balPriceDisplay}</span></div>
             `;
@@ -2503,14 +2587,17 @@
             
             document.getElementById('idName').innerText = item.name; 
             
-            let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
-            let dlcItem = dlcData.find(d => d.linkedItemId == item.id || d.name === item.name);
-            let dlcBtnHtml = '';
-            if (dlcItem) {
-                let btnColor = appConfig.appearance.badgeColors.dlc || '#5B9AFF';
-                dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC01coll.html?viewId=${dlcItem.id}'">📐尺寸</div>`;
-            }
-            document.getElementById('idDlcLinkContainer').innerHTML = dlcBtnHtml;
+            // 使用 IndexedDB 异步读取 DLC 数据
+            LocalDB.get('myCabinetDLC_Size').then(dlcData => {
+                dlcData = dlcData || [];
+                let dlcItem = dlcData.find(d => d.linkedItemId == item.id || d.name === item.name);
+                let dlcBtnHtml = '';
+                if (dlcItem) {
+                    let btnColor = appConfig.appearance.badgeColors.dlc || '#5B9AFF';
+                    dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC01coll.html?viewId=${dlcItem.id}'">📐尺寸</div>`;
+                }
+                document.getElementById('idDlcLinkContainer').innerHTML = dlcBtnHtml;
+            });
             
             let pColor = '';
             if (item.entryType === 'queue') {
@@ -2765,19 +2852,7 @@
         }
         
         function closeDrawer() { document.getElementById('addDrawer').style.display = 'none'; closeCropper(); }
-        function saveData() { localStorage.setItem('myCabinetDataV7', JSON.stringify(appData)); }
-
-        // 初始化
-        window.addEventListener('resize', () => { renderUI(); });
-        syncGroupFiltersOrder(); renderTopIcons(); renderFormOptions(); renderStatusTags(); renderGroupFilters(); renderUI(); checkNotices();
         
-        // 解析 URL 参数跳转
-        const urlParams = new URLSearchParams(window.location.search);
-        const viewId = urlParams.get('viewId');
-        if (viewId) {
-            setTimeout(() => { openIdCard(parseInt(viewId)); }, 300);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
     </script>
 </body>
 </html>
