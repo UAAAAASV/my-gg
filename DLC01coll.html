@@ -61,17 +61,17 @@
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .form-group { margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; flex-shrink: 0;}
         .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
         input[type="text"], input[type="number"], select, textarea { width: 100%; background: var(--input-bg); border: none; border-radius: var(--radius-md); padding: 14px 16px; font-size: 15px; outline: none; font-weight: 500; appearance: none; box-sizing: border-box;}
         textarea { resize: none; height: 80px; }
         .row { display: flex; gap: 12px; } .row > div { flex: 1; min-width: 0; }
         
-        .btn-group { display: flex; gap: 12px; margin-top: 10px; }
+        .btn-group { display: flex; gap: 12px; margin-top: 10px; flex-shrink: 0;}
         .drawer-btn { flex: 1; height: 50px; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; box-sizing: border-box;}
         .btn-cancel { background: var(--input-bg); color: var(--text-main); }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-delete { width: 100%; background: #FFF0F0; color: #FF4D4F; margin-top: 10px; }
+        .btn-delete { width: 100%; background: #FFF0F0; color: #FF4D4F; margin-top: 10px; flex-shrink: 0;}
 
         .img-slots { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 10px; flex-shrink: 0;}
         .img-slot { width: 95px; height: 105px; background: var(--input-bg); border-radius: 14px; border: 2px dashed #D0D0D0; display: flex; justify-content: center; align-items: center; flex-direction: column; color: var(--text-muted); position: relative; flex-shrink: 0; cursor: pointer; overflow: hidden;}
@@ -82,7 +82,7 @@
         .crop-btn { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); background: var(--theme-dark); color: white; font-size: 11px; padding: 4px 10px; border-radius: 12px; z-index: 10; font-weight: bold; white-space: nowrap;}
 
         /* ================= 防扭曲裁剪区 ================= */
-        .cropper-layout { display: flex; flex-direction: column; align-items: center; width: 100%; background: transparent; border: 1px dashed rgba(0,0,0,0.1); border-radius: 16px; padding: 20px 10px; margin-bottom: 20px; display: none; }
+        .cropper-layout { display: flex; flex-direction: column; align-items: center; width: 100%; background: transparent; border: 1px dashed rgba(0,0,0,0.1); border-radius: 16px; padding: 20px 10px; margin-bottom: 20px; display: none; flex-shrink: 0;}
         .cropper-title { color: var(--text-main); font-size: 13px; font-weight: bold; margin-bottom: 15px; }
         .cropper-container { position: relative; display: inline-block; user-select: none; touch-action: none; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
         .cropper-container img { display: block; max-width: 100%; max-height: 45vh; width: auto; height: auto; pointer-events: none; }
@@ -178,10 +178,11 @@
 
         /* 全局内置弹窗 */
         .custom-dialog-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
-        .custom-dialog { background: white; width: 90%; max-width: 320px; border-radius: 16px; padding: 20px; text-align: center; }
+        .custom-dialog { background: white; width: 90%; max-width: 320px; border-radius: 16px; padding: 20px; text-align: center; max-height: 80vh; overflow-y: auto;}
         .custom-dialog h3 { font-size: 16px; margin-bottom: 10px;}
-        .custom-dialog .btn-row { display: flex; gap: 10px; margin-top: 20px;}
-        .custom-dialog button { flex: 1; height: 46px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;}
+        .custom-dialog input[type="text"] { width: 100%; background: var(--input-bg); border: none; padding: 0 14px; height: 46px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-size: 14px; box-sizing: border-box;}
+        .custom-dialog .btn-row { display: flex; gap: 10px;}
+        .custom-dialog button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;}
         .custom-dialog .btn-cancel { background: var(--input-bg); color: var(--text-muted);}
         .custom-dialog .btn-confirm { background: var(--theme-dark); color: white;}
     </style>
@@ -211,7 +212,7 @@
         <div class="drawer" id="drawerContent">
             <div class="drawer-handler"></div>
             <input type="hidden" id="editingItemId" value=""> 
-            <h3 style="margin-bottom: 20px; font-size: 18px;" id="drawerTitle">添加对比物品</h3>
+            <h3 style="margin-bottom: 20px; font-size: 18px; flex-shrink: 0;" id="drawerTitle">添加对比物品</h3>
 
             <div class="form-group row">
                 <div><input type="text" id="itemName" placeholder="主名称 (必填)..." style="font-size: 16px; font-weight: bold; background: transparent; padding: 0 0 10px 0; border-bottom: 2px solid var(--input-bg); border-radius: 0;"></div>
@@ -240,7 +241,10 @@
 
             <!-- 裁切区 -->
             <div id="cropperLayout" class="cropper-layout">
-                <div class="cropper-title" id="cropperTitle">正在裁剪：尺标图</div>
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom: 15px;">
+                    <div class="cropper-title" id="cropperTitle" style="margin-bottom:0;">正在裁剪：尺标图</div>
+                    <button class="btn-primary" style="padding: 4px 12px; border-radius: 6px; font-size:12px;" onclick="closeCropper(event)">确定裁剪</button>
+                </div>
                 <div id="cropperWrapper" class="cropper-container">
                     <img id="cropperImg" src="">
                     <div class="mask" id="maskTop"></div><div class="mask" id="maskBottom"></div><div class="mask" id="maskLeft"></div><div class="mask" id="maskRight"></div>
@@ -361,7 +365,8 @@
         <div class="custom-dialog">
             <h3 id="dialogTitle">提示</h3>
             <div id="dialogText" style="font-size:14px; color:#555; margin-bottom:10px; line-height: 1.5; white-space:pre-wrap;"></div>
-            <div class="btn-row">
+            <input type="text" id="dialogInput" style="display:none;">
+            <div class="btn-row" style="margin-top: 20px;">
                 <button class="btn-cancel" onclick="closeDialog()" id="dialogCancelBtn">取消</button>
                 <button class="btn-confirm" id="dialogConfirmBtn">确认</button>
             </div>
@@ -369,10 +374,62 @@
     </div>
 
     <script>
+        // ================= IndexedDB 数据库引擎 =================
+        const LocalDB = {
+            dbName: 'MyCabinetStorageDB',
+            version: 1,
+            init() {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(this.dbName, this.version);
+                    req.onupgradeneeded = e => {
+                        const db = e.target.result;
+                        if(!db.objectStoreNames.contains('store')) {
+                            db.createObjectStore('store');
+                        }
+                    };
+                    req.onsuccess = e => resolve(e.target.result);
+                    req.onerror = e => reject(e);
+                });
+            },
+            async get(key) {
+                try {
+                    const db = await this.init();
+                    return new Promise((resolve) => {
+                        const tx = db.transaction('store', 'readonly');
+                        const req = tx.objectStore('store').get(key);
+                        req.onsuccess = () => resolve(req.result);
+                        req.onerror = () => resolve(null);
+                    });
+                } catch(e) { return null; }
+            },
+            async set(key, val) {
+                try {
+                    const db = await this.init();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction('store', 'readwrite');
+                        tx.objectStore('store').put(val, key);
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = e => reject(e);
+                    });
+                } catch(e) { console.error("DB Error:", e); throw e; }
+            },
+            async remove(key) {
+                try {
+                    const db = await this.init();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction('store', 'readwrite');
+                        tx.objectStore('store').delete(key);
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = e => reject(e);
+                    });
+                } catch(e) { console.error(e); throw e; }
+            }
+        };
+
         // ================= 数据初始化 =================
-        let dlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size')) || [];
+        let dlcData = [];
+        let mainAppData = { items: [], categories: { main: ['未分类'], subMap: {} } };
         let selectedIds = new Set();
-        let mainAppData = JSON.parse(localStorage.getItem('myCabinetDataV7')) || { items: [], categories: { main: ['未分类'], subMap: {} } };
         
         let imgArray = []; 
         let origSizes = {}; 
@@ -390,11 +447,52 @@
         let mainCatFold = {}; 
         let subCatFold = {}; 
 
+        async function initApp() {
+            // 迁移 DLC 数据
+            let idbDlcData = await LocalDB.get('myCabinetDLC_Size');
+            if (!idbDlcData && localStorage.getItem('myCabinetDLC_Size')) {
+                idbDlcData = JSON.parse(localStorage.getItem('myCabinetDLC_Size'));
+                await LocalDB.set('myCabinetDLC_Size', idbDlcData);
+            }
+            dlcData = idbDlcData || [];
+
+            // 获取主库数据
+            let idbData = await LocalDB.get('myCabinetDataV7');
+            if (!idbData && localStorage.getItem('myCabinetDataV7')) {
+                idbData = JSON.parse(localStorage.getItem('myCabinetDataV7'));
+            }
+            if (idbData) mainAppData = idbData;
+
+            // 解析 URL 参数跳转
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewId = urlParams.get('viewId');
+            if (viewId) {
+                setTimeout(() => { openViewMode(parseInt(viewId)); }, 300);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            renderGrid();
+        }
+        
+        initApp();
+
         // ================= 基础工具 =================
         let dialogCallback = null;
-        function showDialog(title, text, confirmText, callback, isAlert = false) {
+        function showDialog(title, showInput, placeholder, confirmText, callback, isAlert = false) {
             document.getElementById('dialogTitle').innerText = title;
-            document.getElementById('dialogText').innerText = text || '';
+            document.getElementById('dialogText').style.display = 'none';
+            if(typeof showInput === 'string') {
+                document.getElementById('dialogText').innerText = showInput;
+                document.getElementById('dialogText').style.display = 'block';
+                document.getElementById('dialogInput').style.display = 'none';
+            } else if(showInput) { 
+                document.getElementById('dialogInput').style.display = 'block'; 
+                document.getElementById('dialogInput').value = ''; 
+                document.getElementById('dialogInput').placeholder = placeholder || ''; 
+            } else {
+                document.getElementById('dialogInput').style.display = 'none';
+            }
+            
             document.getElementById('dialogConfirmBtn').innerText = confirmText || '确认';
             document.getElementById('dialogCancelBtn').style.display = isAlert ? 'none' : 'block';
             document.getElementById('dialogConfirmBtn').style.background = 'var(--theme-dark)';
@@ -402,7 +500,7 @@
             document.getElementById('customDialog').style.display = 'flex';
         }
         function closeDialog() { document.getElementById('customDialog').style.display = 'none'; }
-        document.getElementById('dialogConfirmBtn').onclick = () => { closeDialog(); if(dialogCallback) dialogCallback(); };
+        document.getElementById('dialogConfirmBtn').onclick = () => { closeDialog(); if(dialogCallback) dialogCallback(document.getElementById('dialogInput').value); };
 
         // 防误触保护
         let initialFormState = '';
@@ -417,13 +515,13 @@
             let currentState = getFormState(); let isEditing = document.getElementById('editingItemId').value !== '';
             if (isEditing) {
                 if (currentState !== initialFormState) {
-                    showDialog("放弃修改？", "您已经做了一些修改，确定要直接关闭吗？\n未保存的内容将会丢失。", "放弃并关闭", () => { closeDrawer(); });
+                    showDialog("放弃修改？", "您已经做了一些修改，确定要直接关闭吗？\n未保存的内容将会丢失。", "放弃", () => { closeDrawer(); });
                     document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
                 } else closeDrawer();
             } else {
                 let hasData = document.getElementById('itemName').value.trim() !== '' || document.getElementById('itemHeight').value !== '' || imgArray[0] !== null;
                 if (hasData) {
-                    showDialog("放弃新增？", "您的输入框中已有内容，确定要直接关闭吗？\n未保存的内容将会丢失。", "放弃并关闭", () => { closeDrawer(); });
+                    showDialog("放弃新增？", "您的输入框中已有内容，确定要直接关闭吗？\n未保存的内容将会丢失。", "放弃", () => { closeDrawer(); });
                     document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
                 } else closeDrawer();
             }
@@ -522,7 +620,7 @@
         function toggleSelect(id, e) { e.preventDefault(); e.stopPropagation(); if(selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id); renderGrid(); }
         function updateCompareBar() { const bar = document.getElementById('compareBar'); document.getElementById('selCount').innerText = selectedIds.size; if (selectedIds.size > 0) bar.classList.add('active'); else bar.classList.remove('active'); }
 
-        // ================= 沉浸式查看模式 (重构防卡顿缩放逻辑) =================
+        // ================= 沉浸式查看模式 =================
         let viewImgs = []; 
         function openViewMode(id) {
             const item = dlcData.find(i => i.id === id); if(!item) return;
@@ -656,14 +754,18 @@
                         const img = new Image(); 
                         img.onload = () => {
                             const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
-                            let w = img.width, h = img.height; if (w > 1200) { h *= 1200 / w; w = 1200; } cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
-                            let b64 = cvs.toDataURL('image/jpeg', 0.8);
+                            let w = img.width, h = img.height; if (w > 1200) { h *= 1200 / w; w = 1200; }
+                            cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
+                            // 数据库加持，重新升回高清 0.85
+                            imgArray.push(cvs.toDataURL('image/jpeg', 0.85)); 
+                            if(imgArray.length === 1) coverCrop = { top: 0, bottom: 1, left: 0, right: 1 }; 
                             
                             if (activeUploadSlot === 0 || activeUploadSlot === 1) {
-                                imgArray[activeUploadSlot] = b64; origSizes[activeUploadSlot] = { w, h };
+                                imgArray[activeUploadSlot] = imgArray.pop(); 
+                                origSizes[activeUploadSlot] = { w, h };
                                 if(activeUploadSlot === 0) scaleCrop = { top: 0.1, bottom: 0.9, left: 0.2, right: 0.8 }; if(activeUploadSlot === 1) coverCrop = { top: 0.1, bottom: 0.9, left: 0.2, right: 0.8 };
                                 openCropperFor(activeUploadSlot, {stopPropagation:()=>{}}); 
-                            } else { if(activeUploadSlot === 2) { imgArray.push(b64); } }
+                            }
                             
                             loadedCount++;
                             if(loadedCount === files.length) { renderUploadSlots(); input.value = ''; }
@@ -778,7 +880,7 @@
                     ctx.drawImage(img, img.width * crop.left, img.height * crop.top, cW, cH, 0, 0, cW, cH); 
                     callback(cvs.toDataURL('image/jpeg', 0.6)); 
                 } catch(e) { callback(''); }
-            }
+            };
             img.onerror = () => callback('');
             img.src = b64;
         }
@@ -787,7 +889,7 @@
             const name = document.getElementById('itemName').value.trim(); const cm = parseFloat(document.getElementById('itemHeight').value);
             if(!name) return showDialog("提示", "主名称不能为空", "知道了", null, true); if(isNaN(cm) || cm <= 0) return showDialog("错误", "请输入有效的实际高度", "知道了", null, true);
             if(!imgArray[0]) return showDialog("错误", "必须上传【尺标图】才能进行对比", "知道了", null, true);
-            let btn = document.getElementById('btnSave'); let oldTxt = btn.innerText; btn.innerText = '正在生成...';
+            let btn = document.getElementById('btnSave'); let oldTxt = btn.innerText; btn.innerText = '正在保存...';
             
             try {
                 let scaleThumb = await new Promise(resolve => generateThumb(imgArray[0], scaleCrop, resolve)); let coverThumb = '';
@@ -797,19 +899,21 @@
                 let itemObj = { id: editId ? parseInt(editId) : Date.now(), name: name, subName: document.getElementById('itemSubName').value.trim(), heightCm: cm, remark: document.getElementById('itemRemark').value.trim(), mainCat: document.getElementById('itemMainCat').value, subCat: document.getElementById('itemSubCat').value, linkedItemId: document.getElementById('linkCabinetItem').value, images: [...imgArray], scaleCrop: { ...scaleCrop }, coverCrop: { ...coverCrop }, origSizes: { ...origSizes }, scaleThumb: scaleThumb, coverThumb: coverThumb };
 
                 if (editId) dlcData[dlcData.findIndex(i => i.id == editId)] = itemObj; else dlcData.push(itemObj);
-                localStorage.setItem('myCabinetDLC_Size', JSON.stringify(dlcData)); 
+                
+                await LocalDB.set('myCabinetDLC_Size', dlcData);
                 btn.innerText = oldTxt; closeDrawer(); renderGrid();
             } catch(e) {
-                showDialog("保存失败", "生成图片时发生错误。", "知道了", null, true);
+                console.error("Save Error:", e);
+                showDialog("保存失败 (空间不足)", "虽然系统已升级数据库，但您的设备可用存储空间可能已经耗尽。\n请清理设备垃圾文件或浏览器缓存后重试。", "知道了", null, true);
                 btn.innerText = oldTxt;
             }
         }
 
         function confirmDeleteEdit() {
-            showDialog("警告", "确定要删除该物品的尺寸记录吗？", "确定删除", () => {
+            showDialog("警告", "确定要删除该物品的尺寸记录吗？", "确定删除", async () => {
                 const editId = document.getElementById('editingItemId').value;
                 dlcData = dlcData.filter(i => i.id != editId); selectedIds.delete(parseInt(editId));
-                localStorage.setItem('myCabinetDLC_Size', JSON.stringify(dlcData)); closeDrawer(); renderGrid();
+                await LocalDB.set('myCabinetDLC_Size', dlcData); closeDrawer(); renderGrid();
             }); document.getElementById('dialogConfirmBtn').style.background = '#FF4D4F';
         }
 
@@ -941,15 +1045,6 @@
         document.addEventListener('touchmove', onDragListMove, {passive:false}); document.addEventListener('touchend', onDragListEnd);
         document.addEventListener('mousemove', onDragListMove); document.addEventListener('mouseup', onDragListEnd);
 
-        // 解析 URL 参数跳转
-        const urlParams = new URLSearchParams(window.location.search);
-        const viewId = urlParams.get('viewId');
-        if (viewId) {
-            setTimeout(() => { openViewMode(parseInt(viewId)); }, 300);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-
-        renderGrid();
     </script>
 </body>
 </html>
