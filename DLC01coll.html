@@ -28,21 +28,21 @@
         .sub-category-block { margin-bottom: 15px; }
         .sub-title { background: var(--surface); font-size: 14px; font-weight: 600; color: #555; padding: 8px 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; cursor: pointer; user-select: none;}
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; }
         
-        .item-card { background: var(--bg-base); border-radius: 12px; overflow: hidden; position: relative; transition: 0.2s; border: 2px solid transparent; user-select: none; -webkit-touch-callout: none;}
+        .item-card { background: var(--bg-base); border-radius: var(--radius-md); overflow: hidden; position: relative; transition: 0.2s; border: 2px solid transparent; user-select: none; -webkit-touch-callout: none;}
         .item-card.selected { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255,141,161,0.2); }
         
         .item-img-wrap { width: 100%; aspect-ratio: 1; background: #eef0f2; position: relative; display: flex; justify-content: center; align-items: center;}
         .item-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
         
-        .item-info { padding: 10px; background: var(--surface);}
-        .item-name { font-size: 13px; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .item-meta { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;}
+        .item-info { padding: 6px; background: var(--surface);}
+        .item-name { font-size: 12px; font-weight: bold; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-meta { font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;}
         
-        .check-circle { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 2px solid #ddd; z-index: 10; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        .check-circle { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 2px solid #ddd; z-index: 10; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
         .item-card.selected .check-circle { background: var(--primary); border-color: var(--primary); }
-        .item-card.selected .check-circle::after { content: '✓'; color: white; font-weight: bold; font-size: 13px; }
+        .item-card.selected .check-circle::after { content: '✓'; color: white; font-weight: bold; font-size: 11px; }
 
         .compare-bar { position: fixed; bottom: -100px; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 15px 25px 30px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; transition: bottom 0.3s ease; z-index: 80; border-radius: 28px 28px 0 0; }
         .compare-bar.active { bottom: 0; }
@@ -191,7 +191,10 @@
 
     <div class="header">
         <div class="app-title">📐 尺寸库 <span style="font-size:10px;background:var(--primary-light);color:var(--primary);padding:2px 6px;border-radius:4px;">单击查看 - 长按编辑</span></div>
-        <a href="index.html" class="back-btn">返回</a>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <span style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;" onclick="openSettings()">设置</span>
+            <a href="index.html" class="back-btn">返回</a>
+        </div>
     </div>
 
     <!-- 主页分区展示区 -->
@@ -358,6 +361,39 @@
             <div class="view-remark" id="viewRemark" onclick="this.classList.toggle('expanded')"></div>
         </div>
     </div>
+	
+	<!-- 设置抽屉 -->
+    <div class="drawer-overlay" id="dlcSettingsDrawer" onclick="if(event.target===this) closeSettings()">
+        <div class="drawer" style="padding:20px 24px; bottom: 0;">
+            <div class="drawer-handler"></div>
+            <h3 style="margin-bottom: 20px; font-size: 18px;">设置</h3>
+            <div class="form-group">
+                <label class="form-label">分类内排序方式</label>
+                <select id="set_sortMethod" onchange="updateSortMethod(this.value)">
+                    <option value="manual">手动排序 (默认记录顺序)</option>
+                    <option value="create_asc">按创建时间 (早 -> 晚)</option>
+                    <option value="create_desc">按创建时间 (晚 -> 早)</option>
+                    <option value="name_asc">按名称拼音 (A -> Z)</option>
+                    <option value="name_desc">按名称拼音 (Z -> A)</option>
+                </select>
+            </div>
+            <button class="drawer-btn btn-primary" style="margin-bottom: 10px;" onclick="openSortDrawer()">手动拖动排序</button>
+            <button class="drawer-btn btn-cancel" onclick="closeSettings()">关闭</button>
+        </div>
+    </div>
+
+    <!-- 拖拽排序抽屉 -->
+    <div class="drawer-overlay" id="sortDrawerOverlay" onclick="if(event.target===this) closeSortDrawer()">
+        <div class="drawer" style="padding:20px 0; height: 80vh; display: flex; flex-direction: column;">
+            <div class="drawer-handler"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 0 20px 10px;">
+                <h2 style="margin: 0; font-size: 18px;">物品排序</h2>
+                <button class="btn-primary" style="padding: 6px 16px; border:none; border-radius: 8px; font-size:13px; font-weight:bold; cursor:pointer;" onclick="saveSort()">保存</button>
+            </div>
+            <div style="font-size:12px; color:#999; padding:0 20px 10px; border-bottom:1px solid #eee;">按住右侧的 ☰ 拖动进行排序（保存后生效）。</div>
+            <div id="sortListContainerNormal" style="flex:1; overflow-y:auto; padding:15px 20px; position:relative;"></div>
+        </div>
+    </div>
 
     <!-- 全局内置弹窗 -->
     <div class="custom-dialog-mask" id="customDialog">
@@ -371,6 +407,73 @@
             </div>
         </div>
     </div>
+	
+	// ================= 设置与排序控制 =================
+        function openSettings() {
+            document.getElementById('set_sortMethod').value = dlcConfig.sortMethod || 'manual';
+            document.getElementById('dlcSettingsDrawer').style.display = 'flex';
+        }
+        function closeSettings() { document.getElementById('dlcSettingsDrawer').style.display = 'none'; }
+        
+        async function updateSortMethod(val) { 
+            dlcConfig.sortMethod = val; 
+            await LocalDB.set('myCabinetDLC_Config', dlcConfig); 
+            renderGrid(); 
+        }
+
+        function openSortDrawer() {
+            closeSettings();
+            const c = document.getElementById('sortListContainerNormal');
+            let html = '';
+            dlcData.forEach(item => {
+                let thumbSrc = item.coverThumb || item.scaleThumb || (item.images && item.images[0]) || '';
+                let imgHtml = thumbSrc ? `<img src="${thumbSrc}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:12px;">` : '';
+                html += `<div class="sort-item" data-id="${item.id}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:var(--input-bg); border-radius:12px; margin-bottom:10px; user-select:none;">
+                    <div style="display:flex; align-items:center; flex:1; overflow:hidden;">${imgHtml}<div style="font-weight:bold; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name || '未命名'}</div></div>
+                    <div class="drag-handle" style="padding:5px 10px; font-size:18px; color:#999; cursor:grab; margin-right:-10px;">☰</div>
+                </div>`;
+            });
+            c.innerHTML = html;
+            const handles = c.querySelectorAll('.drag-handle');
+            handles.forEach(handle => { 
+                handle.addEventListener('touchstart', handleDragStart, {passive: false}); 
+                handle.addEventListener('touchmove', handleDragMove, {passive: false}); 
+                handle.addEventListener('touchend', handleDragEnd); 
+                handle.addEventListener('mousedown', handleDragStart); 
+            });
+            document.getElementById('sortDrawerOverlay').style.display = 'flex';
+        }
+        function closeSortDrawer() { document.getElementById('sortDrawerOverlay').style.display = 'none'; }
+
+        let draggingElement = null;
+        function handleDragStart(e) { if(e.type === 'touchstart') e.preventDefault(); draggingElement = this.closest('.sort-item'); draggingElement.style.opacity = '0.5'; draggingElement.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)'; }
+        function handleDragMove(e) {
+            if (!draggingElement) return; if(e.type === 'touchmove') e.preventDefault();
+            let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY; const container = document.getElementById('sortListContainerNormal');
+            const items = [...container.querySelectorAll('.sort-item:not([style*="opacity: 0.5"])')];
+            let nextElement = items.find(item => { const rect = item.getBoundingClientRect(); return clientY <= rect.top + rect.height / 2; });
+            if (nextElement !== draggingElement.nextSibling) { container.insertBefore(draggingElement, nextElement); }
+        }
+        function handleDragEnd(e) { if (draggingElement) { draggingElement.style.opacity = '1'; draggingElement.style.boxShadow = 'none'; draggingElement = null; } }
+        document.addEventListener('mousemove', handleDragMove); document.addEventListener('mouseup', handleDragEnd);
+        document.addEventListener('touchmove', handleDragMove, {passive:false}); document.addEventListener('touchend', handleDragEnd);
+
+        async function saveSort() {
+            const c = document.getElementById('sortListContainerNormal');
+            const newOrderIds = [...c.querySelectorAll('.sort-item')].map(el => parseInt(el.getAttribute('data-id')));
+            
+            let newDlcData = [];
+            newOrderIds.forEach(id => {
+                let item = dlcData.find(i => i.id === id);
+                if(item) newDlcData.push(item);
+            });
+            dlcData = newDlcData;
+            dlcConfig.sortMethod = 'manual';
+            await LocalDB.set('myCabinetDLC_Config', dlcConfig);
+            await LocalDB.set('myCabinetDLC_Size', dlcData);
+            
+            closeSortDrawer(); renderGrid();
+        }
 
     <script>
         // ================= IndexedDB 数据库引擎 =================
@@ -428,6 +531,7 @@
         // ================= 数据初始化 =================
         let dlcData = [];
         let mainAppData = { items: [], categories: { main: ['未分类'], subMap: {} } };
+        let dlcConfig = { sortMethod: 'manual' }; // 新增配置
         let selectedIds = new Set();
         
         let imgArray = []; 
@@ -447,6 +551,10 @@
         let subCatFold = {}; 
 
         async function initApp() {
+            // 加载配置
+            let idbConf = await LocalDB.get('myCabinetDLC_Config');
+            if (idbConf) dlcConfig = idbConf;
+
             // 迁移 DLC 数据
             let idbDlcData = await LocalDB.get('myCabinetDLC_Size');
             if (!idbDlcData && localStorage.getItem('myCabinetDLC_Size')) {
@@ -558,8 +666,18 @@
             const container = document.getElementById('cabinetsContainer'); 
             let finalHtml = '';
             
+            // 加入排序系统
+            let sortedData = [...dlcData];
+            sortedData.sort((a, b) => {
+                if (dlcConfig.sortMethod === 'create_asc') return a.id - b.id;
+                if (dlcConfig.sortMethod === 'create_desc') return b.id - a.id;
+                if (dlcConfig.sortMethod === 'name_asc') return (a.name||'').localeCompare(b.name||'', 'zh-CN');
+                if (dlcConfig.sortMethod === 'name_desc') return (b.name||'').localeCompare(a.name||'', 'zh-CN');
+                return 0; // manual
+            });
+            
             const mainGroups = {}; 
-            dlcData.forEach(item => {
+            sortedData.forEach(item => {
                 let mCat = item.mainCat || '未分类'; let sCat = item.subCat || '无分类';
                 if(!mainGroups[mCat]) mainGroups[mCat] = { sum: 0, subs: {} }; 
                 if(!mainGroups[mCat].subs[sCat]) mainGroups[mCat].subs[sCat] = [];
