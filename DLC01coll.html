@@ -48,16 +48,16 @@
         .compare-bar.active { bottom: 0; }
         .btn-compare { background: var(--theme-dark); color: white; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; }
 
-        .fab { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; background: var(--theme-dark); border-radius: 30px; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); z-index: 70; cursor: pointer; transition: bottom 0.3s; color: transparent; }
-.fab::before, .fab::after { content: ''; position: absolute; background: white; border-radius: 2px;}
-.fab::before { width: 20px; height: 3px; }
-.fab::after { width: 3px; height: 20px; }
-.compare-bar.active ~ .fab { bottom: 110px; }
+        .fab { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; background: var(--theme-dark); border-radius: 30px; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); z-index: 70; cursor: pointer; transition: 0.3s; }
+        .compare-bar.active ~ .fab { bottom: 100px; }
+        .fab::before, .fab::after { content: ''; position: absolute; background: white; border-radius: 2px;}
+        .fab::before { width: 20px; height: 3px; }
+        .fab::after { width: 3px; height: 20px; }
 
         /* ================= 抽屉与表单 ================= */
-        .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; animation: fadeIn 0.2s; }
-        .drawer { position: absolute; bottom: 0; left: 0; width: 100%; max-height: 92vh; background: var(--surface); border-radius: 28px 28px 0 0; padding: 20px 24px; overflow-y: auto; display: block; animation: slideUp 0.3s ease; }
-        .drawer-handler { width: 40px; height: 5px; background: #E0E0E0; border-radius: 5px; margin: 0 auto 20px; }
+        .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 100; animation: fadeIn 0.2s; }
+        .drawer { position: absolute; bottom: 0; left: 0; width: 100%; max-height: 90vh; background: var(--surface); border-radius: 24px 24px 0 0; padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; animation: slideUp 0.3s ease; }
+        .drawer-handler { width: 40px; height: 5px; background: #E0E0E0; border-radius: 5px; margin: 0 auto 20px; flex-shrink: 0;}
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -125,6 +125,7 @@
         
         .c-item-info-panel { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); text-align: center; margin-top: 8px; width: max-content; }
         .c-item-label { font-size: 14px; font-weight: 800; color: #333; white-space: nowrap; text-shadow: 0 1px 2px #fff;}
+        .c-item-sub-label { font-size: 11px; font-weight: bold; color: #666; white-space: nowrap; text-shadow: 0 1px 2px #fff; margin-top: 2px;}
         .c-item-height-tag { font-size: 12px; color: #fff; font-weight: bold; background: var(--primary); padding: 2px 8px; border-radius: 12px; margin-top: 4px; display: inline-block;}
 
         /* ================= 对比设置面板 (糖果色按钮沉底) ================= */
@@ -278,7 +279,7 @@
             </div>
             <button class="drawer-btn btn-delete" id="btnDelete" onclick="confirmDeleteEdit()" style="display:none;">删除该物品</button>
             
-            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="processImg(this)">
+            <input type="file" id="fileInput" multiple accept="image/*" style="display:none;" onchange="processImg(this)">
         </div>
     </div>
 
@@ -629,7 +630,7 @@
         
         function removeImg(slotIndex, e) {
             e.stopPropagation();
-            showDialog("移除图片", "确定要移除这张图片吗？", "确定删除", () => {
+            showDialog("移除图片", "确定要移除这张图片吗？", "确定移除", () => {
                 if(slotIndex === 0 || slotIndex === 1) { imgArray[slotIndex] = null; delete origSizes[slotIndex]; } else { imgArray.splice(slotIndex, 1); }
                 if (currentCropTarget === slotIndex) { document.getElementById('cropperLayout').style.display = 'none'; currentCropTarget = -1; }
                 renderUploadSlots();
@@ -646,24 +647,65 @@
         }
 
         function processImg(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader(); reader.readAsDataURL(input.files[0]);
-                reader.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
-                        let w = img.width, h = img.height; if (w > 1200) { h *= 1200 / w; w = 1200; } cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
-                        let b64 = cvs.toDataURL('image/jpeg', 0.8);
-                        
-                        if (activeUploadSlot === 0 || activeUploadSlot === 1) {
-                            imgArray[activeUploadSlot] = b64; origSizes[activeUploadSlot] = { w, h };
-                            if(activeUploadSlot === 0) scaleCrop = { top: 0.1, bottom: 0.9, left: 0.2, right: 0.8 }; if(activeUploadSlot === 1) coverCrop = { top: 0.1, bottom: 0.9, left: 0.2, right: 0.8 };
-                            openCropperFor(activeUploadSlot, {stopPropagation:()=>{}}); 
-                        } else { if(activeUploadSlot === 2) { imgArray.push(b64); } }
-                        renderUploadSlots(); input.value = ''; 
+            if (input.files && input.files.length > 0) {
+                let files = Array.from(input.files);
+                let loadedCount = 0;
+                files.forEach(file => {
+                    const reader = new FileReader(); reader.readAsDataURL(file);
+                    reader.onload = (e) => {
+                        const img = new Image(); 
+                        img.onload = () => {
+                            const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
+                            let w = img.width, h = img.height; if (w > 1200) { h *= 1200 / w; w = 1200; } cvs.width = w; cvs.height = h; ctx.drawImage(img, 0, 0, w, h);
+                            let b64 = cvs.toDataURL('image/jpeg', 0.8);
+                            
+                            if (activeUploadSlot === 0 || activeUploadSlot === 1) {
+                                imgArray[activeUploadSlot] = b64; origSizes[activeUploadSlot] = { w, h };
+                                if(activeUploadSlot === 0) scaleCrop = { top: 0.1, bottom: 0.9, left: 0.2, right: 0.8 }; if(activeUploadSlot === 1) coverCrop = { top: 0.1, bottom: 0.9, left: 0.2, right: 0.8 };
+                                openCropperFor(activeUploadSlot, {stopPropagation:()=>{}}); 
+                            } else { if(activeUploadSlot === 2) { imgArray.push(b64); } }
+                            
+                            loadedCount++;
+                            if(loadedCount === files.length) { renderUploadSlots(); input.value = ''; }
+                        };
+                        img.onerror = () => { loadedCount++; if(loadedCount === files.length) { renderUploadSlots(); input.value = ''; } };
+                        img.src = e.target.result;
                     }
-                }
+                });
             }
+        }
+
+        // 更多图片的拖拽功能
+        let extraDragState = { idx: -1, el: null, targetIdx: -1 };
+        function extraDragStart(e, idx) {
+            if(e.target.className.includes('btn') || e.target.tagName==='INPUT') return;
+            extraDragState.idx = idx; extraDragState.el = e.currentTarget;
+            extraDragState.el.style.opacity = '0.5'; extraDragState.el.style.transform = 'scale(0.95)';
+        }
+        function extraDragMove(e) {
+            if(extraDragState.idx === -1) return;
+            let touch = e.touches ? e.touches[0] : e;
+            let els = document.querySelectorAll('.img-slot[data-idx]');
+            extraDragState.targetIdx = -1;
+            els.forEach(el => {
+                if(el === extraDragState.el) return;
+                let rect = el.getBoundingClientRect();
+                if(touch.clientX >= rect.left && touch.clientX <= rect.right && touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                    el.style.outline = '2px solid var(--primary)';
+                    extraDragState.targetIdx = parseInt(el.getAttribute('data-idx'));
+                } else { el.style.outline = 'none'; }
+            });
+        }
+        function extraDragEnd(e) {
+            if(extraDragState.idx === -1) return;
+            document.querySelectorAll('.img-slot').forEach(el => { el.style.outline = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; });
+            if(extraDragState.targetIdx !== -1 && extraDragState.targetIdx !== extraDragState.idx) {
+                let temp = imgArray[extraDragState.idx];
+                imgArray.splice(extraDragState.idx, 1);
+                imgArray.splice(extraDragState.targetIdx, 0, temp);
+                renderUploadSlots();
+            }
+            extraDragState = { idx: -1, el: null, targetIdx: -1 };
         }
 
         function renderUploadSlots() {
@@ -676,7 +718,11 @@
             else slot1.innerHTML = `<div class="slot-icon">🖼️</div><div class="slot-title">封面图(选填)</div>`;
 
             let extraContainer = document.getElementById('extraSlotsContainer'); let extrasHtml = '';
-            for(let i=2; i<imgArray.length; i++) { if(imgArray[i]) { extrasHtml += `<div class="img-slot"><img src="${imgArray[i]}"><div class="img-del-btn" onclick="removeImg(${i}, event)">×</div></div>`; } }
+            for(let i=2; i<imgArray.length; i++) { 
+                if(imgArray[i]) { 
+                    extrasHtml += `<div class="img-slot" data-idx="${i}" ontouchstart="extraDragStart(event, ${i})" ontouchmove="extraDragMove(event)" ontouchend="extraDragEnd(event)" onmousedown="extraDragStart(event, ${i})" onmousemove="extraDragMove(event)" onmouseup="extraDragEnd(event)"><img src="${imgArray[i]}"><div class="img-del-btn" onclick="removeImg(${i}, event)">×</div></div>`; 
+                } 
+            }
             extraContainer.innerHTML = extrasHtml; extraContainer.style.display = extrasHtml ? 'flex' : 'none';
         }
 
@@ -722,36 +768,41 @@
         window.addEventListener('touchmove', onCropMove, {passive:false}); window.addEventListener('touchend', onCropEnd); window.addEventListener('mousemove', onCropMove); window.addEventListener('mouseup', onCropEnd);
 
         function generateThumb(b64, crop, callback) {
-    if(!b64 || !crop) return callback(''); 
-    if(crop.top === 0 && crop.bottom === 1 && crop.left === 0 && crop.right === 1) return callback('');
-    let img = new Image(); 
-    img.onload = () => { 
-        try {
-            let cvs = document.createElement('canvas'); let ctx = cvs.getContext('2d'); 
-            let cW = img.width * (crop.right - crop.left); let cH = img.height * (crop.bottom - crop.top); 
-            cvs.width = cW; cvs.height = cH; 
-            ctx.drawImage(img, img.width * crop.left, img.height * crop.top, cW, cH, 0, 0, cW, cH); 
-            callback(cvs.toDataURL('image/jpeg', 0.6)); 
-        } catch(e) { callback(''); }
-    };
-    img.onerror = () => callback('');
-    img.src = b64;
-}
+            if(!b64) return callback(''); 
+            let img = new Image(); 
+            img.onload = () => { 
+                try {
+                    let cvs = document.createElement('canvas'); let ctx = cvs.getContext('2d'); 
+                    let cW = img.width * (crop.right - crop.left); let cH = img.height * (crop.bottom - crop.top); 
+                    cvs.width = cW; cvs.height = cH; 
+                    ctx.drawImage(img, img.width * crop.left, img.height * crop.top, cW, cH, 0, 0, cW, cH); 
+                    callback(cvs.toDataURL('image/jpeg', 0.6)); 
+                } catch(e) { callback(''); }
+            }
+            img.onerror = () => callback('');
+            img.src = b64;
+        }
 
         async function saveItem() {
             const name = document.getElementById('itemName').value.trim(); const cm = parseFloat(document.getElementById('itemHeight').value);
             if(!name) return showDialog("提示", "主名称不能为空", "知道了", null, true); if(isNaN(cm) || cm <= 0) return showDialog("错误", "请输入有效的实际高度", "知道了", null, true);
             if(!imgArray[0]) return showDialog("错误", "必须上传【尺标图】才能进行对比", "知道了", null, true);
-            document.getElementById('btnSave').innerText = '正在生成...';
+            let btn = document.getElementById('btnSave'); let oldTxt = btn.innerText; btn.innerText = '正在生成...';
             
-            let scaleThumb = await new Promise(resolve => generateThumb(imgArray[0], scaleCrop, resolve)); let coverThumb = '';
-            if(imgArray[1]) coverThumb = await new Promise(resolve => generateThumb(imgArray[1], coverCrop, resolve));
+            try {
+                let scaleThumb = await new Promise(resolve => generateThumb(imgArray[0], scaleCrop, resolve)); let coverThumb = '';
+                if(imgArray[1]) coverThumb = await new Promise(resolve => generateThumb(imgArray[1], coverCrop, resolve));
 
-            const editId = document.getElementById('editingItemId').value;
-            let itemObj = { id: editId ? parseInt(editId) : Date.now(), name: name, subName: document.getElementById('itemSubName').value.trim(), heightCm: cm, remark: document.getElementById('itemRemark').value.trim(), mainCat: document.getElementById('itemMainCat').value, subCat: document.getElementById('itemSubCat').value, linkedItemId: document.getElementById('linkCabinetItem').value, images: [...imgArray], scaleCrop: { ...scaleCrop }, coverCrop: { ...coverCrop }, origSizes: { ...origSizes }, scaleThumb: scaleThumb, coverThumb: coverThumb };
+                const editId = document.getElementById('editingItemId').value;
+                let itemObj = { id: editId ? parseInt(editId) : Date.now(), name: name, subName: document.getElementById('itemSubName').value.trim(), heightCm: cm, remark: document.getElementById('itemRemark').value.trim(), mainCat: document.getElementById('itemMainCat').value, subCat: document.getElementById('itemSubCat').value, linkedItemId: document.getElementById('linkCabinetItem').value, images: [...imgArray], scaleCrop: { ...scaleCrop }, coverCrop: { ...coverCrop }, origSizes: { ...origSizes }, scaleThumb: scaleThumb, coverThumb: coverThumb };
 
-            if (editId) dlcData[dlcData.findIndex(i => i.id == editId)] = itemObj; else dlcData.push(itemObj);
-            localStorage.setItem('myCabinetDLC_Size', JSON.stringify(dlcData)); document.getElementById('btnSave').innerText = '保存配置'; closeDrawer(); renderGrid();
+                if (editId) dlcData[dlcData.findIndex(i => i.id == editId)] = itemObj; else dlcData.push(itemObj);
+                localStorage.setItem('myCabinetDLC_Size', JSON.stringify(dlcData)); 
+                btn.innerText = oldTxt; closeDrawer(); renderGrid();
+            } catch(e) {
+                showDialog("保存失败", "生成图片时发生错误。", "知道了", null, true);
+                btn.innerText = oldTxt;
+            }
         }
 
         function confirmDeleteEdit() {
@@ -837,6 +888,7 @@
                 let targetW_px = fullImgW_px * cWidthRatio; let offsetTop = -(fullImgH_px * crop.top); let offsetLeft = -(fullImgW_px * crop.left);
                 
                 let heightTagHtml = isShowHeight ? `<div class="c-item-height-tag">高 ${item.heightCm}cm</div>` : '';
+                let subNameHtml = item.subName ? `<div class="c-item-sub-label">${item.subName}</div>` : '';
 
                 html += `
                 <div class="c-item-wrapper">
@@ -845,6 +897,7 @@
                     </div>
                     <div class="c-item-info-panel">
                         <div class="c-item-label">${item.name}</div>
+                        ${subNameHtml}
                         ${heightTagHtml}
                     </div>
                 </div>`;
@@ -887,6 +940,14 @@
         }
         document.addEventListener('touchmove', onDragListMove, {passive:false}); document.addEventListener('touchend', onDragListEnd);
         document.addEventListener('mousemove', onDragListMove); document.addEventListener('mouseup', onDragListEnd);
+
+        // 解析 URL 参数跳转
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewId = urlParams.get('viewId');
+        if (viewId) {
+            setTimeout(() => { openViewMode(parseInt(viewId)); }, 300);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
 
         renderGrid();
     </script>
