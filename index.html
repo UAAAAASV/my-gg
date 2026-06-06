@@ -707,20 +707,7 @@
 						<div class="form-group row" style="align-items: center; margin-top: 10px;">
   						  <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_wrapDateText" onchange="updateAppearance('wrapDateText', this.checked)">换行显示日期文本</label></div>
 						</div>
-                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideDeadItems" onchange="updateAppearance('hideDeadItems', this.checked)">全局隐藏已撤排和未成团物品</label></div>
-                        </div>
-                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div style="flex:1;">
-                                <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; margin-bottom:5px;">全款录入时的默认状态</label>
-                                <select id="set_fullDefaultStatus" onchange="updateAppearance('fullDefaultStatus', this.value)" style="height:36px;font-size:13px;">
-                                    <option value="not_arrived">待发货</option>
-                                    <option value="shipped">待收货</option>
-                                    <option value="arrived">已收货</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+						<div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideItemPriceValue" onchange="updateAppearance('hideItemPriceValue', this.checked)">遮挡独立总价</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
@@ -728,7 +715,21 @@
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_calHiddenDefault" onchange="updateAppearance('calHiddenDefault', this.checked)">遮挡日历概览数据</label></div>
+                        </div>						
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideDeadItems" onchange="updateAppearance('hideDeadItems', this.checked)">隐藏撤排未成团物品</label></div>
                         </div>
+                        <div class="form-group row" style="align-items: center; margin-top: 10px;">
+                            <div style="flex:1;">
+                                <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; margin-bottom:5px;">设置全款录入的默认状态</label>
+                                <select id="set_fullDefaultStatus" onchange="updateAppearance('fullDefaultStatus', this.value)" style="height:36px;font-size:13px;">
+                                    <option value="not_arrived">待发货</option>
+                                    <option value="shipped">待收货</option>
+                                    <option value="arrived">已收货</option>
+                                </select>
+                            </div>
+                        </div>
+                        
 
                         <div class="settings-title" style="margin-top:20px;">角标颜色自定义</div>
                         <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
@@ -746,7 +747,7 @@
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">死了</label><input type="color" style="width:40px;" id="set_badge_dead" onchange="updateBadgeColor('dead', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">自爆了</label><input type="color" style="width:40px;" id="set_badge_exploded" onchange="updateBadgeColor('exploded', this.value)"></div>
                             <div style="display:flex; justify-content:space-between; align-items:center;"><label class="form-label" style="margin:0;">跑路了</label><input type="color" style="width:40px;" id="set_badge_run_away" onchange="updateBadgeColor('run_away', this.value)"></div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; grid-column:span 2;"><label class="form-label" style="margin:0;">DLC(尺寸)按钮</label><input type="color" style="width:40px;" id="set_badge_dlc" onchange="updateBadgeColor('dlc', this.value)"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; grid-column:span 2;"><label class="form-label" style="margin:0;">尺寸DLC跳转按钮</label><input type="color" style="width:40px;" id="set_badge_dlc" onchange="updateBadgeColor('dlc', this.value)"></div>
                         </div>
 
                         <div class="settings-title" style="margin-top:20px;">分类内排序方式</div>
@@ -2711,7 +2712,7 @@
                 let dlcBtnHtml = '';
                 if (dlcItem) {
                     let btnColor = appConfig.appearance.badgeColors.dlc || '#5B9AFF';
-                    dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC01coll.html?viewId=${dlcItem.id}'">📐尺寸</div>`;
+                    dlcBtnHtml = `<div style="background:${btnColor}; color:#fff; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; margin-right:8px;" onclick="window.location.href='DLC01coll.html?viewId=${dlcItem.id}'">→尺寸</div>`;
                 }
                 document.getElementById('idDlcLinkContainer').innerHTML = dlcBtnHtml;
             });
