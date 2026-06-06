@@ -766,7 +766,7 @@
                             <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_calHiddenDefault" onchange="updateAppearance('calHiddenDefault', this.checked)">遮挡日历概览数据</label></div>
                         </div>						
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
-                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideDeadItems" onchange="updateAppearance('hideDeadItems', this.checked)">隐藏撤排未成团物品</label></div>
+                            <div><label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"><input type="checkbox" id="set_hideDeadItems" onchange="updateAppearance('hideDeadItems', this.checked)">隐藏无效未成团物品</label></div>
                         </div>
                         <div class="form-group row" style="align-items: center; margin-top: 10px;">
                             <div style="flex:1;">
@@ -1196,7 +1196,9 @@
         // 执行启动
         initApp();
 
-        function isIgnoredStatus(status) { return status === 'withdrawn' || status === 'failed'; }
+        function isIgnoredStatus(status) { 
+            return ['withdrawn', 'failed', 'dead_like', 'dead', 'exploded', 'run_away'].includes(status); 
+        }
 
         function hexToRgba(hex, opacity) {
             hex = hex.replace('#', '');
