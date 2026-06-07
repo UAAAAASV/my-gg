@@ -198,9 +198,12 @@
     <div id="cabinetsContainer" style="padding-top: 5px;"></div>
 
     <div class="compare-bar" id="compareBar">
-        <div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px;">点击勾选</div>
-            <div style="font-size: 16px; font-weight: bold;">已选择 <span id="selCount" style="color: var(--primary); font-size: 20px;">0</span> 个物品</div>
+        <div style="display: flex; flex-direction: column;">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">点击勾选</div>
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+                <div style="font-size: 16px; font-weight: bold;">已选择 <span id="selCount" style="color: var(--primary); font-size: 20px;">0</span> 个</div>
+                <div onclick="clearSelection(event)" style="font-size: 11px; padding: 3px 8px; border-radius: 12px; background: #FFF0F0; color: #FF4D4F; cursor: pointer; font-weight: bold;">清空</div>
+            </div>
         </div>
         <button class="btn-compare" onclick="startCompare()">开始对比</button>
     </div>
@@ -319,7 +322,13 @@
                 </label>
             </div>
             <div class="cs-group">
-                <div class="cs-label">📋 拖拽调整顺序</div>
+                <div class="cs-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span>📋 拖拽调整顺序</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button onclick="sortCompareOrder('desc')" style="padding:4px 8px; border:1px solid #ddd; background:#fff; border-radius:6px; font-size:11px; cursor:pointer;"> ↑ </button>
+                        <button onclick="sortCompareOrder('asc')" style="padding:4px 8px; border:1px solid #ddd; background:#fff; border-radius:6px; font-size:11px; cursor:pointer;"> ↓ </button>
+                    </div>
+                </div>
                 <div class="cs-drag-list" id="csDragList"></div>
             </div>
         </div>
@@ -663,7 +672,11 @@
             if (Math.abs(x - startX) > 10 || Math.abs(y - startY) > 10) { isDragging = true; clearTimeout(pressTimer); pressTimer = null; }
         }
         function handleTouchEnd(id, e) { if (pressTimer) { clearTimeout(pressTimer); if (!e.target.closest('.check-circle')) openViewMode(id); } }
+        
         function toggleSelect(id, e) { e.preventDefault(); e.stopPropagation(); if(selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id); renderGrid(); }
+        
+        function clearSelection(e) { if(e) e.stopPropagation(); selectedIds.clear(); renderGrid(); }
+        
         function updateCompareBar() { const bar = document.getElementById('compareBar'); document.getElementById('selCount').innerText = selectedIds.size; if (selectedIds.size > 0) bar.classList.add('active'); else bar.classList.remove('active'); }
 
         // ================= 沉浸式查看模式 =================
@@ -1006,6 +1019,18 @@
             renderRuler(); renderCompareStage();
         }
 
+        function sortCompareOrder(type) {
+            let items = compareOrder.map(id => dlcData.find(i => i.id === id)).filter(Boolean);
+            if(type === 'desc') {
+                items.sort((a, b) => b.heightCm - a.heightCm);
+            } else {
+                items.sort((a, b) => a.heightCm - b.heightCm);
+            }
+            compareOrder = items.map(i => i.id);
+            renderDragList();
+            renderCompareStage();
+        }
+
         function renderRuler() {
             let html = '';
             for(let i=0; i<=200; i++) {
@@ -1015,6 +1040,7 @@
                 let textHtml = isMajor ? `<span style="position:absolute; right:25px; top:-7px; font-size:10px; color:#444;">${i}</span>` : '';
                 html += `<div style="position:absolute; bottom:${y}px; right:0; width:${width}px; height:1px; background:#444;">${textHtml}</div>`;
             }
+            html += `<div style="position:absolute; bottom:-25px; right:15px; font-size:12px; font-weight:bold; color:#666;">(cm)</div>`;
             document.getElementById('rulerTicks').innerHTML = html;
         }
 
@@ -1033,7 +1059,7 @@
                 let fullImgH_px = targetH_px / cHeightRatio; let fullImgW_px = fullImgH_px * originalAspect;
                 let targetW_px = fullImgW_px * cWidthRatio; let offsetTop = -(fullImgH_px * crop.top); let offsetLeft = -(fullImgW_px * crop.left);
                 
-                let heightTagHtml = isShowHeight ? `<div class="c-item-height-tag">高 ${item.heightCm}cm</div>` : '';
+                let heightTagHtml = isShowHeight ? `<div class="c-item-height-tag">高 ${item.heightCm}</div>` : '';
                 let subNameHtml = item.subName ? `<div class="c-item-sub-label">${item.subName}</div>` : '';
 
                 html += `
