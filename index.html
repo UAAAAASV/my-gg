@@ -394,6 +394,9 @@
             <input type="text" id="searchInput" placeholder="搜索名称或备注..." oninput="renderUI()">
             <span class="close-search" onclick="clearAndCloseSearch()">✕</span>
         </div>
+		<div style="margin-top: 12px; display: flex;">
+    <div class="s-tag" id="btnShowDuplicates" onclick="toggleDuplicatesFilter()" style="margin: 0; padding: 5px 12px;">🔍 查找重复项目</div>
+    </div>
     </div>
 
     <div class="dashboard">
@@ -604,7 +607,7 @@
 
             <div class="form-group" style="margin-top:-5px; margin-bottom: 16px;">
                 <label class="form-label">物品状态</label>
-                <select id="itemStatus" style="font-weight: bold;">
+                <select id="itemStatus" style="font-weight: bold;" onchange="toggleIgnoredRemarkArea()">
                     <option value="none">⚪ 无</option>
                     <option value="crowdfunding">🚀 待开售</option>
 					<option value="unpaid_grouping">👥 待成团-未付款</option>
@@ -619,6 +622,13 @@
                     <option value="exploded">💥 自爆了</option>
                     <option value="run_away">🏃 跑路了</option>
                 </select>
+				<div id="ignoredRemarkArea" style="display:none; margin-top:8px; padding: 10px; background: var(--input-bg); border-radius: 8px;">
+ 				   <label style="display:flex; align-items:center; gap:8px; font-size:12px; color: #666; margin-bottom: 8px; font-weight:normal;">
+    				    <input type="checkbox" id="useDefaultIgnored" checked style="width:16px; height:16px; margin:0;">
+   				     不输入则自动填入状态名
+  				  </label>
+  				  <input type="text" id="customIgnoredRemark" placeholder="输入备注..." style="height: 36px; background: #fff; padding: 0 10px; border-radius: 6px; border: none; font-size: 13px; width: 100%; box-sizing: border-box;">
+				</div>
             </div>
 
             <div class="btn-group">
@@ -1951,6 +1961,17 @@
             else if (type === 'pay_balance') statusSelect.value = 'not_arrived';
             else if (type === 'full') statusSelect.value = appConfig.appearance.fullDefaultStatus || 'not_arrived';
         }
+		function toggleIgnoredRemarkArea() {
+    let s = document.getElementById('itemStatus').value;
+    let area = document.getElementById('ignoredRemarkArea');
+    if (area) {
+        if (['withdrawn', 'failed', 'dead_like', 'dead', 'exploded', 'run_away'].includes(s)) {
+            area.style.display = 'block';
+        } else {
+            area.style.display = 'none';
+        }
+    }
+}
 
         let activeInput = null;
         function autoCalc(source) {
@@ -2112,6 +2133,9 @@
             if (queueDeadlineSuffix === 'custom' || queueDeadlineSuffix === 'date') queueDeadlineSuffix = '';
 
             const finalStatus = document.getElementById('itemStatus').value;
+			const customIgnoredRemark = document.getElementById('customIgnoredRemark').value.trim();
+			const useDefaultIgnored = document.getElementById('useDefaultIgnored').checked;
+
             const gbId = document.getElementById('itemSource').value === '拼团' ? document.getElementById('groupbuyId').value : null;
             
             const estBaseBalance = parseFloat(document.getElementById('priceEstBaseBalance').value) || 0;
@@ -2140,7 +2164,7 @@
                         targetItem.basePrice = bPrice; targetItem.shipping = sPrice; targetItem.totalPrice = tPrice;
                     }
 
-                    appData.items[idx] = { ...targetItem, name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, remark2: remark2, splitRemark: splitRemark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type };
+                    appData.items[idx] = { ...targetItem, name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, remark2: remark2, splitRemark: splitRemark, isImportant: isImportant, importantRemark: importantRemark, customIgnoredRemark: customIgnoredRemark, useDefaultIgnored: useDefaultIgnored, status: finalStatus, entryType: type };
                     appData.items[idx].images = [...imgArray]; 
                     appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr;
                     appData.items[idx].estBaseBalance = (type === 'full') ? 0 : estBaseBalance;
@@ -2155,16 +2179,16 @@
                         appData.items[idx].depositBasePrice = appData.items[idx].basePrice || 0; appData.items[idx].depositShipping = appData.items[idx].shipping || 0;
                         appData.items[idx].balanceBasePrice = bPrice; appData.items[idx].balanceShipping = sPrice;
                         appData.items[idx].basePrice = appData.items[idx].depositBasePrice + bPrice; appData.items[idx].shipping = appData.items[idx].depositShipping + sPrice; appData.items[idx].totalPrice = appData.items[idx].basePrice + appData.items[idx].shipping;
-                        appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
+                        appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark; appData.items[idx].customIgnoredRemark = customIgnoredRemark; appData.items[idx].useDefaultIgnored = useDefaultIgnored;
                         appData.items[idx].entryType = type; if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
                         appData.items[idx].estBaseBalance = 0; appData.items[idx].estBalance = 0; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].finalBalanceDate = ''; appData.items[idx].queueDeadline = '';
                     } else if (type === 'deposit' && document.getElementById('pullQueueSelect').value) {
                         const id = document.getElementById('pullQueueSelect').value; const idx = appData.items.findIndex(i => i.id == id);
                         appData.items[idx].totalPrice = tPrice; appData.items[idx].basePrice = bPrice; appData.items[idx].shipping = sPrice;
-                        appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark;
+                        appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark; appData.items[idx].customIgnoredRemark = customIgnoredRemark; appData.items[idx].useDefaultIgnored = useDefaultIgnored;
                         appData.items[idx].entryType = type; appData.items[idx].estBaseBalance = estBaseBalance; appData.items[idx].estBalance = estBalance; appData.items[idx].finalBalanceDate = finalBalanceDate; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].queueDeadline = '';
                     } else {
-                        let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, remark2: remark2, splitRemark: splitRemark, isImportant: isImportant, importantRemark: importantRemark, status: finalStatus, entryType: type, images: [...imgArray], coverCrop: {...coverCrop}, coverThumb: coverThumbStr, noticeRead: false, noticeDismissed: false };
+                        let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, remark2: remark2, splitRemark: splitRemark, isImportant: isImportant, importantRemark: importantRemark, customIgnoredRemark: customIgnoredRemark, useDefaultIgnored: useDefaultIgnored, status: finalStatus, entryType: type, images: [...imgArray], coverCrop: {...coverCrop}, coverThumb: coverThumbStr, noticeRead: false, noticeDismissed: false };
                         if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
                         newItem.estBaseBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBaseBalance; newItem.estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
                         newItem.finalBalanceDate = (type === 'deposit') ? finalBalanceDate : ''; newItem.queueDeadline = (type === 'queue') ? queueDeadline : ''; newItem.queueDeadlineSuffix = (type === 'queue') ? queueDeadlineSuffix : '';
@@ -2596,11 +2620,28 @@
                 input.focus();
             }
         }
-        function clearAndCloseSearch() {
-            document.getElementById('searchInput').value = '';
-            toggleSearch('close');
-            renderUI();
-        }
+        let showDuplicatesOnly = false;
+function toggleDuplicatesFilter() {
+    showDuplicatesOnly = !showDuplicatesOnly;
+    let btn = document.getElementById('btnShowDuplicates');
+    if (showDuplicatesOnly) {
+        btn.classList.add('active');
+        btn.innerText = '✅ 正在查看重复项目';
+    } else {
+        btn.classList.remove('active');
+        btn.innerText = '🔍 查找重复项目';
+    }
+    renderUI();
+}
+
+function clearAndCloseSearch() {
+    document.getElementById('searchInput').value = '';
+    showDuplicatesOnly = false;
+    let btn = document.getElementById('btnShowDuplicates');
+    if (btn) { btn.classList.remove('active'); btn.innerText = '🔍 查找重复项目'; }
+    toggleSearch('close');
+    renderUI();
+}
 
         // 渲染主列表
         function renderUI() {
@@ -2609,6 +2650,15 @@
             let cntNotArrived = 0, cntShipped = 0, cntNeedBalance = 0, cntUnpaidGrouping = 0, cntImportant = 0, cntNear = 0, cntCrowdfunding = 0, cntArrived = 0;
             let cntDeadLike = 0, cntDead = 0, cntExploded = 0, cntRunAway = 0, cntWithdrawn = 0, cntFailed = 0;
             let today = new Date().getTime();
+			
+			let nameCounts = {};
+if (showDuplicatesOnly) {
+    appData.items.forEach(item => {
+        let n = item.name.trim().toLowerCase();
+        if(!nameCounts[n]) nameCounts[n] = 0;
+        nameCounts[n]++;
+    });
+}
 
             let cols = Math.floor((window.innerWidth - 40) / 95) || 3; if(cols < 3) cols = 3;
             const mainGroups = {}; 
@@ -2674,13 +2724,15 @@
                 if (currentFilter === 'near' && !isNear) return;
 
                 if (search && !item.name.toLowerCase().includes(search) && !(item.remark||'').toLowerCase().includes(search) && !(item.remark2||'').toLowerCase().includes(search) && !(item.importantRemark||'').toLowerCase().includes(search)) return;
+				if (showDuplicatesOnly && nameCounts[item.name.trim().toLowerCase()] <= 1) return;
                 
                 let itemT = item.entryType === 'queue' ? 0 : item.totalPrice * item.qty;
                 let itemB = item.entryType === 'queue' ? 0 : item.basePrice * item.qty;
                 let itemS = item.entryType === 'queue' ? 0 : item.shipping;
                 
                 if (!isIgnored) {
-                    sumT += itemT; sumB += itemB; sumS += itemS; sumQty += item.qty;
+                    sumT += itemT; sumB += itemB; sumS += itemS; 
+                    if (item.status !== 'crowdfunding') sumQty += item.qty;
                 }
 
                 let mCat = item.mainCat || '未分类'; let sCat = item.subCat || '无分类';
@@ -2759,16 +2811,26 @@
                                 let outDateStr = item.estDate; let outSuffix = item.estDateSuffix; let outPrefixFull = '预计出货: '; let outPrefixShort = '出货: '; let outColor = 'var(--text-main)';
 
                                 if (isIgnored) {
-                                    outDateStr = `丨${STATUS_MAP[item.status]}丨`; outSuffix = ''; outPrefixFull = '备注: '; outPrefixShort = '备注: '; outColor = '#8B5A8C';
+                                    if (item.customIgnoredRemark) {
+        outDateStr = item.customIgnoredRemark;
+    } else if (item.useDefaultIgnored !== false) {
+        outDateStr = `丨${STATUS_MAP[item.status]}丨`;
+    } else {
+        outDateStr = '';
+    }
+    outSuffix = ''; outPrefixFull = '备注: '; outPrefixShort = '备注: '; outColor = '#8B5A8C';
                                 } else if (item.entryType === 'queue' && item.queueDeadline) { outDateStr = item.queueDeadline; outSuffix = item.queueDeadlineSuffix; outPrefixFull = '撤排期限: '; outPrefixShort = '撤排: '; outColor = '#FF4D4F'; }
                                 else if (item.entryType === 'deposit' && item.finalBalanceDate) { outDateStr = item.finalBalanceDate; outSuffix = '';  outPrefixFull = '补款期限: '; outPrefixShort = '补款: '; outColor = '#FF4D4F'; } 
                                 else if (item.entryType === 'queue') { outPrefixFull = '预计成团: '; outPrefixShort = '成团: '; }
 
                                 let outFormatted = isIgnored ? outDateStr : formatDate(outDateStr, outSuffix); let prefix = appConfig.appearance.showFullDateText ? outPrefixFull : outPrefixShort;
-                                let textOut = '暂定';
-                                if (outDateStr) { if (appConfig.appearance.wrapDateText) textOut = `${prefix.trim()}<br>${outFormatted}`; else textOut = `${prefix}${outFormatted}`; }
+                                if (outDateStr) { 
+    if (appConfig.appearance.wrapDateText) textOut = `${prefix.trim()}<br>${outFormatted}`; else textOut = `${prefix}${outFormatted}`; 
+} else if (isIgnored) { 
+    textOut = ''; 
+}
 
-                                let itemTotal = item.entryType === 'queue' ? 0 : item.totalPrice * item.qty;
+                                let itemTotal = item.totalPrice * item.qty;
                                 let baseHidden = appConfig.appearance.hideItemPriceValue;
                                 if (itemPriceClickState[item.id]) baseHidden = !baseHidden;
                                 let finalHidden = globalHidden ? baseHidden : false;
@@ -2896,7 +2958,13 @@
             
             if (isIgnoredStatus(item.status)) {
                 idEstLabel = '备注'; 
-                estDisplay = `<span style="color:#8B5A8C;font-weight:bold;">丨${STATUS_MAP[item.status]}丨</span>`;
+                if (item.customIgnoredRemark) {
+        estDisplay = `<span style="color:#8B5A8C;font-weight:bold;">${item.customIgnoredRemark}</span>`;
+    } else if (item.useDefaultIgnored !== false) {
+        estDisplay = `<span style="color:#8B5A8C;font-weight:bold;">丨${STATUS_MAP[item.status]}丨</span>`;
+    } else {
+        estDisplay = '<span style="color:#ccc;">无</span>';
+    }
             } else if (item.entryType === 'queue') {
                 if (item.queueDeadline) { idEstLabel = '撤排期限'; estDisplay = `<span style="color:#FF4D4F;font-weight:bold;">${formatDate(item.queueDeadline, item.queueDeadlineSuffix)}</span> | ${estDisplay}`; }
                 else { idEstLabel = '预计成团'; }
@@ -3075,6 +3143,7 @@
             }
             toggleRemarkMode();
             document.getElementById('isImportant').checked = !!item.isImportant; document.getElementById('importantArea').style.display = item.isImportant ? 'block' : 'none'; document.getElementById('importantRemark').value = item.importantRemark || '';
+			document.getElementById('customIgnoredRemark').value = item.customIgnoredRemark || ''; document.getElementById('useDefaultIgnored').checked = item.useDefaultIgnored !== false; toggleIgnoredRemarkArea();
             
             document.getElementById('priceEstBaseBalance').value = item.estBaseBalance || ''; document.getElementById('priceEstBalance').value = item.estBalance || '';
             
@@ -3106,6 +3175,7 @@
             document.getElementById('splitRemarkView').checked = false; toggleRemarkMode();
             document.getElementById('itemRemark').value = ''; document.getElementById('itemRemarkLeft').value = ''; document.getElementById('itemRemarkRight').value = '';
             document.getElementById('isImportant').checked = false; document.getElementById('importantArea').style.display = 'none'; document.getElementById('importantRemark').value = '';
+			document.getElementById('customIgnoredRemark').value = ''; document.getElementById('useDefaultIgnored').checked = true; toggleIgnoredRemarkArea();
             
             document.getElementById('priceEstBaseBalance').value = ''; document.getElementById('priceEstBalance').value = ''; document.getElementById('paidDepositHintGroup').style.display = 'none';
             let currentSource = document.getElementById('itemSource').value; document.getElementById('groupbuySelectGroup').style.display = (currentSource === '拼团') ? 'block' : 'none'; document.getElementById('groupbuyId').value = '';
