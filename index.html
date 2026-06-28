@@ -301,6 +301,39 @@
         .btn-cancel { background: var(--input-bg); color: var(--text-main);}
         .btn-primary { background: var(--theme-dark); color: white;}
 
+        /* ====== 🌟 录入抽屉：冻结顶部和底部 (吸顶/吸底) ====== */
+        #addDrawer .drawer { padding-bottom: 0; }
+        
+        /* 顶部（全款/在排）吸顶 */
+        #addDrawer #typeControl {
+            position: sticky;
+            top: 0; 
+            z-index: 60;
+        }
+        #addDrawer #typeControl::before {
+            content: ''; position: absolute;
+            top: -20px; left: -24px; right: -24px; bottom: -12px;
+            background: var(--surface); z-index: -1;
+            border-bottom: 1px solid rgba(0,0,0,0.06); 
+        }
+
+        /* 底部（取消/保存）吸底 */
+        #addDrawer #normalBtnGroup, 
+        #addDrawer #payBalanceBtnGroup {
+            position: sticky;
+            bottom: 0;
+            z-index: 60;
+            padding: 15px 0 30px 0;
+            margin-bottom: 0;
+        }
+        #addDrawer #normalBtnGroup::before,
+        #addDrawer #payBalanceBtnGroup::before {
+            content: ''; position: absolute;
+            top: 0; left: -24px; right: -24px; bottom: 0;
+            background: var(--surface); z-index: -1;
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+
         .settings-layout { display: flex; height: 60vh; margin: 0; border-top: 1px solid #eee; background: #fff;}
         .settings-sidebar { width: 95px; background: #F7F8FA; overflow-y: auto; padding-top: 10px; flex-shrink: 0;}
         .settings-nav-item { padding: 16px 10px 16px 20px; text-align: left; font-size: 13px; color: #666; cursor: pointer; transition: 0.2s; position: relative; white-space: nowrap; box-sizing: border-box;}
@@ -433,7 +466,7 @@
                 <input type="radio" name="entryType" id="type_queue" value="queue" onchange="toggleEntryType()">
                 <label for="type_queue">在排</label>
                 <input type="radio" name="entryType" id="type_deposit" value="deposit" onchange="toggleEntryType()">
-                <label for="type_deposit">定金</label>
+                <label for="type_deposit">已付</label>
                 <input type="radio" name="entryType" id="type_balance" value="pay_balance" onchange="toggleEntryType()">
                 <label for="type_balance">尾款</label>
             </div>
@@ -446,7 +479,7 @@
             </div>
 
             <div class="form-group">
-                <input type="text" id="itemName" placeholder="输入物品名称..." style="font-size: 18px; font-weight: bold; background: transparent; padding: 0 0 10px 0; border-bottom: 2px solid var(--input-bg); border-radius: 0; height: auto;">
+                <input type="text" id="itemName" placeholder="*输入物品名称..." style="font-size: 22px; font-weight: bold; background: transparent; padding: 0 0 10px 0; border-bottom: 2px solid var(--input-bg); border-radius: 0; height: auto;">
             </div>
 
             <!-- 图片上传区 -->
@@ -492,11 +525,11 @@
 
             <div class="form-group row" id="estBalanceGroup" style="display: none;">
                 <div>
-                    <label class="form-label" style="color: var(--est-color);">预计尾款补款 <span style="font-size:10px;font-weight:normal;color:#aaa;">(预计不计入)</span></label>
+                    <label class="form-label" style="color: var(--est-color);">预计尾款 <span style="font-size:9px;font-weight:normal;color:#aaa;">不计入总计</span></label>
                     <input type="number" id="priceEstBaseBalance" placeholder="0.00" step="0.01">
                 </div>
                 <div>
-                    <label class="form-label" style="color: var(--est-color);">预计附加补款 <span style="font-size:10px;font-weight:normal;color:#aaa;">(预计不计入)</span></label>
+                    <label class="form-label" style="color: var(--est-color);">预计附加 <span style="font-size:9px;font-weight:normal;color:#aaa;">不计入总计</span></label>
                     <input type="number" id="priceEstBalance" placeholder="0.00" step="0.01">
                 </div>
             </div>
@@ -531,7 +564,7 @@
                             <option value="">文本或日期</option>
                             <option value="月初">月初</option>
                             <option value="月中">月中</option>
-                            <option value="月底">月底</option>
+                            <option value="月底">月末</option>
                         </select>
                     </label>
                     <input type="text" id="estDate" placeholder="选择日期" onfocus="if(!this.value || this.value.match(/^\\d{4}-\\d{2}-\\d{2}$/)) this.type='date'" onblur="if(!this.value)this.type='text'" required>
@@ -624,16 +657,27 @@
                 </select>
 				<div id="ignoredRemarkArea" style="display:none; margin-top:8px; padding: 10px; background: var(--input-bg); border-radius: 8px;">
  				   <label style="display:flex; align-items:center; gap:8px; font-size:12px; color: #666; margin-bottom: 8px; font-weight:normal;">
-    				    <input type="checkbox" id="useDefaultIgnored" checked style="width:16px; height:16px; margin:0;">
+    				    <input type="checkbox" id="useDefaultIgnored" style="width:16px; height:16px; margin:0;">
    				     不输入则自动填入状态名
   				  </label>
   				  <input type="text" id="customIgnoredRemark" placeholder="输入备注..." style="height: 36px; background: #fff; padding: 0 10px; border-radius: 6px; border: none; font-size: 13px; width: 100%; box-sizing: border-box;">
 				</div>
             </div>
 
-            <div class="btn-group">
+            <div class="btn-group" id="normalBtnGroup">
                 <button class="btn-cancel" onclick="closeDrawer()">取消</button>
                 <button class="btn-primary" onclick="saveItem()" id="btnSave">保存</button>
+            </div>
+            <div class="btn-group" id="payBalanceBtnGroup" style="display:none; gap: 6px;">
+                <button class="btn-cancel" onclick="closeDrawer()" style="flex: 0.5; font-size:14px; padding: 12px 4px;">取消</button>
+                <button class="btn-primary" style="display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; background:#404040; flex: 1; padding: 8px 0; font-size:14px;" onclick="savePayBalance('baseOnly')">
+                    <span style="white-space:nowrap;">自动填入尾款</span>
+                    <span style="font-size:10px; font-weight:normal; opacity:0.8; white-space:nowrap; margin-top:2px;">手动优先 自动填入尾款</span>
+                </button>
+                <button class="btn-primary" style="display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; background:#404040; flex: 1; padding: 8px 0; font-size:14px;" onclick="savePayBalance('all')">
+                    <span style="white-space:nowrap;">自动填入预计</span>
+                    <span style="font-size:10px; font-weight:normal; opacity:0.8; white-space:nowrap; margin-top:2px;">手动优先  自动填入尾附</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1639,8 +1683,10 @@
             const url = URL.createObjectURL(blob); 
             const a = document.createElement('a'); 
             a.href = url; 
-            a.download = `娃柜备份_${new Date().getTime()}.json`; 
-            a.click(); 
+            let d = new Date();
+            let dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            a.download = `娃柜备份_${dStr}.json`; 
+            a.click();
         }
         async function importData(input) {
             if (input.files && input.files[0]) {
@@ -2012,9 +2058,9 @@
             
             const labelBase = document.getElementById('labelPriceBase');
             if (type === 'queue') {
-                labelBase.innerText = '预计定金'; labelBase.style.color = 'var(--est-color)'; document.getElementById('labelPriceShip').style.color = 'var(--est-color)'; document.getElementById('labelPriceTotal').style.color = 'var(--est-color)'; 
+                labelBase.innerText = '预计已付'; labelBase.style.color = 'var(--est-color)'; document.getElementById('labelPriceShip').style.color = 'var(--est-color)'; document.getElementById('labelPriceTotal').style.color = 'var(--est-color)'; 
             } else {
-                if (type === 'deposit') labelBase.innerText = '已付定金'; else if (type === 'pay_balance') labelBase.innerText = '已付尾款'; else labelBase.innerText = '本体';
+                if (type === 'deposit') labelBase.innerText = '已付'; else if (type === 'pay_balance') labelBase.innerText = '尾款'; else labelBase.innerText = '本体';
                 labelBase.style.color = ''; document.getElementById('labelPriceShip').style.color = ''; document.getElementById('labelPriceTotal').style.color = ''; 
             }
 
@@ -2025,8 +2071,20 @@
             const estGrp = document.getElementById('estBalanceGroup');
             if (type === 'queue' || type === 'deposit' || type === 'pay_balance') estGrp.style.display = 'flex'; else estGrp.style.display = 'none';
             
-            let isReadonly = (!isEdit && type === 'pay_balance');
-            document.getElementById('priceEstBaseBalance').readOnly = isReadonly; document.getElementById('priceEstBalance').readOnly = isReadonly;
+            // 🌟 核心逻辑：只有在非编辑状态（!isEdit）且是尾款时才显示两个快捷补款按钮，点击编辑时变回普通“保存修改”
+            if (type === 'pay_balance' && !isEdit) {
+                document.getElementById('normalBtnGroup').style.display = 'none';
+                document.getElementById('payBalanceBtnGroup').style.display = 'flex';
+            } else {
+                document.getElementById('normalBtnGroup').style.display = 'flex';
+                document.getElementById('payBalanceBtnGroup').style.display = 'none';
+            }
+            
+            // 🌟 核心逻辑：尾款（pay_balance）类型下永久禁止手动输入两个预计补款，直接设为只读
+            let isReadonly = (type === 'pay_balance');
+            document.getElementById('priceEstBaseBalance').readOnly = isReadonly; 
+            document.getElementById('priceEstBalance').readOnly = isReadonly;
+            
             document.getElementById('paidDepositHintGroup').style.display = 'none';
             document.getElementById('finalBalanceDateGroup').style.display = (type === 'deposit') ? 'flex' : 'none';
             document.getElementById('queueDeadlineGroup').style.display = (type === 'queue') ? 'flex' : 'none';
@@ -2050,7 +2108,7 @@
         function autoFillFromQueue() { 
             const id = document.getElementById('pullQueueSelect').value; const item = appData.items.find(i => i.id == id); 
             if(item) { 
-                document.getElementById('itemName').value = item.name + " [定金]"; 
+                document.getElementById('itemName').value = item.name + " [已付]"; 
                 document.getElementById('mainCat').value = item.mainCat; updateSubCatOptions(item.subCat); 
                 document.getElementById('priceBase').value = item.basePrice !== undefined ? item.basePrice : '';
                 document.getElementById('priceEstBaseBalance').value = item.estBaseBalance !== undefined ? item.estBaseBalance : '';
@@ -2072,8 +2130,10 @@
             if(item) { 
                 document.getElementById('itemName').value = item.name + " [尾款]"; 
                 document.getElementById('mainCat').value = item.mainCat; updateSubCatOptions(item.subCat); 
-                document.getElementById('priceBase').value = item.estBaseBalance !== undefined ? item.estBaseBalance : '';
-                document.getElementById('priceShip').value = item.estBalance !== undefined ? item.estBalance : '';
+                
+                // 🌟 核心修正：决不把它清空！自动拉取并保留该物品已录入的实际尾款和附加费，防止点击付补款时消失
+                document.getElementById('priceBase').value = item.balanceBasePrice !== undefined ? item.balanceBasePrice : '';
+                document.getElementById('priceShip').value = item.balanceShipping !== undefined ? item.balanceShipping : '';
                 autoCalc('base'); 
                 
                 document.getElementById('priceEstBaseBalance').value = item.estBaseBalance !== undefined ? item.estBaseBalance : '';
@@ -2084,8 +2144,12 @@
                 toggleRemarkMode();
                 document.getElementById('isImportant').checked = !!item.isImportant; document.getElementById('importantArea').style.display = item.isImportant ? 'block' : 'none'; document.getElementById('importantRemark').value = item.importantRemark || '';
 
-                let paidTotal = item.totalPrice * item.qty;
-                document.getElementById('paidDepositHintText').innerText = `已付定金 ${paidTotal} 元（计入定金总计）`; document.getElementById('paidDepositHintGroup').style.display = 'flex';
+                // 🌟 核心修正：如果该物品之前已经录入过部分尾款，这里只计算它最初的“定金/已付”金额，决不把尾款混进去计算
+                let originalDeposit = item.totalPrice * item.qty;
+                if (item.depositBasePrice !== undefined) {
+                    originalDeposit = (item.depositBasePrice + item.depositShipping) * item.qty;
+                }
+                document.getElementById('paidDepositHintText').innerText = `已付 ${originalDeposit} 元（计入已付总计）`; document.getElementById('paidDepositHintGroup').style.display = 'flex';
                 imgArray = item.images ? [...item.images] : []; coverCrop = item.coverCrop ? {...item.coverCrop} : { top: 0, bottom: 1, left: 0, right: 1 };
                 renderUploaders();
             } else {
@@ -2094,6 +2158,57 @@
                 document.getElementById('splitRemarkView').checked = false;
                 document.getElementById('isImportant').checked = false; document.getElementById('importantArea').style.display = 'none'; document.getElementById('importantRemark').value = '';
             }
+        }
+		
+		function savePayBalance(mode) {
+            const id = document.getElementById('pullDepositSelect').value;
+            const item = appData.items.find(i => i.id == id);
+            
+            // 获取后台存着的预计数据
+            let estBase = item ? (parseFloat(item.estBaseBalance) || 0) : 0;
+            let estShip = item ? (parseFloat(item.estBalance) || 0) : 0;
+            
+            // 获取用户当前输入框的值
+            let inputBaseStr = document.getElementById('priceBase').value.trim();
+            let inputShipStr = document.getElementById('priceShip').value.trim();
+
+            if (mode === 'baseOnly') {
+                // 【仅增加已付】：若用户未手动输入本体，则自动填入预计尾款。
+                if (inputBaseStr === '') {
+                    document.getElementById('priceBase').value = estBase > 0 ? estBase.toFixed(2) : '';
+                }
+                
+                // 重新计算总价
+                autoCalc('base');
+                
+                // 预计尾款本体归零，预计附加（邮费）保持原状
+                document.getElementById('priceEstBaseBalance').value = '0'; 
+                
+                // 🌟 核心逻辑：若没有手动输入附加（邮费），状态依然保持为 待补款 (need_balance)，外面卡片按钮不改变，依然能点击💰付补款！
+                // 只有手动输入了邮费，说明全都结清了，状态才转为 待发货 (not_arrived)
+                if (inputShipStr !== '') {
+                    document.getElementById('itemStatus').value = 'not_arrived'; 
+                } else {
+                    document.getElementById('itemStatus').value = 'need_balance'; 
+                }
+            } else if (mode === 'all') {
+                // 【付尾邮】：自动填入两个预计（若用户未手动输入）
+                if (inputBaseStr === '') {
+                    document.getElementById('priceBase').value = estBase > 0 ? estBase.toFixed(2) : '';
+                }
+                if (inputShipStr === '') {
+                    document.getElementById('priceShip').value = estShip > 0 ? estShip.toFixed(2) : '';
+                }
+                
+                // 重新计算总价
+                autoCalc('base');
+                
+                // 两项预计全部归零
+                document.getElementById('priceEstBaseBalance').value = '0'; 
+                document.getElementById('priceEstBalance').value = '0';     
+                document.getElementById('itemStatus').value = 'shipped'; 
+            }
+            saveItem();
         }
 
         function saveItem() {
@@ -2133,8 +2248,9 @@
             if (queueDeadlineSuffix === 'custom' || queueDeadlineSuffix === 'date') queueDeadlineSuffix = '';
 
             const finalStatus = document.getElementById('itemStatus').value;
-			const customIgnoredRemark = document.getElementById('customIgnoredRemark').value.trim();
-			const useDefaultIgnored = document.getElementById('useDefaultIgnored').checked;
+            const isIgnored = ['withdrawn', 'failed', 'dead_like', 'dead', 'exploded', 'run_away'].includes(finalStatus);
+			const customIgnoredRemark = isIgnored ? document.getElementById('customIgnoredRemark').value.trim() : '';
+			const useDefaultIgnored = isIgnored ? document.getElementById('useDefaultIgnored').checked : false;
 
             const gbId = document.getElementById('itemSource').value === '拼团' ? document.getElementById('groupbuyId').value : null;
             
@@ -2176,12 +2292,24 @@
                 } else {
                     if (type === 'pay_balance' && document.getElementById('pullDepositSelect').value) {
                         const id = document.getElementById('pullDepositSelect').value; const idx = appData.items.findIndex(i => i.id == id);
-                        appData.items[idx].depositBasePrice = appData.items[idx].basePrice || 0; appData.items[idx].depositShipping = appData.items[idx].shipping || 0;
-                        appData.items[idx].balanceBasePrice = bPrice; appData.items[idx].balanceShipping = sPrice;
-                        appData.items[idx].basePrice = appData.items[idx].depositBasePrice + bPrice; appData.items[idx].shipping = appData.items[idx].depositShipping + sPrice; appData.items[idx].totalPrice = appData.items[idx].basePrice + appData.items[idx].shipping;
+                        
+                        // 记录初次付定金时的数值
+                        if (appData.items[idx].depositBasePrice === undefined) {
+                            appData.items[idx].depositBasePrice = appData.items[idx].basePrice || 0;
+                            appData.items[idx].depositShipping = appData.items[idx].shipping || 0;
+                        }
+                        
+                        // 🌟 核心修正：直接将输入框内的最新值存入，不再进行叠加计算，防止数字翻倍
+                        appData.items[idx].balanceBasePrice = bPrice; 
+                        appData.items[idx].balanceShipping = sPrice;
+                        
+                        appData.items[idx].basePrice = appData.items[idx].depositBasePrice + bPrice; 
+                        appData.items[idx].shipping = appData.items[idx].depositShipping + sPrice; 
+                        appData.items[idx].totalPrice = appData.items[idx].basePrice + appData.items[idx].shipping;
+                        
                         appData.items[idx].remark = remark; appData.items[idx].status = finalStatus; appData.items[idx].isImportant = isImportant; appData.items[idx].importantRemark = importantRemark; appData.items[idx].customIgnoredRemark = customIgnoredRemark; appData.items[idx].useDefaultIgnored = useDefaultIgnored;
                         appData.items[idx].entryType = type; if(finalStatus === 'arrived') appData.items[idx].arrivedDate = new Date().toLocaleDateString('en-CA');
-                        appData.items[idx].estBaseBalance = 0; appData.items[idx].estBalance = 0; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].finalBalanceDate = ''; appData.items[idx].queueDeadline = '';
+                        appData.items[idx].estBaseBalance = estBaseBalance; appData.items[idx].estBalance = estBalance; appData.items[idx].images = [...imgArray]; appData.items[idx].coverCrop = {...coverCrop}; appData.items[idx].coverThumb = coverThumbStr; appData.items[idx].finalBalanceDate = ''; appData.items[idx].queueDeadline = '';
                     } else if (type === 'deposit' && document.getElementById('pullQueueSelect').value) {
                         const id = document.getElementById('pullQueueSelect').value; const idx = appData.items.findIndex(i => i.id == id);
                         appData.items[idx].totalPrice = tPrice; appData.items[idx].basePrice = bPrice; appData.items[idx].shipping = sPrice;
@@ -2190,7 +2318,7 @@
                     } else {
                         let newItem = { id: Date.now(), name: name, mainCat: document.getElementById('mainCat').value, subCat: document.getElementById('subCat').value, totalPrice: tPrice, shipping: sPrice, basePrice: bPrice, qty: parseInt(document.getElementById('itemQty').value)||1, source: document.getElementById('itemSource').value, groupbuyId: gbId, buyDate: document.getElementById('itemDate').value, estDate: estDate, estDateSuffix: estDateSuffix, remark: remark, remark2: remark2, splitRemark: splitRemark, isImportant: isImportant, importantRemark: importantRemark, customIgnoredRemark: customIgnoredRemark, useDefaultIgnored: useDefaultIgnored, status: finalStatus, entryType: type, images: [...imgArray], coverCrop: {...coverCrop}, coverThumb: coverThumbStr, noticeRead: false, noticeDismissed: false };
                         if(finalStatus === 'arrived') newItem.arrivedDate = new Date().toLocaleDateString('en-CA');
-                        newItem.estBaseBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBaseBalance; newItem.estBalance = (type === 'full' || type === 'pay_balance') ? 0 : estBalance;
+                        newItem.estBaseBalance = (type === 'full') ? 0 : estBaseBalance; newItem.estBalance = (type === 'full') ? 0 : estBalance;
                         newItem.finalBalanceDate = (type === 'deposit') ? finalBalanceDate : ''; newItem.queueDeadline = (type === 'queue') ? queueDeadline : ''; newItem.queueDeadlineSuffix = (type === 'queue') ? queueDeadlineSuffix : '';
                         appData.items.push(newItem);
                     }
@@ -3006,7 +3134,8 @@ if (showDuplicatesOnly) {
             
             let shortcutBtn = '';
             if (item.entryType === 'queue') { shortcutBtn = `<button class="id-btn action" style="background:#E6F7FF; color:#1890FF;" onclick="shortcutAction(${item.id}, 'deposit')">✅ 已成团</button>`; } 
-            else if (item.entryType === 'deposit') { shortcutBtn = `<button class="id-btn action" style="background:#FFF0F6; color:#EB2F96;" onclick="shortcutAction(${item.id}, 'pay_balance')">💰 付尾款</button>`; }
+            // 🌟 核心修正：只要物品的状态还是“待补款(need_balance)”，【💰 付补款】按钮就必须一直显示在卡片上，不能消失
+            else if (item.status === 'need_balance') { shortcutBtn = `<button class="id-btn action" style="background:#FFF0F6; color:#EB2F96;" onclick="shortcutAction(${item.id}, 'pay_balance')">💰 付补款</button>`; }
 
             document.getElementById('idActionGroup').innerHTML = `<button class="id-btn edit" onclick="startEdit()">✎ 编辑</button>${shortcutBtn}${btnHtml}<button class="id-btn delete" onclick="confirmDelete()">🗑 删除</button>`;
             document.getElementById('idCardOverlay').style.display = 'flex';
@@ -3175,7 +3304,7 @@ if (showDuplicatesOnly) {
             document.getElementById('splitRemarkView').checked = false; toggleRemarkMode();
             document.getElementById('itemRemark').value = ''; document.getElementById('itemRemarkLeft').value = ''; document.getElementById('itemRemarkRight').value = '';
             document.getElementById('isImportant').checked = false; document.getElementById('importantArea').style.display = 'none'; document.getElementById('importantRemark').value = '';
-			document.getElementById('customIgnoredRemark').value = ''; document.getElementById('useDefaultIgnored').checked = true; toggleIgnoredRemarkArea();
+			document.getElementById('customIgnoredRemark').value = ''; document.getElementById('useDefaultIgnored').checked = false; toggleIgnoredRemarkArea();
             
             document.getElementById('priceEstBaseBalance').value = ''; document.getElementById('priceEstBalance').value = ''; document.getElementById('paidDepositHintGroup').style.display = 'none';
             let currentSource = document.getElementById('itemSource').value; document.getElementById('groupbuySelectGroup').style.display = (currentSource === '拼团') ? 'block' : 'none'; document.getElementById('groupbuyId').value = '';
